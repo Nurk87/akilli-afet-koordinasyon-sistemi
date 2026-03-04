@@ -1,0 +1,1 @@
+# ak-ll--afet-koordinasyon-sistemi
