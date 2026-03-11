@@ -19,7 +19,7 @@ router.post("/register", (req, res) => {
             "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
             [name, email, hashedPassword, userRole],
             function (err) {
-                if (err) return res.status(500).json({ message: "Kayıt sırasında hata oluştu." });
+                if (err) return res.status(500).json({ message: "Kayıt sırasında hata." });
                 res.status(201).json({ message: "Kayıt başarılı", userId: this.lastID });
             }
         );
@@ -48,7 +48,8 @@ router.post("/login", (req, res) => {
 
         res.json({
             message: "Login başarılı",
-            token: token
+            token: token,
+            role: user.role // YÖNLENDİRME İÇİN EKLENDİ: Frontend'e kullanıcının rolünü yolluyoruz
         });
     });
 });
