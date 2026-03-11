@@ -4,73 +4,67 @@
   <meta charset="UTF-8">
   <title>Kullanıcı Kaydı</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 350px;
-    }
-    h3 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
+    body { font-family: Arial, sans-serif; background: #f0f4f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;}
+    .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+    h3 { text-align: center; margin-bottom: 20px; color: #333; }
+    input, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px;}
+    button:hover { background: #0056b3; }
+    .error { color: red; font-size: 12px; text-align: center; display: none; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <h3>Kullanıcı Kaydı</h3>
-  <input id="name" placeholder="Ad Soyad">
-  <input id="email" type="email" placeholder="E-posta">
-  <input id="password" type="password" placeholder="Şifre">
+  
+  <input id="name" type="text" placeholder="Ad Soyad" required>
+  <input id="email" type="email" placeholder="E-posta" required>
+  <input id="password" type="password" placeholder="Şifre (En az 6 karakter)" required>
+  
+  <select id="role">
+    <option value="user">Afetzede (Yardım İsteyen)</option>
+    <option value="volunteer">Gönüllü</option>
+    <option value="afad">AFAD Yetkilisi</option>
+  </select>
+
+  <div id="error-msg" class="error">Lütfen tüm alanları doğru doldurun.</div>
+
   <button onclick="register()">Kayıt Ol</button>
 </div>
 
 <script>
 function register() {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+  const errorMsg = document.getElementById("error-msg");
+
+  // FORM DOĞRULAMA (Validation)
+  if (!name || !email || !password) {
+      errorMsg.style.display = "block";
+      errorMsg.innerText = "Lütfen tüm alanları doldurun!";
+      return;
+  }
+  if (password.length < 6) {
+      errorMsg.style.display = "block";
+      errorMsg.innerText = "Şifre en az 6 karakter olmalıdır!";
+      return;
+  }
+  errorMsg.style.display = "none"; // Hata yoksa mesajı gizle
 
   fetch("http://localhost:3000/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, role: "user" })
+    body: JSON.stringify({ name, email, password, role }) // Seçilen rolü backend'e yolluyoruz
   })
   .then(res => res.json())
   .then(data => {
     alert(data.message);
-    if(data.userId) window.location.href = "login.html";
+    if(data.userId) {
+        window.location.href = "login.html"; // Başarılıysa girişe yönlendir
+    }
   })
   .catch(err => console.error("Hata:", err));
 }
