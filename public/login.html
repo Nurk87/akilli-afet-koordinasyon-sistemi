@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Giriş</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f4f7; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+    h3 { text-align: center; margin-bottom: 20px; color: #333; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;}
+    button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #218838; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h3>Giriş Yap</h3>
+  <input id="email" type="email" placeholder="E-posta">
+  <input id="password" type="password" placeholder="Şifre">
+  <button onclick="login()">Giriş</button>
+</div>
+
+<script>
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  fetch("http://localhost:3000/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    if(data.token) {
+        // DİKKAT: Token kaydedilip talep sayfasına yönlendirme yapılıyor
+        localStorage.setItem("token", data.token); 
+        window.location.href = "create-request.html";
+    }
+  })
+  .catch(err => console.error("Hata:", err));
+}
+</script>
+
+</body>
+</html>
