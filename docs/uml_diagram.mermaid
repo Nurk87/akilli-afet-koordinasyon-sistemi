@@ -1,0 +1,60 @@
+classDiagram
+    class User {
+        +int id
+        +String ad
+        +String soyad
+        +String email
+        +String telefon
+        +String sifre
+        +String rol
+        +login()
+        +register()
+        +logout()
+    }
+
+    class Gonullu {
+        +viewRequests()
+        +acceptRequest(requestId)
+    }
+
+    class Kazazede {
+        +createRequest(talepBilgileri)
+        +viewMyRequests()
+    }
+
+    class Yetkili {
+        +manageUsers()
+        +manageRequests()
+        +assignPriority()
+    }
+
+    class YardimTalebi {
+        +int id
+        +int kullanici_id
+        +int il_id
+        +int ilce_id
+        +float enlem
+        +float boylam
+        +String baslik
+        +String aciklama
+        +String durum
+        +String oncelik
+        +saveToDatabase()
+        +updateDurum(yeniDurum)
+    }
+
+    class Konum {
+        +int il_id
+        +int ilce_id
+        +float enlem
+        +float boylam
+        +getIlceler(il_id)
+    }
+
+    User <|-- Gonullu
+    User <|-- Kazazede
+    User <|-- Yetkili
+    
+    Kazazede "1" --> "*" YardimTalebi : oluşturur
+    Gonullu "1" --> "*" YardimTalebi : ilgilenir
+    YardimTalebi "*" --> "1" Konum : lokasyon belirtir

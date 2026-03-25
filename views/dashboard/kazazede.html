@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kazazede Paneli</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 AFET <span class="logo-accent">YARDIM</span></span>
+      </div>
+      <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-house-user"></i> Kazazede Paneli</span>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Çıkış</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="width: 90%; max-width: 1000px; margin: 50px auto; min-height: 70vh;">
+    <div style="margin-bottom: 40px;">
+      <h2 style="font-weight: 800; font-size: 2rem; color: var(--afad-navy);">Sizin Yanınızdayız!</h2>
+      <p style="color: #64748b; font-size: 1.1rem;">Lütfen ihtiyacınız olan yardımı belirtin veya mevcut talebinizin durumunu izleyin.</p>
+    </div>
+
+    <div class="cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+      <div class="glass-card" style="margin-top: 0; border-bottom: 5px solid var(--afad-red); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="background: rgba(227, 6, 19, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i class="fas fa-plus-circle" style="color: var(--afad-red); font-size: 1.5rem;"></i>
+          </div>
+          <h3 style="margin-top: 0; color: var(--afad-navy);">Yeni Yardım Talebi</h3>
+          <p style="color: #64748b;">Acil gıda, sağlık, barınma veya tahliye ihtiyaçlarınız için hemen bildirim yapın.</p>
+        </div>
+        <a href="/requests/yeni" class="btn btn-premium" style="text-align: center; margin-left: 0; margin-top: 20px; text-decoration: none;">Talep Oluştur</a>
+      </div>
+
+      <div class="glass-card" style="margin-top: 0; border-bottom: 5px solid var(--afad-navy); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div style="background: rgba(0, 51, 102, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i class="fas fa-clipboard-list" style="color: var(--afad-navy); font-size: 1.5rem;"></i>
+          </div>
+          <h3 style="margin-top: 0; color: var(--afad-navy);">Taleplerim</h3>
+          <p style="color: #64748b;">Daha önce oluşturduğunuz taleplerin onay ve atama durumunu buradan takip edin.</p>
+        </div>
+        <a href="/requests" class="btn btn-navy" style="text-align: center; margin-left: 0; margin-top: 20px; text-decoration: none;">Taleplerimi İzle</a>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 25px; background: white; border-radius: 15px; border-left: 5px solid #ffc107;" id="status-widget">
+      <h4 style="margin-top: 0; color: #856404;"><i class="fas fa-info-circle"></i> Talep Durumu</h4>
+      <p id="status-text" style="color: #666; font-size: 0.95rem; margin-bottom: 0;">Yardım talepleriniz işleniyor...</p>
+    </div>
+  </div>
+
+  <script>
+    async function checkActiveRequests() {
+      try {
+        const res = await fetch('/requests/api/list');
+        const data = await res.json();
+        const statusWidget = document.getElementById('status-widget');
+        const statusText = document.getElementById('status-text');
+        
+        // Find if any of my requests have 'ekipler yolda'
+        // Note: The API returns all requests usually, but for a production app 
+        // we'd filter by user_id on the server. Here we assume the user 
+        // only sees relevant info or we filter on client for now.
+        // Let's assume the user wants to see 'Ekipler Yolda' if ANY request is in that state.
+        
+        const approved = data.find(r => (r.durum || '').toLowerCase() === 'onaylandi');
+        const dispatched = data.find(r => (r.durum || '').toLowerCase() === 'ekipler yolda');
+        const completed = data.find(r => (r.durum || '').toLowerCase() === 'tamamlandi');
+        
+        if (dispatched) {
+          statusWidget.style.borderLeftColor = '#3b82f6';
+          statusWidget.innerHTML = `
+            <div style="display:flex; align-items:center; gap:15px;">
+              <div style="background:#eff6ff; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-truck-moving" style="color:#3b82f6; font-size:1.5rem;"></i>
+              </div>
+              <div>
+                <h4 style="margin:0; color:#1e40af;">Ekipler Yola Çıktı!</h4>
+                <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Yardım ekiplerimiz size ulaşmak üzere hareket halindedir.</p>
+              </div>
+            </div>`;
+        } else if (approved) {
+          statusWidget.style.borderLeftColor = '#8b5cf6';
+          statusWidget.innerHTML = `
+            <div style="display:flex; align-items:center; gap:15px;">
+              <div style="background:#f5f3ff; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-check-circle" style="color:#8b5cf6; font-size:1.5rem;"></i>
+              </div>
+              <div>
+                <h4 style="margin:0; color:#5b21b6;'>Talebiniz Onaylandı</h4>
+                <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Merkezimiz talebinizi onayladı, ekip ataması yapılıyor.</p>
+              </div>
+            </div>`;
+        } else if (completed) {
+          statusWidget.style.borderLeftColor = '#10b981';
+          statusWidget.style.background = '#f0fdf4';
+          statusText.innerHTML = `<b style="color: #15803d;"><i class="fas fa-check-double"></i> YARDIM ULAŞTI</b><br>Ekiplerimiz bölgeye intikal etti ve işleminiz tamamlandı. Geçmiş olsun.`;
+        } else if (data.length > 0) {
+          statusText.innerHTML = `Henüz ekipler yola çıkmadı. Talebiniz koordinasyon merkezinde inceleniyor.`;
+        } else {
+          statusText.innerHTML = `Şu an aktif bir yardım talebiniz bulunmamaktadır.`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    checkActiveRequests();
+    setInterval(checkActiveRequests, 10000); // Pulse every 10s
+  </script>
+
+  <footer style="margin-top: 50px;">
+    <div class="container">
+      <p>&copy; 2026 Akıllı Afet Koordinasyon Sistemi | Yanındayız Türkiyem 🇹🇷</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFAD | Akıllı Afet Koordinasyon Sistemi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="container"
+      style="display: flex; justify-content: space-between; align-items: center; width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">AFET <span class="logo-accent">KOORDİNASYON</span></span>
+      </div>
+      <div class="nav-links">
+        <a href="/giris" class="btn btn-navy" style="padding: 10px 25px;">Giriş Yap</a>
+        <a href="/kayit" class="btn btn-premium" style="padding: 10px 25px;">Kayıt Ol</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="afad-hero"
+    style="background-image: linear-gradient(rgba(0, 51, 102, 0.85), rgba(0, 51, 102, 0.6)), url('/images/afad_hero.png');">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div class="hero-content">
+        <div class="hero-text">
+          <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;">Gelecek Nesil Afet
+            Yönetimi</span>
+          <h1>Akıllı Afet <span style="color: var(--afad-red);">Koordinasyon</span> ve Kaynak <span
+              style="color: var(--afad-red);">Optimizasyon</span> Sistemi</h1>
+          <p>Yapay zeka ve gerçek zamanlı konum verileriyle afet anında doğru kaynakları, doğru ihtiyaç sahiplerine en
+            hızlı şekilde ulaştırıyoruz.</p>
+          <div class="hero-buttons">
+            <a href="/kayit" class="btn btn-premium btn-lg">Sisteme Katıl</a>
+            <a href="#ozellikler" class="btn btn-secondary"
+              style="background: rgba(255,255,255,0.1); border: 2px solid white; color: white;">Keşfet</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="ozellikler" class="info-section" style="background: white;">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; padding: 100px 0;">
+      <h2
+        style="font-size: 2.8rem; color: var(--afad-navy); font-weight: 800; text-align: center; margin-bottom: 10px;">
+        Nasıl Çalışıyoruz?</h2>
+      <p style="font-size: 1.2rem; color: #64748b; text-align: center; max-width: 800px; margin: 0 auto 60px auto;">AFAD
+        standartlarıyla uyumlu, teknoloji odaklı ve veri tabanlı afet koordinasyon altyapısı.</p>
+
+      <div class="info-cards"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+        <div class="glass-card" style="text-align: center; margin-top: 0;">
+          <div
+            style="background: rgba(227, 6, 19, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+            <i class="fas fa-map-marked-alt" style="font-size: 2rem; color: var(--afad-red);"></i>
+          </div>
+          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Akıllı Atama</h3>
+          <p style="color: #64748b;">Gelişmiş konum algoritmalarıyla en yakın gönüllü ekiplerini ihtiyaç noktalarına
+            milisaniyeler içinde yönlendirir.</p>
+        </div>
+
+        <div class="glass-card" style="text-align: center; margin-top: 0;">
+          <div
+            style="background: rgba(0, 51, 102, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--afad-navy);"></i>
+          </div>
+          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Kaynak Optimizasyonu</h3>
+          <p style="color: #64748b;">T-SQL tabanlı veri işleme ile kritik yardım malzemelerinin lojistiğini israfsız ve
+            en verimli şekilde yönetir.</p>
+        </div>
+
+        <div class="glass-card" style="text-align: center; margin-top: 0; border-bottom: 5px solid var(--afad-red);">
+          <div
+            style="background: rgba(227, 6, 19, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
+            <i class="fas fa-satellite-dish" style="font-size: 2rem; color: var(--afad-red);"></i>
+          </div>
+          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Canlı Yönetim</h3>
+          <p style="color: #64748b;">Yetkili panellerinden tüm saha hareketlerini, stok durumlarını ve atamaları anlık
+            harita üzerinden izler.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background: var(--afad-navy); padding: 60px 0;">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; text-align: center; color: white;">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/AFAD_logo.png" alt="AFAD Logo White"
+        style="height: 60px; filter: brightness(0) invert(1); margin-bottom: 30px; opacity: 0.9;">
+      <p style="font-size: 1.1rem; opacity: 0.9;">&copy; 2026 Akıllı Afet Koordinasyon Sistemi | T-SQL & Node.js
+        Implementation</p>
+      <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.5;">
+        Akademik Bitirme Projesi - Elif Nisa Tuncer | Afet Yönetim Teknolojileri
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

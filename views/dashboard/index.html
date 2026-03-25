@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto; padding: 12px 0;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 AFET <span class="logo-accent">KOORDİNASYON</span></span>
+      </div>
+      <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-circle"></i> Kullanıcı Paneli</span>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Oturumu Kapat</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dashboard-wrapper">
+    <div class="sidebar" style="width: 280px; padding: 40px 20px;">
+      <h3 style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 25px;">Navigasyon</h3>
+      <ul>
+        <li><a href="/dashboard" class="active"><i class="fas fa-home" style="width: 25px;"></i> Dashboard</a></li>
+        <li><a href="/requests"><i class="fas fa-clipboard-list" style="width: 25px;"></i> Taleplerim</a></li>
+      </ul>
+      <a href="/requests/yeni" class="btn btn-premium" style="margin-top: 20px; width: 100%; text-align: center; text-decoration: none; padding: 12px 0;">
+        <i class="fas fa-plus"></i> Yeni Talep
+      </a>
+    </div>
+
+    <div class="content" style="padding: 40px;">
+      <h2 style="font-weight: 800; color: var(--afad-navy); font-size: 2.2rem; margin-bottom: 10px;">Sisteme Hoş Geldiniz!</h2>
+      <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 40px;">AFAD onaylı koordinasyon altyapısı ile güvendesiniz.</p>
+      
+      <div class="cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <div class="card" style="border-bottom: 5px solid var(--afad-navy);">
+          <div style="background: rgba(0, 51, 102, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i class="fas fa-list-check" style="color: var(--afad-navy); font-size: 1.5rem;"></i>
+          </div>
+          <h3 style="color: var(--afad-navy); font-size: 1.4rem;">Taleplerim</h3>
+          <p style="color: #64748b;">Mevcut ve geçmiş tüm yardım taleplerinizin durumunu anlık izleyin.</p>
+          <a href="/requests" style="font-weight: 700; color: var(--afad-red); display: flex; align-items: center; gap: 8px;">Listeyi Görüntüle <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="card" style="border-bottom: 5px solid var(--afad-red);">
+          <div style="background: rgba(227, 6, 19, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <i class="fas fa-plus-circle" style="color: var(--afad-red); font-size: 1.5rem;"></i>
+          </div>
+          <h3 style="color: var(--afad-navy); font-size: 1.4rem;">Talep Oluştur</h3>
+          <p style="color: #64748b;">Acil ihtiyaçlarınız için yeni bir koordinasyon talebi başlatın.</p>
+          <a href="/requests/yeni" style="font-weight: 700; color: var(--afad-red); display: flex; align-items: center; gap: 8px;">İhtiyaç Bildir <i class="fas fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top: 60px;">
+    <div class="container">
+      <p>&copy; 2026 Akıllı Afet Koordinasyon Sistemi | T-SQL & Node.js Implementation</p>
+    </div>
+  </footer>
+</body>
+</html>

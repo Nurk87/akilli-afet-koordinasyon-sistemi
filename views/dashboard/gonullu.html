@@ -1,0 +1,122 @@
+  <!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gönüllü Paneli | AFAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="background: radial-gradient(circle at top right, #f8fafc, #e2e8f0);">
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 AFET <span class="logo-accent">GÖNÜLLÜ</span></span>
+      </div>
+      <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-tag"></i> Saha Gönüllüsü</span>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Gelen Güvenli Çıkış</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="width: 90%; max-width: 1100px; margin: 50px auto;">
+    <div style="margin-bottom: 40px;">
+      <h2 style="font-weight: 800; font-size: 2.5rem; color: var(--afad-navy); margin-bottom: 10px;">Saha <span style="color: var(--afad-red);">Operasyonları</span></h2>
+      <p style="color: #64748b; font-size: 1.1rem;">Size atanan görevleri takip edin ve yeni yardım talepleri oluşturun.</p>
+    </div>
+
+    <div class="cards" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
+      <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 6px solid var(--afad-blue);">
+        <div>
+          <i class="fas fa-plus-circle fa-2x" style="color: var(--afad-blue); margin-bottom: 20px;"></i>
+          <h3 style="color: var(--afad-navy);">Yeni Talep Bildir</h3>
+          <p style="color: #64748b;">Sahada tespit ettiğiniz yeni ihtiyaçları hızla merkeze raporlayın.</p>
+        </div>
+        <a href="/requests/yeni" class="btn btn-navy" style="text-align: center; margin-top: 20px; text-decoration: none;">TALEP OLUŞTUR</a>
+      </div>
+
+      <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 6px solid var(--afad-red);">
+        <div>
+          <i class="fas fa-list-check fa-2x" style="color: var(--afad-red); margin-bottom: 20px;"></i>
+          <h3 style="color: var(--afad-navy);">Tüm Talepleri Gör</h3>
+          <p style="color: #64748b;">Bölgeden gelen tüm yardım çağrılarını ve güncel durumlarını inceleyin.</p>
+        </div>
+        <a href="/requests" class="btn btn-premium" style="text-align: center; margin-top: 20px; text-decoration: none;">SAHA LİSTESİ</a>
+      </div>
+    </div>
+
+    <div class="glass-card" style="margin-top: 40px; min-height: 300px;">
+      <h3 style="margin-top: 0; color: var(--afad-navy); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-tasks" style="color: var(--afad-red);"></i> Aktif Görevlerim
+      </h3>
+      <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+        <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
+      </div>
+    </div>
+  </div>
+
+  <footer style="margin-top: 60px; padding: 40px 0;">
+    <div class="container" style="text-align: center;">
+      <p style="color: #94a3b8; font-size: 0.9rem;">&copy; 2026 AFAD Akıllı Afet Koordinasyon Sistemi</p>
+    </div>
+  </footer>
+
+  <script>
+    async function loadVolunteerTasks() {
+      const container = document.getElementById('my-tasks-container');
+      try {
+        const authRes = await fetch('/auth/status');
+        const authData = await authRes.json();
+        const myId = authData.id;
+
+        const res = await fetch('/requests/api/list');
+        const data = await res.json();
+        
+        const myTasks = data.filter(r => r.gonullu_id == myId && r.durum !== 'tamamlandi');
+        
+        container.innerHTML = myTasks.length === 0 ? `
+          <div style="text-align: center; padding: 50px; border: 2px dashed #e2e8f0; border-radius: 15px;">
+            <i class="fas fa-mug-hot fa-2x" style="color:#cbd5e1; margin-bottom:15px;"></i>
+            <p style="color: #94a3b8; font-weight:600;">Şu an için atanmış bir göreviniz bulunmuyor.</p>
+          </div>
+        ` : '';
+        
+        myTasks.forEach(task => {
+          const card = document.createElement('div');
+          card.style.background = 'white';
+          card.style.padding = '20px';
+          card.style.borderRadius = '15px';
+          card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+          card.style.borderLeft = '5px solid #2563eb';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h4 style="margin:0; color:var(--afad-navy); font-size:1.1rem;">${task.baslik}</h4>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
+                  <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
+                </div>
+              </div>
+              <span class="badge" style="background:#eff6ff; color:#2563eb; font-weight:800; border:1px solid currentColor;">ATANDI</span>
+            </div>
+            <p style="font-size:0.9rem; color:#475569; margin:15px 0;">${task.aciklama}</p>
+            <div style="display:flex; gap:10px;">
+              <a href="https://www.google.com/maps?q=${task.enlem},${task.boylam}" target="_blank" class="btn btn-navy" style="font-size:0.8rem; padding:8px 15px;">
+                <i class="fas fa-location-arrow"></i> NAVİGASYON
+              </a>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p style="color: #ef4444; text-align:center;">Bilgiler alınırken bir hata oluştu.</p>';
+      }
+    }
+
+    loadVolunteerTasks();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kullanıcı Yönetimi | AFAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .user-table-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th {
+      text-align: left;
+      padding: 15px;
+      border-bottom: 2px solid #f1f5f9;
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--afad-navy);
+      font-size: 0.95rem;
+    }
+    tr:hover {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .role-yetkili { background: #fee2e2; color: #dc2626; }
+    .role-gonullu { background: #dcfce7; color: #15803d; }
+    .role-kazazede { background: #eff6ff; color: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 SİSTEM <span class="logo-accent">KULLANICILARI</span></span>
+      </div>
+      <div>
+        <a href="/dashboard" class="btn btn-navy"><i class="fas fa-arrow-left"></i> Geri Dön</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="width: 95%; margin: 40px auto;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <h2 style="font-weight: 800; color: var(--afad-navy);">Kullanıcı <span style="color: var(--afad-red);">Listesi</span></h2>
+        <p style="color: #64748b;">Sistemde kayıtlı tüm personelin ve afetzedelerin dökümü.</p>
+      </div>
+      <div style="background: white; padding: 10px 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-weight: 600;">
+        <i class="fas fa-users" style="color: var(--afad-red);"></i> Toplam: <span id="total-users-count">...</span>
+      </div>
+    </div>
+
+    <div class="user-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Ad Soyad</th>
+            <th>Email</th>
+            <th>Telefon</th>
+            <th>Rol / Yetki</th>
+            <th>Kayıt Tarihi</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <!-- Dinamik Yüklenecek -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadUsers() {
+      try {
+        const res = await fetch('/dashboard/api/users');
+        const users = await res.json();
+        
+        const tbody = document.getElementById('users-tbody');
+        document.getElementById('total-users-count').innerText = users.length;
+        
+        tbody.innerHTML = '';
+        users.forEach(user => {
+          const row = document.createElement('tr');
+          const date = new Date(user.olusturulma_tarihi).toLocaleDateString('tr-TR');
+          
+          let roleClass = 'role-kazazede';
+          let roleText = 'KAZAZEDE';
+          if(user.rol === 'yetkili' || user.rol === 'admin') {
+            roleClass = 'role-yetkili';
+            roleText = 'YETKİLİ';
+          } else if(user.rol === 'gonullu') {
+            roleClass = 'role-gonullu';
+            roleText = 'GÖNÜLLÜ';
+          }
+
+          row.innerHTML = `
+            <td style="font-weight: 600;">${user.ad} ${user.soyad}</td>
+            <td style="color: #64748b;">${user.email}</td>
+            <td>${user.telefon || '-'}</td>
+            <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+            <td style="color: #94a3b8; font-size: 0.85rem;">${date}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error('Kullanıcılar yüklenemedi:', err);
+      }
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

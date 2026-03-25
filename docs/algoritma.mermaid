@@ -1,0 +1,20 @@
+flowchart TD
+    A[Sisteme Giriş (Kullanıcı)] --> B{Token Var mı?}
+    B -- Evet --> C[Dashboard'a Yönlendir]
+    B -- Hayır --> D[Anasayfa / Login Ekranına Yönlendir]
+    
+    D --> E[Login Formu Doldur (Email/Şifre)]
+    E --> F{Bilgiler Doğru mu?}
+    F -- Hayır --> G[Hata Mesajı Göster]
+    G --> E
+    F -- Evet --> H[JWT Token Üret & Çerezlere Kaydet]
+    H --> C
+    
+    C --> I{Rol Kontrolü}
+    I -- Kazazede --> J[Yeni Talep Oluşturma / Kendi Taleplerini Görme]
+    I -- Gönüllü --> K[Aktif Talepleri Görme / Yardım Etme]
+    I -- Yetkili --> L[Sistem Yönetimi / Tüm Talepler]
+
+    J --> M[Talep Formu Doldur: İl, İlçe, Konum, Başlık, Öncelik]
+    M --> N[DB'ye Kaydet]
+    N --> O[Yardım Bekleniyor (Durum: Yeni)]

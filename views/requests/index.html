@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AFAD | Yardım Talepleri</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .request-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+    .request-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      border-left: 6px solid #cbd5e1;
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .request-card:hover { transform: translateY(-5px); }
+    .request-card.acil { border-left-color: var(--afad-red); }
+    .request-card.yuksek { border-left-color: #f97316; }
+    .request-card.orta { border-left-color: #eab308; }
+    .request-card.dusuk { border-left-color: #3b82f6; }
+    
+    .request-card h3 { 
+      margin: 0 0 15px 0; 
+      color: var(--afad-navy); 
+      font-weight: 700;
+      font-size: 1.3rem;
+    }
+    .meta-item {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .meta-item i { color: var(--afad-red); width: 15px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 AFET <span class="logo-accent">TALEPLER</span></span>
+      </div>
+      <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <a href="/dashboard" class="btn btn-navy" style="padding: 8px 15px; border-radius: 10px;"><i class="fas fa-th-large"></i> Panele Dön</a>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 15px; border-radius: 10px;">Çıkış</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="width: 90%; max-width: 1200px; margin: 50px auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <div>
+        <h2 style="font-weight: 800; color: var(--afad-navy); font-size: 2.2rem; margin: 0;">Saha <span style="color: var(--afad-red);">Talepleri</span></h2>
+        <p style="color: #64748b; margin-top: 5px;">Bölgeden gelen güncel yardım ve koordinasyon ihtiyaçları.</p>
+      </div>
+      <a href="/requests/yeni" class="btn btn-premium"><i class="fas fa-plus-circle"></i> Yeni Kayıt Oluştur</a>
+    </div>
+
+    <div id="active-requests-wrapper">
+      <h3 style="color: var(--afad-navy); border-bottom: 2px solid var(--afad-red); display: inline-block; padding-bottom: 5px; margin-bottom: 20px;">Aktif Yardımlar</h3>
+      <div class="request-list" id="active-requests-container"></div>
+    </div>
+
+    <div id="past-requests-wrapper" style="margin-top: 60px; opacity: 0.8;">
+      <h3 style="color: #64748b; border-bottom: 2px solid #cbd5e1; display: inline-block; padding-bottom: 5px; margin-bottom: 20px;">Müdahale Edilen / Geçmiş Talepler</h3>
+      <div class="request-list" id="past-requests-container"></div>
+    </div>
+  </div>
+
+  <script>
+    let userRole = '';
+
+    // Get current user status
+    async function checkAuth() {
+      const res = await fetch('/auth/status');
+      if (res.ok) {
+        const data = await res.json();
+        userRole = data.rol;
+      }
+    }
+
+    async function updateRequestStatus(requestId, newStatus) {
+      let msg = 'Bu işlemi onaylıyor musunuz?';
+      if(newStatus === 'onaylandi') msg = 'Bu talebi onaylamak istediğinize emin misiniz?';
+      if(newStatus === 'ekipler yolda') msg = 'Ekiplerin yola çıktığını onaylıyor musunuz?';
+      if(newStatus === 'tamamlandi') msg = 'Yardımın ulaştığını ve talebin kapatılacağını onaylıyor musunuz?';
+      
+      if(!confirm(msg)) return;
+      
+      try {
+        const res = await fetch('/requests/api/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: requestId, durum: newStatus })
+        });
+        
+        if (res.ok) {
+          loadRequests();
+          if (typeof loadStats === 'function') loadStats(); // Update stats if on same page
+        } else {
+          const errData = await res.json();
+          alert('Hata: ' + (errData.error || 'Durum güncellenemedi.'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Bağlantı hatası oluştu.');
+      }
+    }
+
+    async function loadRequests() {
+      const activeContainer = document.getElementById('active-requests-container');
+      const pastContainer = document.getElementById('past-requests-container');
+      
+      activeContainer.innerHTML = '<p>Yükleniyor...</p>';
+      pastContainer.innerHTML = '<p>Yükleniyor...</p>';
+
+      try {
+        const res = await fetch('/requests/api/list');
+        const data = await res.json();
+        
+        activeContainer.innerHTML = '';
+        pastContainer.innerHTML = '';
+
+        const activeRequests = data.filter(r => r.durum !== 'tamamlandi');
+        const pastRequests = data.filter(r => r.durum === 'tamamlandi');
+
+        if (activeRequests.length === 0) activeContainer.innerHTML = '<p>Aktif talep bulunmuyor.</p>';
+        if (pastRequests.length === 0) pastContainer.innerHTML = '<p>Geçmiş kayıt bulunmuyor.</p>';
+
+        [...activeRequests, ...pastRequests].forEach(req => {
+          const status = (req.durum || 'yeni').toLowerCase();
+          const isCompleted = status === 'tamamlandi';
+          const isEnRoute = status === 'ekipler yolda';
+          const card = document.createElement('div');
+          card.className = `request-card ${req.oncelik} ${isCompleted ? 'past-card' : ''}`;
+          
+          let actionButton = '';
+          if ((userRole === 'yetkili' || userRole === 'admin') && !isCompleted) {
+            if (status === 'yeni') {
+              actionButton = `
+                <button onclick="updateRequestStatus(${req.id}, 'onaylandi')" class="btn btn-premium" style="font-size: 0.8rem; padding: 8px 12px; margin-right: 5px; background: #8b5cf6;">
+                  <i class="fas fa-check-circle"></i> ONAYLA
+                </button>
+                <a href="/dashboard/atama?id=${req.id}" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 12px; margin-right: 5px;">
+                  <i class="fas fa-user-plus"></i> ATA
+                </a>`;
+            } else if (status === 'onaylandi') {
+              actionButton = `
+                <button onclick="updateRequestStatus(${req.id}, 'ekipler yolda')" class="btn btn-premium" style="font-size: 0.8rem; padding: 8px 12px; margin-right: 5px; background: #2563eb;">
+                  <i class="fas fa-truck-moving"></i> GÖNDER
+                </button>
+                <a href="/dashboard/atama?id=${req.id}" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 12px; margin-right: 5px;">
+                  <i class="fas fa-user-plus"></i> ATA
+                </a>`;
+            } else if (isEnRoute) {
+              actionButton = `<button onclick="updateRequestStatus(${req.id}, 'tamamlandi')" class="btn btn-premium" style="font-size: 0.85rem; padding: 10px 18px; margin-right: 10px; background: #059669; border: none; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);">
+                  <i class="fas fa-check-double"></i> EKİPLER VARDIK
+                </button>`;
+            }
+          }
+
+          let volunteerInfo = '';
+          if (req.gonullu_ad) {
+            volunteerInfo = `<div class="meta-item" style="background: #fdf2f2; padding: 5px 10px; border-radius: 8px; margin-top: 10px; color: var(--afad-red); font-weight: 600;">
+                <i class="fas fa-handshake"></i> Gönüllü: ${req.gonullu_ad} ${req.gonullu_soyad} (${req.gonullu_telefon})
+              </div>`;
+          }
+
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h3>${req.baslik}</h3>
+                <span class="badge" style="background:${status === 'onaylandi' ? '#f5f3ff' : (isEnRoute ? '#eff6ff' : (isCompleted ? '#ecfdf5' : '#fef2f2'))}; color: ${status === 'onaylandi' ? '#8b5cf6' : (isEnRoute ? '#2563eb' : (isCompleted ? '#059669' : '#dc2626'))}; font-weight:800; border: 1px solid currentColor;">
+                  ${status === 'onaylandi' ? 'ONAYLANDI' : (status === 'ekipler yolda' ? 'EKİPLER YOLDA' : (status === 'tamamlandi' ? 'TAMAMLANDI' : 'BEKLEMEDE'))}
+                </span>
+              </div>
+              <div class="meta-item"><i class="fas fa-map-marker-alt"></i> <b>Bölge:</b> ${req.il_adi || 'Bilinmiyor'} / ${req.ilce_adi || 'Bilinmiyor'}</div>
+              <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.ad} ${req.soyad}</div>
+              <div class="meta-item"><i class="fas fa-phone-alt"></i> <b>İrtibat:</b> ${req.telefon || 'Girilmemiş'}</div>
+              ${volunteerInfo}
+              <p style="color: #475569; margin-top: 15px; line-height: 1.6; font-size: 0.95rem; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;">${req.aciklama || 'Açıklama detayı bulunmuyor.'}</p>
+            </div>
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Öncelik: ${req.oncelik} ${isCompleted ? '✓' : ''}</span>
+              <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end;">
+                ${actionButton}
+                <a href="https://www.google.com/maps?q=${req.enlem},${req.boylam}" target="_blank" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 12px; background: var(--afad-navy) !important;">
+                  <i class="fas fa-location-arrow"></i> KONUM
+                </a>
+              </div>
+            </div>
+          `;
+          
+          if (isCompleted) pastContainer.appendChild(card);
+          else activeContainer.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    checkAuth().then(loadRequests);
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+erDiagram
+    USERS ||--o{ YARDIM_TALEPLERI : "oluşturur"
+    ILLER ||--o{ ILCELER : "içerir"
+    ILLER ||--o{ YARDIM_TALEPLERI : "konum (il) belirtir"
+    ILCELER ||--o{ YARDIM_TALEPLERI : "konum (ilçe) belirtir"
+    YARDIM_TALEPLERI ||--o{ YARDIM_TALEP_GECMISI : "hareketleri kaydeder"
+    USERS ||--o{ YARDIM_TALEP_GECMISI : "durum değiştirir"
+
+    USERS {
+        int id PK
+        string ad
+        string soyad
+        string email
+        string telefon
+        string sifre
+        enum rol "admin, operator, user/gonullu/kazazede vb."
+        enum durum
+        timestamp olusturulma_tarihi
+    }
+
+    ILLER {
+        int id PK
+        string ad
+        string kod
+    }
+
+    ILCELER {
+        int id PK
+        int il_id FK
+        string ad
+        string kod
+    }
+
+    YARDIM_TALEPLERI {
+        int id PK
+        int kullanici_id FK
+        int il_id FK
+        int ilce_id FK
+        decimal enlem
+        decimal boylam
+        string baslik
+        text aciklama
+        enum durum "yeni, devam_ediyor, tamamlandi, iptal_edildi"
+        enum oncelik "dusuk, orta, yuksek, acil"
+        timestamp olusturulma_tarihi
+    }
+
+    YARDIM_TALEP_GECMISI {
+        int id PK
+        int talep_id FK
+        string eski_durum
+        string yeni_durum
+        text not_metni
+        int degistiren_kullanici_id FK
+        timestamp degisim_tarihi
+    }
