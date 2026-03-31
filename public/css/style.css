@@ -582,8 +582,9 @@ a:hover {
 }
 
 .request-card.acil { border-left-color: var(--afad-red); }
-.request-card.yuksek { border-left-color: #f59e0b; }
-.request-card.normal { border-left-color: #3b82f6; }
+.request-card.yuksek { border-left-color: #f97316; }
+.request-card.orta { border-left-color: #eab308; }
+.request-card.dusuk { border-left-color: #10b981; }
 
 .meta-item {
   display: flex;

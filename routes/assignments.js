@@ -14,9 +14,9 @@ router.post('/otomatik', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Bu işlem için yetkiniz yok.' });
     }
 
-    // Bekleyen (yeni) yardım taleplerini çek (limit 100 işlem kapasitesi)
+    // Bekleyen (yeni veya onaylanmış) yardım taleplerini çek
     const [talepler] = await pool.query(
-      "SELECT id, enlem, boylam, oncelik FROM yardim_talepleri WHERE durum = 'yeni' ORDER BY olusturulma_tarihi ASC LIMIT 100"
+      "SELECT TOP 100 id, enlem, boylam, oncelik FROM yardim_talepleri WHERE durum IN ('yeni', 'onaylandi') ORDER BY olusturulma_tarihi ASC"
     );
 
     if (talepler.length === 0) {
@@ -50,9 +50,9 @@ router.post('/otomatik', async (req, res) => {
           [atama.talep_id, atama.gonullu_id, atama.mesafe_km, atama.oncelik_skoru]
         );
         
-        // Talebin durumunu 'devam_ediyor' olarak güncelle
+        // Talebin durumunu 'atandı' olarak güncelle (Hafta 5 Akış: Yeni -> Onaylandı -> Atandı -> Ekip Yolda)
         await pool.query(
-          "UPDATE yardim_talepleri SET durum = 'devam_ediyor', hesaplanan_oncelik_skoru = ? WHERE id = ?",
+          "UPDATE yardim_talepleri SET durum = 'atandı', hesaplanan_oncelik_skoru = ? WHERE id = ?",
           [atama.oncelik_skoru, atama.talep_id]
         );
 
@@ -108,9 +108,9 @@ router.post('/api/manual-assign', async (req, res) => {
       [talep_id, gonullu_id]
     );
 
-    // 2. Update request status to 'ekipler yolda' (or 'atandi')
+    // 2. Update request status to 'atandı'
     await pool.query(
-      "UPDATE yardim_talepleri SET durum = 'ekipler yolda' WHERE id = ?",
+      "UPDATE yardim_talepleri SET durum = 'atandı' WHERE id = ?",
       [talep_id]
     );
 

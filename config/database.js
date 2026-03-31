@@ -1,7 +1,9 @@
 const sql = require('mssql');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 require('dotenv').config();
 
-const config = {
+const mssqlConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   server: process.env.DB_HOST,
@@ -10,7 +12,8 @@ const config = {
   options: {
     encrypt: false,
     trustServerCertificate: true,
-    enableArithAbort: true
+    enableArithAbort: true,
+    connectTimeout: 5000
   },
   pool: {
     max: 10,
@@ -19,41 +22,61 @@ const config = {
   }
 };
 
-let pool;
+let mssqlPool;
+let sqliteDb;
+let dbType = 'none';
 
-const getPool = async () => {
-    if (pool) return pool;
+async function initDb() {
+    if (dbType !== 'none') return;
+
     try {
-        pool = await sql.connect(config);
+        mssqlPool = await sql.connect(mssqlConfig);
         console.log('✅ MSSQL Veritabanına BAĞLANDI!');
-        return pool;
+        dbType = 'mssql';
     } catch (err) {
-        console.error('❌ MSSQL BAĞLANTI HATASI!');
-        console.error('Hata Detayı:', err.message);
-        throw err;
+        console.warn('⚠️ MSSQL BAĞLANTI HATASI! SQLite yedeğine geçiliyor...');
+        const dbPath = path.join(__dirname, '..', 'database.db');
+        sqliteDb = new sqlite3.Database(dbPath);
+        dbType = 'sqlite';
+        console.log('✅ SQLite Veritabanı Aktif:', dbPath);
     }
-};
+}
 
 const queryExecuter = async (query, params = []) => {
-  const currentPool = await getPool();
-  const request = currentPool.request();
-  
-  let mssqlQuery = query;
-  
-  if (Array.isArray(params) && params.length > 0) {
-    let i = 0;
-    while(mssqlQuery.indexOf('?') !== -1 && i < params.length) {
-      request.input(`p${i}`, params[i]);
-      mssqlQuery = mssqlQuery.replace('?', `@p${i}`);
-      i++;
-    }
-  }
+    await initDb();
 
-  const result = await request.query(mssqlQuery);
-  return [result.recordset, []];
+    if (dbType === 'mssql') {
+        const request = mssqlPool.request();
+        let mssqlQuery = query;
+        if (Array.isArray(params) && params.length > 0) {
+            params.forEach((param, i) => {
+                request.input(`p${i}`, param);
+                mssqlQuery = mssqlQuery.replace('?', `@p${i}`);
+            });
+        }
+        const result = await request.query(mssqlQuery);
+        return [result.recordset || [], []];
+    } else {
+        // SQLite
+        return new Promise((resolve, reject) => {
+            const method = query.trim().toUpperCase().startsWith('SELECT') ? 'all' : 'run';
+            sqliteDb[method](query, params, function(err, rows) {
+                if (err) {
+                    console.error('❌ SQLite Hata:', err.message, 'Sorgu:', query);
+                    return reject(err);
+                }
+                if (method === 'run') {
+                    resolve([{ id: this.lastID, changes: this.changes }, []]);
+                } else {
+                    resolve([rows, []]);
+                }
+            });
+        });
+    }
 };
 
 module.exports = {
   execute: queryExecuter,
-  query: queryExecuter
+  query: queryExecuter,
+  getDbType: () => dbType
 };

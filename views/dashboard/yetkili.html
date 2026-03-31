@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -29,8 +32,8 @@
         <li><a href="/dashboard" class="active"><i class="fas fa-chart-pie" style="width: 25px;"></i> Genel Bakış</a></li>
         <li><a href="/dashboard/atama"><i class="fas fa-people-carry-box" style="width: 25px;"></i> Gönüllü Atama</a></li>
         <li><a href="/requests"><i class="fas fa-list-check" style="width: 25px;"></i> Tüm Talepler</a></li>
-        <li><a href="/users"><i class="fas fa-users" style="width: 25px;"></i> Kullanıcılar</a></li>
-        <li><a href="/ayarlar"><i class="fas fa-cog" style="width: 25px;"></i> Sistem Ayarları</a></li>
+        <li><a href="/dashboard/users"><i class="fas fa-users" style="width: 25px;"></i> Kullanıcılar</a></li>
+        <li><a href="/dashboard/ayarlar"><i class="fas fa-cog" style="width: 25px;"></i> Sistem Ayarları</a></li>
       </ul>
       
       <div style="margin-top: auto; padding: 20px; background: rgba(227, 6, 19, 0.05); border-radius: 15px; border: 1px dashed var(--afad-red);">
@@ -67,6 +70,38 @@
           <i class="fas fa-hands-helping" style="font-size: 1.5rem; color: var(--afad-navy); margin-bottom: 15px;"></i>
           <h3 id="stat-volunteers">0</h3>
           <p>Aktif Gönüllü</p>
+        </div>
+      </div>
+
+      <!-- Analitik Grafikler ve Raporlama -->
+      <div class="glass-card" style="margin-top: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+          <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-chart-line" style="color: var(--afad-blue);"></i> Operasyonel Analiz ve Raporlama
+          </h3>
+          <div style="display: flex; gap: 10px;">
+            <div class="tab-buttons" style="display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px;">
+              <button onclick="updateChartType('daily')" class="chart-tab active" id="tab-daily">Günlük</button>
+              <button onclick="updateChartType('weekly')" class="chart-tab" id="tab-weekly">Haftalık</button>
+              <button onclick="updateChartType('monthly')" class="chart-tab" id="tab-monthly">Aylık</button>
+            </div>
+            <a href="/dashboard/api/export-csv" class="btn btn-navy" style="font-size: 0.85rem; padding: 8px 15px;">
+              <i class="fas fa-file-export"></i> VERİYİ CSV İNDİR
+            </a>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px; height: 380px;">
+          <!-- Zaman Serisi Grafiği (Sol) -->
+          <div style="flex: 2; position: relative;">
+            <canvas id="analyticsChart"></canvas>
+          </div>
+          <!-- Pasta Grafiği (Sağ) -->
+          <div style="flex: 1; border-left: 1px solid #f1f5f9; padding-left: 20px; display: flex; flex-direction: column;">
+            <h4 style="margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; text-align: center;">Genel Durum Dağılımı</h4>
+            <div style="flex: 1; position: relative;">
+              <canvas id="statusPieChart"></canvas>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -158,9 +193,241 @@
 
     // İlk yükleme ve periyodik güncelleme
     loadStats();
-    setInterval(loadStats, 5000); // 5 saniyede bir güncelle ( Daha hızlı geri bildirim )
+    setInterval(loadStats, 10000);
 
-    // Otomatik Atama scripti... (aynı kalabilir)
+    // --- LEAFLET HARİTA ENTEGRASYONU ---
+    const map = L.map('adminMap').setView([39.9334, 32.8597], 6); // Türkiye merkezi
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    async function updateMap() {
+      try {
+        const [resReq, resVol] = await Promise.all([
+          fetch('/requests/api/list'),
+          fetch('/atamalar/api/available-volunteers')
+        ]);
+        const requests = await resReq.json();
+        const volunteers = await resVol.json();
+
+        // Temizle
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker || layer instanceof L.CircleMarker) map.removeLayer(layer);
+        });
+
+        // Talepleri Ekle (Kırmızı/Turuncu)
+        requests.filter(r => r.enlem && r.boylam && r.durum !== 'tamamlandi').forEach(r => {
+          const color = r.oncelik === 'acil' ? '#dc2626' : '#f59e0b';
+          L.circleMarker([r.enlem, r.boylam], {
+            radius: 8,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+          }).addTo(map).bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik}<br>Durum: ${r.durum}`);
+        });
+
+        // Gönüllüleri Ekle (Mavi)
+        volunteers.filter(v => v.enlem && v.boylam).forEach(v => {
+          L.circleMarker([v.enlem, v.boylam], {
+            radius: 6,
+            fillColor: '#2563eb',
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 1
+          }).addTo(map).bindPopup(`<b>Gönüllü: ${v.ad} ${v.soyad}</b><br>Kapasite: ${v.kapasite}`);
+        });
+
+      } catch (err) { console.error('Harita güncelleme hatası:', err); }
+    }
+    updateMap();
+    setInterval(updateMap, 20000);
+
+    // --- OTOMATİK ATAMA BUTONU ---
+    document.getElementById('otomatikAtamaBtn').addEventListener('click', async () => {
+      if (!confirm('Tüm yeni talepler en yakın gönüllülere otomatik olarak atansın mı?')) return;
+      
+      const btn = document.getElementById('otomatikAtamaBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/atamalar/otomatik', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          loadStats();
+          updateMap();
+        } else {
+          alert('Hata: ' + (data.message || 'Atama işlemi başarısız.'));
+        }
+      } catch (err) {
+        alert('Sunucuyla bağlantı kurulamadı veya bir hata oluştu.');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+    // --- ANALİTİK GRAFİKLER ---
+    let myChart, myPieChart;
+    let analyticsData = { statusDist: [], daily: [], weekly: [], monthly: [] };
+
+    async function initAnalytics() {
+      try {
+        const res = await fetch('/dashboard/api/analytics');
+        analyticsData = await res.json();
+        renderCharts('daily');
+      } catch (err) {
+        console.error('Analiz yükleme hatası:', err);
+      }
+    }
+
+    function renderCharts(type) {
+      renderTimeSeries(type);
+      renderPieChart();
+    }
+
+    function renderTimeSeries(type) {
+      const ctx = document.getElementById('analyticsChart').getContext('2d');
+      const data = analyticsData[type];
+      
+      const labels = data.map(d => d.label);
+      const createdValues = data.map(d => d.created);
+      const completedValues = data.map(d => d.completed);
+
+      if (myChart) myChart.destroy();
+
+      const isLine = type !== 'monthly';
+
+      myChart = new Chart(ctx, {
+        type: isLine ? 'line' : 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Gelen Talepler',
+              data: createdValues,
+              borderColor: '#64748b',
+              backgroundColor: isLine ? 'rgba(148, 163, 184, 0.1)' : '#94a3b8',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: 'Tamamlananlar',
+              data: completedValues,
+              borderColor: '#10b981',
+              backgroundColor: isLine ? 'rgba(16, 185, 129, 0.1)' : '#10b981',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+              display: true,
+              position: 'top',
+              labels: { boxWidth: 12, font: { size: 11, weight: '600' } }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: { stepSize: 1, font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPieChart() {
+      const ctx = document.getElementById('statusPieChart').getContext('2d');
+      const data = analyticsData.statusDist;
+
+      if (myPieChart) myPieChart.destroy();
+
+      const colors = {
+        'yeni': '#ef4444',
+        'onaylandi': '#f59e0b',
+        'ekipler yolda': '#3b82f6',
+        'tamamlandi': '#10b981',
+        'iptal': '#94a3b8'
+      };
+
+      myPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: data.map(d => d.label.toUpperCase()),
+          datasets: [{
+            data: data.map(d => d.value),
+            backgroundColor: data.map(d => colors[d.label] || '#cbd5e1'),
+            borderWidth: 2,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { 
+                boxWidth: 8, 
+                padding: 10,
+                font: { size: 9, weight: '700' } 
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChartType(type) {
+      document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + type).classList.add('active');
+      renderTimeSeries(type);
+    }
+
+    // CSS for tabs (ad-hoc)
+    const chartStyle = document.createElement('style');
+    chartStyle.textContent = `
+      .chart-tab {
+        padding: 6px 15px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        border-radius: 8px;
+        transition: all 0.3s;
+      }
+      .chart-tab.active {
+        background: white;
+        color: var(--afad-navy);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      }
+    `;
+    document.head.appendChild(chartStyle);
+
+    initAnalytics();
+
+    // Periyodik güncelleme listesine ekle
+    setInterval(initAnalytics, 60000); // 1 dk bir analiz tazele
+
   </script>
 </body>
 </html>

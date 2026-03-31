@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Yardım Talebi Oluştur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        h3 {
+            text-align: center;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
+        select,
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .btn-location {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-location:hover {
+            background: #0056b3;
+        }
+
+        .btn-submit {
+            background: #dc3545;
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background: #c82333;
+        }
+
+        #coord-display {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h3>Acil Yardım Talebi</h3>
+
+        <label>Aciliyet Durumu:</label>
+        <select id="urgency">
+            <option value="1">Düşük (Acil değil, destek lazım)</option>
+            <option value="2">Orta (Yaralı var, durum stabil)</option>
+            <option value="3">Yüksek (Hayati tehlike var!)</option>
+        </select>
+
+        <button class="btn-location" onclick="getLocation()">📍 Konumumu Otomatik Bul</button>
+        <div id="coord-display">Henüz konum alınmadı.</div>
+
+        <input type="hidden" id="lat">
+        <input type="hidden" id="lng">
+
+        <button class="btn-submit" onclick="submitRequest()">Talebi Gönder</button>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Lütfen önce giriş yapın!");
+            window.location.href = "login.html";
+        }
+
+        function getLocation() {
+            const display = document.getElementById("coord-display");
+            display.innerText = "Konum bulunuyor, lütfen izin verin...";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    document.getElementById("lat").value = position.coords.latitude;
+                    document.getElementById("lng").value = position.coords.longitude;
+                    display.innerText = `Konum Bulundu: Enlem ${position.coords.latitude.toFixed(4)}, Boylam ${position.coords.longitude.toFixed(4)}`;
+                }, (error) => {
+                    display.innerText = "Konum alınamadı. Tarayıcı izinlerini kontrol edin.";
+                });
+            } else {
+                display.innerText = "Tarayıcınız konum özelliğini desteklemiyor.";
+            }
+        }
+
+        function submitRequest() {
+            const urgency = document.getElementById("urgency").value;
+            const lat = document.getElementById("lat").value;
+            const lng = document.getElementById("lng").value;
+
+            if (!lat || !lng) {
+                alert("Lütfen önce 'Konumumu Otomatik Bul' butonuna tıklayın!");
+                return;
+            }
+
+            fetch("http://localhost:3000/api/help-request/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token // Giriş kimliğini gönderiyoruz
+                },
+                body: JSON.stringify({ urgency: parseInt(urgency), lat: parseFloat(lat), lng: parseFloat(lng) })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(err => console.error("Hata:", err));
+        }
+    </script>
+
+</body>
+
+</html>

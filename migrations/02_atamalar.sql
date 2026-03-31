@@ -3,8 +3,9 @@ GO
 
 ALTER TABLE users ADD enlem DECIMAL(10, 8) NULL;
 ALTER TABLE users ADD boylam DECIMAL(11, 8) NULL;
-ALTER TABLE users ADD musaitlik_durumu VARCHAR(20) DEFAULT 'musait' CHECK (musaitlik_durumu IN ('musait', 'mesgul', 'pasif'));
+ALTER TABLE users ADD musaitlik_durumu NVARCHAR(20) DEFAULT 'musait' CHECK (musaitlik_durumu IN ('musait', 'mesgul', 'pasif'));
 ALTER TABLE users ADD kapasite INT DEFAULT 1;
+ALTER TABLE users ADD uzmanlik NVARCHAR(MAX);
 GO
 
 -- Atamaları tutacak tablo
@@ -15,7 +16,7 @@ CREATE TABLE yardim_atamalari (
   atayan_yetkili_id INT NULL,
   atama_tarihi DATETIME DEFAULT GETDATE(),
   tamamlanma_tarihi DATETIME NULL,
-  durum VARCHAR(20) DEFAULT 'atandi' CHECK (durum IN ('atandi', 'yolda', 'tamamlandi', 'iptal')),
+  durum NVARCHAR(20) DEFAULT 'atandi' CHECK (durum IN ('atandi', 'yolda', 'tamamlandi', 'iptal')),
   mesafe_km DECIMAL(8, 2) NULL,
   oncelik_skoru DECIMAL(8, 2) NULL,
   FOREIGN KEY (talep_id) REFERENCES yardim_talepleri(id) ON DELETE CASCADE,

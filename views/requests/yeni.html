@@ -34,7 +34,7 @@
         <p style="color: #627d98; font-size: 1.05rem;">Lütfen afet bölgesindeki ihtiyacınızı detaylı bir şekilde belirtiniz. Konum bilginiz atamanın doğru yapılması için kritik önemdedir.</p>
       </div>
 
-      <form method="POST" action="/requests/olustur">
+      <form method="POST" action="/requests/olustur" enctype="multipart/form-data">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
           <div class="form-group">
             <label><i class="fas fa-city" style="margin-right: 8px; color: #ff6600;"></i>İl</label>
@@ -69,6 +69,12 @@
           <p style="font-size: 0.85rem; color: #627d98; margin-top: 8px; font-style: italic;">Haritaya tıklayarak nokta atışı konum belirleyebilirsiniz.</p>
           <input type="hidden" name="enlem" id="enlem">
           <input type="hidden" name="boylam" id="boylam">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label><i class="fas fa-camera" style="margin-right: 8px; color: #ff6600;"></i>Olay Yeri Fotoğrafı (Opsiyonel)</label>
+          <input type="file" name="fotograf" accept="image/*" style="padding: 10px; border: 2px dashed #cbd5e1; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.4);" onchange="this.style.borderColor='#ff6600'; this.style.background='#fff7ed';">
+          <p style="font-size: 0.8rem; color: #627d98; margin-top: 5px;">Enkazın veya ihtiyacın fotoğrafını çekip yükleyerek koordinasyonun hızlanmasına yardımcı olabilirsiniz.</p>
         </div>
 
         <div class="form-group" style="margin-bottom: 35px;">

@@ -49,9 +49,14 @@
     </div>
 
     <div class="glass-card" style="margin-top: 40px; min-height: 300px;">
-      <h3 style="margin-top: 0; color: var(--afad-navy); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-tasks" style="color: var(--afad-red);"></i> Aktif Görevlerim
-      </h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+        <h3 style="margin: 0; color: var(--afad-navy); display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-tasks" style="color: var(--afad-red);"></i> Aktif Görevlerim
+        </h3>
+        <a href="/dashboard/gecmis" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 15px;">
+          <i class="fas fa-history"></i> GEÇMİŞ GÖREVLER
+        </a>
+      </div>
       <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
         <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
       </div>
@@ -66,54 +71,103 @@
 
   <script>
     async function loadVolunteerTasks() {
-      const container = document.getElementById('my-tasks-container');
+      const activeContainer = document.getElementById('my-tasks-container');
+      
       try {
-        const authRes = await fetch('/auth/status');
+        const authRes = await fetch('/status');
         const authData = await authRes.json();
         const myId = authData.id;
 
         const res = await fetch('/requests/api/list');
         const data = await res.json();
         
-        const myTasks = data.filter(r => r.gonullu_id == myId && r.durum !== 'tamamlandi');
+        const myTasks = data.filter(r => r.gonullu_id == myId);
+        const activeTasks = myTasks.filter(r => r.durum !== 'tamamlandi');
         
-        container.innerHTML = myTasks.length === 0 ? `
-          <div style="text-align: center; padding: 50px; border: 2px dashed #e2e8f0; border-radius: 15px;">
-            <i class="fas fa-mug-hot fa-2x" style="color:#cbd5e1; margin-bottom:15px;"></i>
-            <p style="color: #94a3b8; font-weight:600;">Şu an için atanmış bir göreviniz bulunmuyor.</p>
+        activeContainer.innerHTML = activeTasks.length === 0 ? `
+          <div style="text-align: center; padding: 30px; border: 2px dashed #e2e8f0; border-radius: 15px;">
+            <p style="color: #94a3b8;">Şu an aktif bir göreviniz bulunmuyor.</p>
           </div>
         ` : '';
         
-        myTasks.forEach(task => {
-          const card = document.createElement('div');
-          card.style.background = 'white';
-          card.style.padding = '20px';
-          card.style.borderRadius = '15px';
-          card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
-          card.style.borderLeft = '5px solid #2563eb';
-          card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h4 style="margin:0; color:var(--afad-navy); font-size:1.1rem;">${task.baslik}</h4>
-                <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
-                  <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
-                </div>
-              </div>
-              <span class="badge" style="background:#eff6ff; color:#2563eb; font-weight:800; border:1px solid currentColor;">ATANDI</span>
-            </div>
-            <p style="font-size:0.9rem; color:#475569; margin:15px 0;">${task.aciklama}</p>
-            <div style="display:flex; gap:10px;">
-              <a href="https://www.google.com/maps?q=${task.enlem},${task.boylam}" target="_blank" class="btn btn-navy" style="font-size:0.8rem; padding:8px 15px;">
-                <i class="fas fa-location-arrow"></i> NAVİGASYON
-              </a>
-            </div>
-          `;
-          container.appendChild(card);
+        activeTasks.forEach(task => {
+          const statusText = (task.durum || 'atandi').toUpperCase();
+          const color = statusText === 'EKİPLER YOLDA' ? '#3b82f6' : '#2563eb';
+          const card = createTaskCard(task, color, statusText);
+          activeContainer.appendChild(card);
         });
+
       } catch (err) {
         console.error(err);
-        container.innerHTML = '<p style="color: #ef4444; text-align:center;">Bilgiler alınırken bir hata oluştu.</p>';
+        activeContainer.innerHTML = '<p style="color: #ef4444; text-align:center;">Hata oluştu.</p>';
       }
+    }
+
+    function createTaskCard(task, color, statusLabel) {
+      const card = document.createElement('div');
+      card.style.background = 'white';
+      card.style.padding = '20px';
+      card.style.borderRadius = '15px';
+      card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+      card.style.borderLeft = `5px solid ${color}`;
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h4 style="margin:0; color:var(--afad-navy); font-size:1.1rem;">${task.baslik}</h4>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
+              <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
+            </div>
+          </div>
+          <span class="badge" style="background:${color}10; color:${color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
+        </div>
+        <p style="font-size:0.9rem; color:#475569; margin:15px 0;">${task.aciklama || 'Açıklama yok'}</p>
+        ${statusLabel === 'ATANDI' ? `
+          <button onclick="startMission(${task.id})" class="btn btn-premium" style="font-size:0.8rem; padding:8px 15px; margin-top:10px; width:100%;">
+            <i class="fas fa-truck-moving"></i> EKİP YOLA ÇIKTI
+          </button>` : ''}
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          ${statusLabel !== 'TAMAMLANDI' ? `<a href="https://www.google.com/maps?q=${task.enlem},${task.boylam}" target="_blank" class="btn btn-navy" style="font-size:0.8rem; padding:8px 15px; flex:1;">
+            <i class="fas fa-location-arrow"></i> NAVİGASYON
+          </a>` : ''}
+          ${statusLabel === 'EKİP YOLDA' ? `
+          <button onclick="completeMission(${task.id})" class="btn btn-success" style="font-size:0.8rem; padding:8px 15px; flex:1;">
+            <i class="fas fa-check-double"></i> TAMAMLANDI
+          </button>` : ''}
+        </div>
+      `;
+      return card;
+    }
+
+    async function startMission(taskId) {
+      if(!confirm('Görevi başlatmak ve yola çıkmak istediğinize emin misiniz?')) return;
+      try {
+        const res = await fetch('/requests/api/update-status-gonullu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: taskId, durum: 'ekipler yolda' })
+        });
+        const data = await res.json();
+        if(data.success) {
+          alert('Başarılar! Ekipler yola çıktı olarak işaretlendi.');
+          loadVolunteerTasks();
+        }
+      } catch (err) { alert('Hata oluştu.'); }
+    }
+
+    async function completeMission(taskId) {
+      if(!confirm('Görevi tamamlandı olarak işaretlemek istiyor musunuz?')) return;
+      try {
+        const res = await fetch('/requests/api/update-status-gonullu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: taskId, durum: 'tamamlandi' })
+        });
+        const data = await res.json();
+        if(data.success) {
+          alert('Görev başarıyla tamamlandı. Teşekkürler!');
+          loadVolunteerTasks();
+        }
+      } catch (err) { alert('Hata oluştu.'); }
     }
 
     loadVolunteerTasks();

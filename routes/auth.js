@@ -16,7 +16,7 @@ router.get('/giris', (req, res) => {
 });
 
 router.post('/kayit', async (req, res) => {
-  const { ad, soyad, email, telefon, sifre, sifre_tekrar, rol } = req.body;
+  const { ad, soyad, email, telefon, sifre, sifre_tekrar, rol, kapasite, uzmanlik } = req.body;
   if (!ad || !soyad || !email || !sifre || !rol) {
     return res.status(400).send('Tüm alanları doldurun.');
   }
@@ -31,13 +31,17 @@ router.post('/kayit', async (req, res) => {
   }
   try {
     const [rows] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    if (rows.length > 0) {
+    if (rows && rows.length > 0) {
       return res.status(400).send('Bu email zaten kayıtlı!');
     }
     const hashedPassword = await bcrypt.hash(sifre, 10);
+        // Gönüllü için varsayılan koordinat
+    const enlem = 41.0082;
+    const boylam = 28.9784;
+
     await pool.query(
-      'INSERT INTO users (ad, soyad, email, telefon, sifre, rol) VALUES (?, ?, ?, ?, ?, ?)',
-      [ad, soyad, email, telefon, hashedPassword, rol]
+      'INSERT INTO users (ad, soyad, email, telefon, sifre, rol, kapasite, uzmanlik, enlem, boylam) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [ad, soyad, email, telefon, hashedPassword, rol, kapasite || 1, uzmanlik || '', enlem, boylam]
     );
     res.redirect('/giris');
   } catch (err) {
@@ -50,7 +54,7 @@ router.post('/giris', async (req, res) => {
   const { email, sifre } = req.body;
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (rows.length === 0) return res.status(401).send('Email veya şifre yanlış');
+    if (!rows || rows.length === 0) return res.status(401).send('Email veya şifre yanlış');
     const user = rows[0];
     const validPassword = await bcrypt.compare(sifre, user.sifre);
     if (!validPassword) return res.status(401).send('Email veya şifre yanlış');

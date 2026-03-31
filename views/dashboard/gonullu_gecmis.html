@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Görev Geçmişi | AFAD</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background: #f8fafc;">
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-afad">
+        <span class="logo-text">🚨 AFET <span class="logo-accent">GEÇMİŞ</span></span>
+      </div>
+      <a href="/dashboard" class="btn btn-navy">Aktif Görevlere Dön</a>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+    <h2 style="color: var(--afad-navy); margin-bottom: 30px;"><i class="fas fa-history"></i> Tamamlanan Görevlerim</h2>
+    
+    <div id="history-container" style="display: grid; gap: 20px;">
+      <p style="text-align: center; color: #94a3b8; padding: 50px;">Yükleniyor...</p>
+    </div>
+  </div>
+
+  <script>
+    async function loadHistory() {
+      const container = document.getElementById('history-container');
+      try {
+        const authRes = await fetch('/status');
+        const authData = await authRes.json();
+        const myId = authData.id;
+
+        const res = await fetch('/requests/api/list');
+        const data = await res.json();
+        
+        const history = data.filter(r => r.gonullu_id == myId && r.durum === 'tamamlandi');
+        
+        container.innerHTML = history.length === 0 ? '<p style="text-align: center; color: #94a3b8; padding: 50px; border: 2px dashed #e2e8f0; border-radius: 15px;">Henüz tamamlanmış bir göreviniz bulunmuyor.</p>' : '';
+        
+        history.forEach(task => {
+          const div = document.createElement('div');
+          div.className = 'glass-card';
+          div.style.borderLeft = '5px solid #10b981';
+          div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <div>
+                <h4 style="margin:0; color:var(--afad-navy);">${task.baslik}</h4>
+                <p style="margin:5px 0; color:#64748b; font-size:0.85rem;"><i class="fas fa-map-marker-alt"></i> ${task.il_adi} / ${task.ilce_adi}</p>
+              </div>
+              <span class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #10b981;">TAMAMLANDI</span>
+            </div>
+            <p style="font-size:0.9rem; color:#475569; margin-top:10px;">${task.aciklama || 'Açıklama belirtilmemiş.'}</p>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        container.innerHTML = 'Hata oluştu.';
+      }
+    }
+    loadHistory();
+  </script>
+</body>
+</html>

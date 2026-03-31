@@ -29,6 +29,20 @@ router.get('/users', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'users.html'));
 });
 
+router.get('/ayarlar', (req, res) => {
+  if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'ayarlar.html'));
+});
+
+router.get('/gecmis', (req, res) => {
+  if (req.user.rol !== 'gonullu') {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'gonullu_gecmis.html'));
+});
+
 router.get('/api/users', async (req, res) => {
   try {
     if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
@@ -58,6 +72,125 @@ router.get('/api/stats', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'İstatistikler alınamadı' });
+  }
+});
+
+router.get('/api/analytics', async (req, res) => {
+  try {
+    const dbType = pool.getDbType();
+    
+    // 1. Durum Dağılımı (Pie Chart)
+    const [statusDist] = await pool.query(`
+      SELECT durum as label, COUNT(*) as value 
+      FROM yardim_talepleri 
+      GROUP BY durum`);
+
+    // 2. Zaman Serisi (Daily / Weekly / Monthly)
+    let dailyQuery, weeklyQuery, monthlyQuery;
+
+    if (dbType === 'mssql') {
+      // MSSQL: Gelen vs Tamamlanan
+      dailyQuery = `
+        SELECT 
+          COALESCE(t.label, a.label) as label,
+          ISNULL(t.created, 0) as created,
+          ISNULL(a.completed, 0) as completed
+        FROM (
+          SELECT FORMAT(olusturulma_tarihi, 'dd-MM') as label, COUNT(*) as created 
+          FROM yardim_talepleri WHERE olusturulma_tarihi >= DATEADD(day, -7, GETDATE()) GROUP BY FORMAT(olusturulma_tarihi, 'dd-MM')
+        ) t
+        FULL OUTER JOIN (
+          SELECT FORMAT(tamamlanma_tarihi, 'dd-MM') as label, COUNT(*) as completed 
+          FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= DATEADD(day, -7, GETDATE()) GROUP BY FORMAT(tamamlanma_tarihi, 'dd-MM')
+        ) a ON t.label = a.label
+        ORDER BY label`;
+      
+      weeklyQuery = `
+        SELECT 
+          COALESCE(t.label, a.label) as label,
+          ISNULL(t.created, 0) as created,
+          ISNULL(a.completed, 0) as completed
+        FROM (
+          SELECT 'H' + CAST(DATEPART(week, olusturulma_tarihi) as varchar) as label, COUNT(*) as created 
+          FROM yardim_talepleri WHERE olusturulma_tarihi >= DATEADD(week, -4, GETDATE()) GROUP BY DATEPART(week, olusturulma_tarihi)
+        ) t
+        FULL OUTER JOIN (
+          SELECT 'H' + CAST(DATEPART(week, tamamlanma_tarihi) as varchar) as label, COUNT(*) as completed 
+          FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= DATEADD(week, -4, GETDATE()) GROUP BY DATEPART(week, tamamlanma_tarihi)
+        ) a ON t.label = a.label
+        ORDER BY label`;
+
+      monthlyQuery = `
+        SELECT 
+          COALESCE(t.label, a.label) as label,
+          ISNULL(t.created, 0) as created,
+          ISNULL(a.completed, 0) as completed
+        FROM (
+          SELECT FORMAT(olusturulma_tarihi, 'MM-yyyy') as label, COUNT(*) as created 
+          FROM yardim_talepleri WHERE olusturulma_tarihi >= DATEADD(month, -6, GETDATE()) GROUP BY FORMAT(olusturulma_tarihi, 'MM-yyyy')
+        ) t
+        FULL OUTER JOIN (
+          SELECT FORMAT(tamamlanma_tarihi, 'MM-yyyy') as label, COUNT(*) as completed 
+          FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= DATEADD(month, -6, GETDATE()) GROUP BY FORMAT(tamamlanma_tarihi, 'MM-yyyy')
+        ) a ON t.label = a.label
+        ORDER BY label`;
+    } else {
+      // SQLite: Gelen vs Tamamlanan (Biraz daha manuel birleşim JS tarafında daha kolay olabilir ama SQL'de UNION ALL ile yapalım)
+      dailyQuery = `
+        SELECT label, SUM(created) as created, SUM(completed) as completed FROM (
+          SELECT strftime('%d-%m', olusturulma_tarihi) as label, COUNT(*) as created, 0 as completed FROM yardim_talepleri WHERE olusturulma_tarihi >= date('now', '-7 days') GROUP BY label
+          UNION ALL
+          SELECT strftime('%d-%m', tamamlanma_tarihi) as label, 0 as created, COUNT(*) as completed FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= date('now', '-7 days') GROUP BY label
+        ) GROUP BY label ORDER BY label`;
+      
+      weeklyQuery = `
+        SELECT label, SUM(created) as created, SUM(completed) as completed FROM (
+          SELECT 'H' + strftime('%W', olusturulma_tarihi) as label, COUNT(*) as created, 0 as completed FROM yardim_talepleri WHERE olusturulma_tarihi >= date('now', '-28 days') GROUP BY label
+          UNION ALL
+          SELECT 'H' + strftime('%W', tamamlanma_tarihi) as label, 0 as created, COUNT(*) as completed FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= date('now', '-28 days') GROUP BY label
+        ) GROUP BY label ORDER BY label`;
+
+      monthlyQuery = `
+        SELECT label, SUM(created) as created, SUM(completed) as completed FROM (
+          SELECT strftime('%m-%Y', olusturulma_tarihi) as label, COUNT(*) as created, 0 as completed FROM yardim_talepleri WHERE olusturulma_tarihi >= date('now', '-6 months') GROUP BY label
+          UNION ALL
+          SELECT strftime('%m-%Y', tamamlanma_tarihi) as label, 0 as created, COUNT(*) as completed FROM yardim_atamalari WHERE durum = 'tamamlandi' AND tamamlanma_tarihi >= date('now', '-6 months') GROUP BY label
+        ) GROUP BY label ORDER BY label`;
+    }
+
+    const [daily] = await pool.query(dailyQuery);
+    const [weekly] = await pool.query(weeklyQuery);
+    const [monthly] = await pool.query(monthlyQuery);
+
+    res.json({ statusDist, daily, weekly, monthly });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Analiz verileri alınamadı' });
+  }
+});
+
+router.get('/api/export-csv', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        id, baslik, durum, oncelik, adres, 
+        olusturulma_tarihi,
+        (SELECT TOP 1 tamamlanma_tarihi FROM yardim_atamalari WHERE talep_id = yardim_talepleri.id AND durum = 'tamamlandi') as tamam_tarih
+      FROM yardim_talepleri`);
+    
+    let csv = '\uFEFF'; // BOM for Excel Turkish Char Support
+    csv += 'ID,Baslik,Durum,Öncelik,Adres,Oluşturulma Tarihi,Tamamlanma Tarihi\n';
+    rows.forEach(r => {
+      const sanitizedAdres = (r.adres || '').replace(/"/g, '""');
+      csv += `${r.id},"${r.baslik}","${r.durum}","${r.oncelik}","${sanitizedAdres}","${r.olusturulma_tarihi || ''}","${r.tamam_tarih || ''}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=afet-koordinasyon-tum-veriler.csv');
+    res.status(200).send(csv);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Dışa aktarma hatası');
   }
 });
 

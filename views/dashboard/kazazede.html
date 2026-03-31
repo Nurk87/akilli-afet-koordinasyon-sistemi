@@ -24,7 +24,7 @@
       <p style="color: #64748b; font-size: 1.1rem;">Lütfen ihtiyacınız olan yardımı belirtin veya mevcut talebinizin durumunu izleyin.</p>
     </div>
 
-    <div class="cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+    <div class="cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px;">
       <div class="glass-card" style="margin-top: 0; border-bottom: 5px solid var(--afad-red); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
           <div style="background: rgba(227, 6, 19, 0.1); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
@@ -48,9 +48,13 @@
       </div>
     </div>
 
-    <div style="margin-top: 40px; padding: 25px; background: white; border-radius: 15px; border-left: 5px solid #ffc107;" id="status-widget">
-      <h4 style="margin-top: 0; color: #856404;"><i class="fas fa-info-circle"></i> Talep Durumu</h4>
-      <p id="status-text" style="color: #666; font-size: 0.95rem; margin-bottom: 0;">Yardım talepleriniz işleniyor...</p>
+    <div style="margin-top: 80px; padding: 40px; background: white; border-radius: 20px; border-left: 10px solid #ffc107; box-shadow: var(--shadow); transition: all 0.4s ease; clear: both;" id="status-widget">
+      <h4 style="margin: 0 0 22px 0; color: #856404; font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; gap: 15px; letter-spacing: 1px; line-height: 1.2;">
+        <i class="fas fa-info-circle"></i> CANLI TALEP TAKİBİ
+      </h4>
+      <p id="status-text" style="color: #64748b; font-size: 1.05rem; margin-bottom: 0;">
+        <i class="fas fa-spinner fa-spin"></i> Yardım talepleriniz merkez tarafından inceleniyor...
+      </p>
     </div>
   </div>
 
@@ -58,59 +62,95 @@
     async function checkActiveRequests() {
       try {
         const res = await fetch('/requests/api/list');
+        if (!res.ok) return;
         const data = await res.json();
         const statusWidget = document.getElementById('status-widget');
         const statusText = document.getElementById('status-text');
         
-        // Find if any of my requests have 'ekipler yolda'
-        // Note: The API returns all requests usually, but for a production app 
-        // we'd filter by user_id on the server. Here we assume the user 
-        // only sees relevant info or we filter on client for now.
-        // Let's assume the user wants to see 'Ekipler Yolda' if ANY request is in that state.
+        // My requests filtering (if implemented server-side, this list is already filtered or just shows latest)
+        // For now we use the logic provided:
         
-        const approved = data.find(r => (r.durum || '').toLowerCase() === 'onaylandi');
         const dispatched = data.find(r => (r.durum || '').toLowerCase() === 'ekipler yolda');
+        const approved = data.find(r => (r.durum || '').toLowerCase() === 'onaylandi');
         const completed = data.find(r => (r.durum || '').toLowerCase() === 'tamamlandi');
         
         if (dispatched) {
           statusWidget.style.borderLeftColor = '#3b82f6';
+          statusWidget.style.background = '#f0f9ff';
           statusWidget.innerHTML = `
-            <div style="display:flex; align-items:center; gap:15px;">
-              <div style="background:#eff6ff; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                <i class="fas fa-truck-moving" style="color:#3b82f6; font-size:1.5rem;"></i>
+            <div style="display:flex; align-items:center; gap:25px; animation: fadeIn 0.5s ease;">
+              <div style="background:#3b82f6; width:70px; height:70px; border-radius:18px; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);">
+                <i class="fas fa-truck-moving" style="color:white; font-size:2rem;"></i>
               </div>
-              <div>
-                <h4 style="margin:0; color:#1e40af;">Ekipler Yola Çıktı!</h4>
-                <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Yardım ekiplerimiz size ulaşmak üzere hareket halindedir.</p>
+              <div style="flex:1;">
+                <h4 style="margin:0; color:#1e40af; font-size:1.4rem; font-weight:800;">Ekiplerimiz Yola Çıktı!</h4>
+                <div style="display:flex; gap:20px; margin-top:10px;">
+                   <div>
+                      <p style="margin:0; font-size:0.9rem; color:#64748b; text-transform:uppercase; font-weight:700;">Görevli Personel</p>
+                      <p style="margin:3px 0 0 0; font-size:1.1rem; color:#1e3a8a; font-weight:600;">${dispatched.gonullu_ad || 'Atanıyor...'} ${dispatched.gonullu_soyad || ''}</p>
+                   </div>
+                   <div>
+                      <p style="margin:0; font-size:0.9rem; color:#64748b; text-transform:uppercase; font-weight:700;">İrtibat</p>
+                      <p style="margin:3px 0 0 0; font-size:1.1rem; color:#1e3a8a; font-weight:600;">${dispatched.gonullu_telefon || ' - '}</p>
+                   </div>
+                </div>
+                <div style="margin-top:15px; background:#e2e8f0; height:10px; border-radius:5px; overflow:hidden;">
+                  <div style="width:85%; background:linear-gradient(90deg, #3b82f6, #60a5fa); height:100%; animation: progressMove 2s infinite linear; background-size: 30px 30px; background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);"></div>
+                </div>
               </div>
             </div>`;
         } else if (approved) {
           statusWidget.style.borderLeftColor = '#8b5cf6';
+          statusWidget.style.background = '#f5f3ff';
           statusWidget.innerHTML = `
-            <div style="display:flex; align-items:center; gap:15px;">
-              <div style="background:#f5f3ff; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                <i class="fas fa-check-circle" style="color:#8b5cf6; font-size:1.5rem;"></i>
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="background:#8b5cf6; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 8px 12px rgba(139, 92, 246, 0.2);">
+                <i class="fas fa-check-circle" style="color:white; font-size:1.8rem;"></i>
               </div>
               <div>
-                <h4 style="margin:0; color:#5b21b6;'>Talebiniz Onaylandı</h4>
-                <p style="margin:5px 0 0 0; font-size:0.85rem; color:#64748b;">Merkezimiz talebinizi onayladı, ekip ataması yapılıyor.</p>
+                <h4 style="margin:0; color:#5b21b6; font-size:1.3rem;">Talep Onaylandı</h4>
+                <p style="margin:5px 0 0 0; font-size:1rem; color:#6b7280;">Onaylanan talebiniz için en uygun saha ekibi koordine edilmektedir.</p>
               </div>
             </div>`;
         } else if (completed) {
           statusWidget.style.borderLeftColor = '#10b981';
           statusWidget.style.background = '#f0fdf4';
-          statusText.innerHTML = `<b style="color: #15803d;"><i class="fas fa-check-double"></i> YARDIM ULAŞTI</b><br>Ekiplerimiz bölgeye intikal etti ve işleminiz tamamlandı. Geçmiş olsun.`;
+          statusWidget.innerHTML = `
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="background:#10b981; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-check-double" style="color:white; font-size:1.8rem;"></i>
+              </div>
+              <div>
+                <h4 style="margin:0; color:#166534; font-size:1.3rem;">Yardım Ulaştı ✅</h4>
+                <p style="margin:5px 0 0 0; font-size:1rem; color:#15803d;">Ekiplerimiz bölgeye intikal etti ve işleminiz tamamlandı. Geçmiş olsun.</p>
+              </div>
+            </div>`;
         } else if (data.length > 0) {
-          statusText.innerHTML = `Henüz ekipler yola çıkmadı. Talebiniz koordinasyon merkezinde inceleniyor.`;
+          statusText.innerHTML = `<i class="fas fa-clock fa-pulse"></i> Henüz ekipler yola çıkmadı. Talebiniz koordinasyon merkezinde titizlikle inceleniyor.`;
         } else {
-          statusText.innerHTML = `Şu an aktif bir yardım talebiniz bulunmamaktadır.`;
+          statusText.innerHTML = `<i class="fas fa-clipboard-check"></i> Şu an aktif bir yardım talebiniz bulunmamaktadır. İhtiyaç halinde hemen bildirim yapabilirsiniz.`;
         }
       } catch (err) {
         console.error(err);
       }
     }
+
+    // CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes progressMove {
+        from { background-position: 0 0; }
+        to { background-position: 30px 0; }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+
     checkActiveRequests();
-    setInterval(checkActiveRequests, 10000); // Pulse every 10s
+    setInterval(checkActiveRequests, 10000);
   </script>
 
   <footer style="margin-top: 50px;">

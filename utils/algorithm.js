@@ -11,13 +11,21 @@
 function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
   if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return Infinity;
   
-  const R = 6371; // Dünya'nın yarıçapı (KM)
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  // Koordinatları float'a çevir (virgül varsa noktaya çevir)
+  const pLat1 = parseFloat(String(lat1).replace(',', '.'));
+  const pLon1 = parseFloat(String(lon1).replace(',', '.'));
+  const pLat2 = parseFloat(String(lat2).replace(',', '.'));
+  const pLon2 = parseFloat(String(lon2).replace(',', '.'));
+
+  if (isNaN(pLat1) || isNaN(pLon1) || isNaN(pLat2) || isNaN(pLon2)) return Infinity;
+
+  const R = 6371; 
+  const dLat = (pLat2 - pLat1) * (Math.PI / 180);
+  const dLon = (pLon2 - pLon1) * (Math.PI / 180);
   
   const a = 
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+    Math.cos(pLat1 * (Math.PI / 180)) * Math.cos(pLat2 * (Math.PI / 180)) * 
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
     
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));

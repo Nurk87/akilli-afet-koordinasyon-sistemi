@@ -32,7 +32,7 @@
     .request-card.acil { border-left-color: var(--afad-red); }
     .request-card.yuksek { border-left-color: #f97316; }
     .request-card.orta { border-left-color: #eab308; }
-    .request-card.dusuk { border-left-color: #3b82f6; }
+    .request-card.dusuk { border-left-color: #10b981; }
     
     .request-card h3 { 
       margin: 0 0 15px 0; 
@@ -195,6 +195,14 @@
               <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.ad} ${req.soyad}</div>
               <div class="meta-item"><i class="fas fa-phone-alt"></i> <b>İrtibat:</b> ${req.telefon || 'Girilmemiş'}</div>
               ${volunteerInfo}
+              ${req.fotograf_yolu ? `
+                <div style="margin-top: 15px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; position: relative; cursor: pointer;" onclick="window.open('${req.fotograf_yolu}', '_blank')">
+                  <img src="${req.fotograf_yolu}" alt="Olay Yeri" style="width: 100%; height: 200px; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; font-size: 0.75rem; text-align: center;">
+                    <i class="fas fa-search-plus"></i> Büyütmek için tıkla
+                  </div>
+                </div>
+              ` : ''}
               <p style="color: #475569; margin-top: 15px; line-height: 1.6; font-size: 0.95rem; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;">${req.aciklama || 'Açıklama detayı bulunmuyor.'}</p>
             </div>
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">

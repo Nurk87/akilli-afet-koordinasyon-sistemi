@@ -8,7 +8,7 @@ BEGIN
 END
 GO
 
-CREATE DATABASE afet_koordinasyon;
+CREATE DATABASE afet_koordinasyon COLLATE Turkish_CI_AS;
 GO
 USE afet_koordinasyon;
 GO
@@ -16,16 +16,16 @@ GO
 -- Kullanıcılar Tablosu
 CREATE TABLE users (
   id INT IDENTITY(1,1) PRIMARY KEY,
-  ad VARCHAR(100) NOT NULL,
-  soyad VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  telefon VARCHAR(20),
-  sifre VARCHAR(255) NOT NULL,
-  rol VARCHAR(20) DEFAULT 'user' CHECK (rol IN ('admin', 'operator', 'user', 'gonullu', 'yetkili', 'kazazede')),
-  durum VARCHAR(20) DEFAULT 'aktif' CHECK (durum IN ('aktif', 'pasif', 'askida')),
+  ad NVARCHAR(100) NOT NULL,
+  soyad NVARCHAR(100) NOT NULL,
+  email NVARCHAR(100) UNIQUE NOT NULL,
+  telefon NVARCHAR(20),
+  sifre NVARCHAR(255) NOT NULL,
+  rol NVARCHAR(20) DEFAULT 'user' CHECK (rol IN ('admin', 'operator', 'user', 'gonullu', 'yetkili', 'kazazede')),
+  durum NVARCHAR(20) DEFAULT 'aktif' CHECK (durum IN ('aktif', 'pasif', 'askida')),
   enlem DECIMAL(10, 8) NULL,
   boylam DECIMAL(11, 8) NULL,
-  musaitlik_durumu VARCHAR(20) DEFAULT 'musait' CHECK (musaitlik_durumu IN ('musait', 'mesgul', 'pasif')),
+  musaitlik_durumu NVARCHAR(20) DEFAULT 'musait' CHECK (musaitlik_durumu IN ('musait', 'mesgul', 'pasif')),
   kapasite INT DEFAULT 5,
   olusturulma_tarihi DATETIME DEFAULT GETDATE(),
   guncellenme_tarihi DATETIME DEFAULT GETDATE()
@@ -34,14 +34,14 @@ CREATE TABLE users (
 -- Iller Tablosu
 CREATE TABLE iller (
   id INT IDENTITY(1,1) PRIMARY KEY,
-  ad VARCHAR(100) NOT NULL
+  ad NVARCHAR(100) NOT NULL
 );
 
 -- Ilceler Tablosu
 CREATE TABLE ilceler (
   id INT IDENTITY(1,1) PRIMARY KEY,
   il_id INT NOT NULL,
-  ad VARCHAR(100) NOT NULL
+  ad NVARCHAR(100) NOT NULL
 );
 
 -- Talepler Tablosu
@@ -50,12 +50,12 @@ CREATE TABLE yardim_talepleri (
   kullanici_id INT NOT NULL,
   il_id INT,
   ilce_id INT,
-  baslik VARCHAR(255) NOT NULL,
-  aciklama TEXT,
+  baslik NVARCHAR(255) NOT NULL,
+  aciklama NVARCHAR(MAX),
   enlem DECIMAL(10, 8),
   boylam DECIMAL(11, 8),
-  durum VARCHAR(20) DEFAULT 'yeni' CHECK (durum IN ('yeni', 'atandi', 'tamamlandi', 'iptal')),
-  oncelik VARCHAR(20) DEFAULT 'orta' CHECK (oncelik IN ('dusuk', 'orta', 'yuksek', 'acil')),
+  durum NVARCHAR(20) DEFAULT 'yeni' CHECK (durum IN ('yeni', 'atandi', 'tamamlandi', 'iptal')),
+  oncelik NVARCHAR(20) DEFAULT 'orta' CHECK (oncelik IN ('dusuk', 'orta', 'yuksek', 'acil')),
   olusturulma_tarihi DATETIME DEFAULT GETDATE()
 );
 
@@ -65,15 +65,15 @@ CREATE TABLE yardim_atamalari (
   talep_id INT,
   gonullu_id INT NOT NULL,
   atama_tarihi DATETIME DEFAULT GETDATE(),
-  durum VARCHAR(20) DEFAULT 'atandi',
+  durum NVARCHAR(20) DEFAULT 'atandi',
   mesafe_km DECIMAL(8, 2) NULL,
   oncelik_skoru DECIMAL(8, 2) NULL
 );
 GO
 
 -- Temel Veriler
-INSERT INTO iller (ad) VALUES ('İstanbul'), ('Ankara'), ('İzmir'), ('Hatay'), ('Kahramanmaraş');
-INSERT INTO ilceler (il_id, ad) VALUES (1, 'Kadıköy'), (1, 'Beşiktaş'), (2, 'Çankaya'), (4, 'Antakya'), (5, 'Pazarcık');
+INSERT INTO iller (ad) VALUES (N'İstanbul'), (N'Ankara'), (N'İzmir'), (N'Hatay'), (N'Kahramanmaraş');
+INSERT INTO ilceler (il_id, ad) VALUES (1, N'Kadıköy'), (1, N'Beşiktaş'), (2, N'Çankaya'), (4, N'Antakya'), (5, N'Pazarcık');
 
-INSERT INTO users (ad, soyad, email, sifre, rol) VALUES ('Admin', 'Sistem', 'admin@test.com', 'Admin123!', 'admin');
+INSERT INTO users (ad, soyad, email, sifre, rol) VALUES (N'Admin', N'Sistem', 'admin@test.com', 'Admin123!', 'admin');
 GO
