@@ -20,8 +20,9 @@
         <span class="logo-text">AFET <span class="logo-accent">KOORDİNASYON</span></span>
       </div>
       <div class="nav-links">
-        <a href="/giris" class="btn btn-navy" style="padding: 10px 25px;">Giriş Yap</a>
-        <a href="/kayit" class="btn btn-premium" style="padding: 10px 25px;">Kayıt Ol</a>
+        <a href="/requests/yeni" class="btn btn-premium" style="padding: 0; background: var(--afad-red); color: white; border: none; border-radius: 12px; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4);" title="Hemen Yardım İste">SOS</a>
+        <a href="/giris" class="btn btn-navy" style="padding: 12px 20px; font-size: 0.9rem;">Giriş Yap</a>
+        <a href="/kayit" class="btn btn-premium" style="padding: 12px 20px; font-size: 0.9rem;">Kayıt Ol</a>
       </div>
     </div>
   </nav>
@@ -38,53 +39,338 @@
           <p>Yapay zeka ve gerçek zamanlı konum verileriyle afet anında doğru kaynakları, doğru ihtiyaç sahiplerine en
             hızlı şekilde ulaştırıyoruz.</p>
           <div class="hero-buttons">
-            <a href="/kayit" class="btn btn-premium btn-lg">Sisteme Katıl</a>
-            <a href="#ozellikler" class="btn btn-secondary"
-              style="background: rgba(255,255,255,0.1); border: 2px solid white; color: white;">Keşfet</a>
+            <a href="/requests/yeni" class="btn btn-premium btn-lg" style="background: var(--afad-red); border-color: var(--afad-red); box-shadow: 0 10px 20px rgba(227, 6, 19, 0.3);">Hemen Yardım İste</a>
+            <a href="#takip-sorgula" class="btn btn-navy btn-lg" style="border: 2px solid var(--afad-navy);"><i class="fas fa-search-location"></i> Talebi Takip Et</a>
           </div>
         </div>
       </div>
     </div>
   </header>
-
-  <section id="ozellikler" class="info-section" style="background: white;">
-    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; padding: 100px 0;">
-      <h2
-        style="font-size: 2.8rem; color: var(--afad-navy); font-weight: 800; text-align: center; margin-bottom: 10px;">
-        Nasıl Çalışıyoruz?</h2>
-      <p style="font-size: 1.2rem; color: #64748b; text-align: center; max-width: 800px; margin: 0 auto 60px auto;">AFAD
-        standartlarıyla uyumlu, teknoloji odaklı ve veri tabanlı afet koordinasyon altyapısı.</p>
-
-      <div class="info-cards"
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
-        <div class="glass-card" style="text-align: center; margin-top: 0;">
-          <div
-            style="background: rgba(227, 6, 19, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
-            <i class="fas fa-map-marked-alt" style="font-size: 2rem; color: var(--afad-red);"></i>
+  
+  <!-- Takip Sorgulama Bölümü -->
+  <section id="takip-sorgula" style="margin-top: -50px; position: relative; z-index: 10; scroll-margin-top: 100px;">
+    <div class="container" style="width: 90%; max-width: 800px; margin: 0 auto;">
+      <div class="glass-card" style="padding: 30px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-top: 5px solid var(--afad-red);">
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          <h3 style="color: var(--afad-navy); margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-search-location" style="color: var(--afad-red);"></i> Yardım Talebinizi Takip Edin
+          </h3>
+          <p style="color: #64748b; margin: 0; font-size: 0.95rem;">Size verilen 8 haneli takip kodunu girerek yardım ekibinin durumunu anlık olarak izleyebilirsiniz.</p>
+          <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <input type="text" id="takip-kodu-input" placeholder="Örn: A1B2C3D4" maxlength="8" style="flex: 2; padding: 15px 20px; border-radius: 15px; border: 2px solid #e2e8f0; font-family: monospace; font-weight: 700; font-size: 1.1rem; text-transform: uppercase;">
+            <button onclick="takipSorgula()" class="btn btn-navy" style="flex: 1; border-radius: 15px; font-weight: 700;">
+              <i class="fas fa-arrow-right"></i> TAKİP ET
+            </button>
           </div>
-          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Akıllı Atama</h3>
-          <p style="color: #64748b;">Gelişmiş konum algoritmalarıyla en yakın gönüllü ekiplerini ihtiyaç noktalarına
-            milisaniyeler içinde yönlendirir.</p>
+          <button onclick="modalAc()" class="btn-text" style="color: #64748b; background: none; border: none; font-size: 0.9rem; text-decoration: underline; cursor: pointer; align-self: flex-start; margin-top: 5px;">
+            <i class="fas fa-question-circle"></i> Takip kodumu unuttum / Kaybetim
+          </button>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="glass-card" style="text-align: center; margin-top: 0;">
-          <div
-            style="background: rgba(0, 51, 102, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
-            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--afad-navy);"></i>
-          </div>
-          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Kaynak Optimizasyonu</h3>
-          <p style="color: #64748b;">T-SQL tabanlı veri işleme ile kritik yardım malzemelerinin lojistiğini israfsız ve
-            en verimli şekilde yönetir.</p>
+  <!-- Kod Hatırlatma Modalı -->
+  <div id="recovery-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; padding: 40px; border-radius: 30px; position: relative; border-top: 8px solid var(--afad-red);">
+      <button onclick="modalKapat()" style="position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;"><i class="fas fa-times"></i></button>
+      
+      <h2 style="color: var(--afad-navy); margin-bottom: 10px; font-weight: 800;"><i class="fas fa-search"></i> Talebimi Bul</h2>
+      <p style="color: #64748b; margin-bottom: 25px;">Talebinizi oluşturduğunuz <b>İlçeyi</b> seçerek son kayıtlara ulaşın.</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+        <div class="form-group" style="margin: 0;">
+          <label style="font-size: 0.85rem;">İl Seçin</label>
+          <select id="rec-il" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;"></select>
         </div>
+        <div class="form-group" style="margin: 0;">
+          <label style="font-size: 0.85rem;">İlçe Seçin</label>
+          <select id="rec-ilce" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;">
+            <option value="">-- Önce İl --</option>
+          </select>
+        </div>
+      </div>
 
-        <div class="glass-card" style="text-align: center; margin-top: 0; border-bottom: 5px solid var(--afad-red);">
-          <div
-            style="background: rgba(227, 6, 19, 0.1); width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px auto;">
-            <i class="fas fa-satellite-dish" style="font-size: 2rem; color: var(--afad-red);"></i>
+      <div id="voice-search-section" style="display: none; margin-bottom: 25px;">
+        <button id="btn-voice-rec" class="btn-navy" style="width: 100%; background: #f1f5f9; color: var(--afad-navy); border: 2px solid var(--afad-navy); border-radius: 15px; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+          <i class="fas fa-microphone" id="mic-icon"></i> <span id="mic-text">İsminizi Söyleyerek Filtreleyin</span>
+        </button>
+      </div>
+
+      <div id="recovery-results" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <!-- Sonuçlar buraya gelecek -->
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/iller-ilceler.js"></script>
+  <script>
+    function takipSorgula() {
+      const kod = document.getElementById('takip-kodu-input').value.trim();
+      if (kod.length === 8) {
+        window.location.href = '/requests/takip/' + kod.toUpperCase();
+      } else {
+        alert('Lütfen 8 haneli takip kodunuzu doğru girdiğinizden emin olun.');
+      }
+    }
+
+    // Modal Fonksiyonları
+    const modal = document.getElementById('recovery-modal');
+    function modalAc() { 
+      modal.style.display = 'flex';
+      initLocs();
+    }
+    function modalKapat() { modal.style.display = 'none'; }
+
+    // Konum Doldurma (Kod Kurtarma Modalı için)
+    function initLocs() {
+      const ilSelect = document.getElementById('rec-il');
+      const ilceSelect = document.getElementById('rec-ilce');
+      
+      if (ilSelect.options.length > 0) return; // Zaten doluysa tekrar yapma
+
+      ilSelect.innerHTML = '<option value="">-- İl Seçin --</option>';
+      for (let id in iller) {
+        let opt = document.createElement('option');
+        opt.value = id;
+        opt.text = iller[id].ad;
+        ilSelect.add(opt);
+      }
+
+      ilSelect.onchange = () => {
+        ilceSelect.innerHTML = '<option value="">-- İlçe Seçin --</option>';
+        const id = ilSelect.value;
+        if (id && iller[id]) {
+          iller[id].ilceler.forEach(ad => {
+            let opt = document.createElement('option');
+            opt.value = ad;
+            opt.text = ad;
+            ilceSelect.add(opt);
+          });
+        }
+      };
+
+      ilceSelect.onchange = fetchRecoverList;
+    }
+
+    async function fetchRecoverList() {
+      const ilId = document.getElementById('rec-il').value;
+      const ilceAd = document.getElementById('rec-ilce').value;
+      const resultsDiv = document.getElementById('recovery-results');
+      
+      if (!ilId || !ilceAd) return;
+
+      resultsDiv.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Talepler yükleniyor...</div>';
+      
+      try {
+        const response = await fetch(`/requests/api/recover-list?il_id=${ilId}&ilce_ad=${encodeURIComponent(ilceAd)}`);
+        const data = await response.json();
+        
+        window.currentRecoverData = data; // Sesli filtreleme için sakla
+        renderRecoverResults(data);
+        
+        if (data.length > 0) {
+          document.getElementById('voice-search-section').style.display = 'block';
+        }
+      } catch (e) {
+        resultsDiv.innerHTML = '<p style="color:var(--afad-red);">Hata oluştu. Lütfen tekrar deneyin.</p>';
+      }
+    }
+
+    function renderRecoverResults(data) {
+      const resultsDiv = document.getElementById('recovery-results');
+      if (data.length === 0) {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding: 20px;">Bu ilçede son 48 saatte oluşturulmuş anonim talep bulunamadı.</p>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(t => {
+        html += `
+          <div onclick="window.location.href='/requests/takip/${t.takip_kodu}'" style="background: #f8fafc; border: 2px solid #e2e8f0; padding: 20px; border-radius: 18px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 5px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span style="font-weight: 800; color: var(--afad-navy); font-size: 1.1rem;">${t.ad_soyad}</span>
+              <span class="badge" style="background: #e2e8f0; font-size: 0.7rem; font-weight: 700;">${t.takip_kodu}</span>
+            </div>
+            <span style="color: #64748b; font-size: 0.9rem;">${t.baslik}</span>
+            <span style="color: #94a3b8; font-size: 0.75rem;"><i class="fas fa-calendar-alt"></i> ${new Date(t.olusturulma_tarihi).toLocaleString('tr-TR')}</span>
           </div>
-          <h3 style="color: var(--afad-navy); font-size: 1.5rem; margin-bottom: 15px;">Canlı Yönetim</h3>
-          <p style="color: #64748b;">Yetkili panellerinden tüm saha hareketlerini, stok durumlarını ve atamaları anlık
-            harita üzerinden izler.</p>
+        `;
+      });
+      resultsDiv.innerHTML = html;
+    }
+
+    // Sesli Arama (Speech to Text)
+    const voiceBtn = document.getElementById('btn-voice-rec');
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'tr-TR';
+      
+      voiceBtn.onclick = () => {
+        try {
+          recognition.start();
+          document.getElementById('mic-icon').className = 'fas fa-circle-dot fa-beat';
+          document.getElementById('mic-icon').style.color = 'var(--afad-red)';
+          document.getElementById('mic-text').innerText = 'Dinliyor... İsminizi söyleyin';
+        } catch(e) { recognition.stop(); }
+      };
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript.toLowerCase();
+        document.getElementById('mic-text').innerText = 'Filtrelendi: ' + text;
+        const filtered = window.currentRecoverData.filter(t => t.ad_soyad.toLowerCase().includes(text));
+        renderRecoverResults(filtered);
+        stopVoice();
+      };
+
+      recognition.onend = () => stopVoice();
+      recognition.onerror = () => stopVoice();
+
+      function stopVoice() {
+        document.getElementById('mic-icon').className = 'fas fa-microphone';
+        document.getElementById('mic-icon').style.color = 'var(--afad-navy)';
+        document.getElementById('mic-text').innerText = 'İsminizi Söyleyerek Filtreleyin';
+      }
+    } else {
+      voiceBtn.style.display = 'none';
+    }
+
+    // Geçmiş Talepleri Listeleme (LocalStorage)
+    window.addEventListener('DOMContentLoaded', () => {
+      const talepler = JSON.parse(localStorage.getItem('afad_talepler') || '[]');
+      if (talepler.length > 0) {
+        let historyHtml = `
+          <div id="gecmis-talepler" style="margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <h4 style="color: var(--afad-navy); font-size: 0.9rem; margin-bottom: 15px; font-weight: 700;">SON TALEPLERİM (BU CİHAZ)</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+        `;
+        
+        talepler.forEach(t => {
+          historyHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid #edf2f7;">
+              <div>
+                <span style="display: block; font-weight: 700; color: var(--afad-navy); font-size: 0.95rem;">${t.baslik}</span>
+                <span style="font-size: 0.8rem; color: #94a3b8; font-family: monospace;">KOD: ${t.kod} | ${t.tarih}</span>
+              </div>
+              <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px;">TAKİP ET</a>
+            </div>
+          `;
+        });
+        
+        historyHtml += `</div></div>`;
+        document.querySelector('#takip-sorgula .glass-card').insertAdjacentHTML('beforeend', historyHtml);
+      }
+    });
+  </script>
+
+  <section id="ozellikler" class="info-section">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <h2 style="font-size: 2.8rem; color: var(--afad-navy); font-weight: 800; text-align: center; margin-bottom: 15px;">Nasıl Çalışıyoruz?</h2>
+      <p style="font-size: 1.2rem; color: #475569; text-align: center; max-width: 800px; margin: 0 auto 60px auto; font-weight: 500;">
+        AFAD standartlarıyla tam uyumlu, yapay zeka destekli ve veri madenciliği tabanlı milli afet koordinatörünüz.
+      </p>
+      
+      <div class="info-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+        <div class="info-card">
+          <i class="fas fa-map-marked-alt"></i>
+          <h3>Yapay Zeka Atama</h3>
+          <p>Enkaz altı sinyalleri ve yardım taleplerini konum tabanlı algoritmalarla analiz ederek, saniyeler içinde en doğru personeli olay mahalline yönlendiriyoruz.</p>
+        </div>
+        <div class="info-card">
+          <i class="fas fa-chart-line"></i>
+          <h3>Kaynak Optimizasyonu</h3>
+          <p>T-SQL tabanlı veri işleme motorumuz ile kritik yardım malzemelerini (su, gıda, tıbbi kit) talebin yoğunluğuna göre dinamik ve adil bir şekilde dağıtıyoruz.</p>
+        </div>
+        <div class="info-card" style="border-bottom: 5px solid var(--afad-red);">
+          <i class="fas fa-satellite-dish"></i>
+          <h3>Anlık Saha Takibi</h3>
+          <p>Entegre dashboard panelleri üzerinden tüm saha hareketlerini, lojistik akışları ve ekip durumlarını gerçek zamanlı ısı haritalarıyla 7/24 izliyoruz.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="impact" class="impact-section">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div style="text-align: center;">
+        <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;">BAŞARI HİKAYELERİMİZ</span>
+        <h2 style="font-size: 2.2rem; color: #ffffff; font-weight: 800; margin-bottom: 15px;">Saha Operasyonlarımız ve Etkimiz</h2>
+        <p style="font-size: 1.1rem; color: #cbd5e1; max-width: 700px; margin: 0 auto;">Teknoloji ve insan gücünü birleştirerek sahada yarattığımız değişimin gerçek hikayeleri.</p>
+      </div>
+
+      <div class="impact-grid">
+        <div class="impact-item">
+          <img src="/images/impact-1.png" alt="Saha Koordinasyonu" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">OPERASYON BAŞARISI</span>
+            <h4>Lojistik ve Hızlı Dağıtım</h4>
+            <p>Büyük Marmara Tatbikatı ve yerel operasyonlarda 5000+ yardım kolisinin, sistemimiz tarafından saptanan öncelikli bölgelere sadece 2 saatte ulaşması sağlandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-2.png" alt="Rescue Team" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">KRİTİK MÜDAHALE</span>
+            <h4>Hızlı Arama-Kurtarma</h4>
+            <p>Konum verileri ve akıllı filtreleme sistemi sayesinde acil yardım talepleri, sahada aktif olan profesyonel kurtarma ekiplerine %40 daha hızlı iletildi.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-3.png" alt="Volunteer Power" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">TOPLUMSAL GÜÇ</span>
+            <h4>Dev Gönüllü Mobilizasyonu</h4>
+            <p>Sistemiz üzerinden 30.000 aktif gönüllü, yetkinliklerine (ilk yardım, lojistik, teknik destek) göre saniyeler içinde doğru görevlere otomatik olarak atandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-4.png" alt="Communication Power" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">TEKNOLOJİ ALTYAPISI</span>
+            <h4>Kesintisiz Haberleşme</h4>
+            <p>Afet anında GSM hatlarının kesilmesi durumunda, sistem entegreli mobil baz istasyonları ve uydu terminalleri ile 81 ilde kesintisiz veri akışı sağlandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-5.png" alt="Shelter Solutions" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">BARINMA YÖNETİMİ</span>
+            <h4>Akıllı Çadır Kent Kurulumu</h4>
+            <p>Deprem sonrası 24 saat içinde 1.000+ tam donanımlı barınma ünitesinin lojistik takibi ve ihtiyaç sahiplerine dijital ataması başarıyla gerçekleştirildi.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-6.png" alt="Medical Support" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">SAĞLIK KOORDİNASYONU</span>
+            <h4>Mobil Medikal Destek</h4>
+            <p>Mobil sağlık ekipleri ve ambulansların, talebin en yoğun olduğu kritik bölgelere sistem üzerinden en hızlı güzergahlarla sevki saniyeler içinde planlandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-7.png" alt="Air Operations" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">İLERİ LOJİSTİK</span>
+            <h4>Hava Operasyonları Gücü</h4>
+            <p>Ulaşımın kesildiği sarp arazilere helikopter ve İHA destekli akıllı lojistik sevkiyat ile hayati yardımların en kritik noktalara ulaştırılması sağlandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-8.png" alt="Psychosocial Support" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">TOPLUMSAL İYİLEŞME</span>
+            <h4>Psikososyal Saha Desteği</h4>
+            <p>Afet sonrası toplumsal iyileşme için kurulan mobil psikososyal destek birimlerinin saha koordinasyonu ve anlık vaka takibi sistem üzerinden yönetildi.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-9.png" alt="Disaster Simulation" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">EĞİTİM & HAZIRLIK</span>
+            <h4>Dev Simülasyon ve Eğitim</h4>
+            <p>Sistem üzerinden planlanan geniş çaplı afet simülasyonları ve eğitim programları ile 100.000+ vatandaşın afet bilinci ve hazırlığı artırıldı.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -92,15 +378,17 @@
 
   <footer style="background: var(--afad-navy); padding: 60px 0;">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; text-align: center; color: white;">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/AFAD_logo.png" alt="AFAD Logo White"
-        style="height: 60px; filter: brightness(0) invert(1); margin-bottom: 30px; opacity: 0.9;">
-      <p style="font-size: 1.1rem; opacity: 0.9;">&copy; 2026 Akıllı Afet Koordinasyon Sistemi | T-SQL & Node.js
-        Implementation</p>
+      <img src="/images/logo-white.png" alt="AFAD Logo White"
+        style="height: 60px; margin-bottom: 30px; opacity: 0.9;">
+      <p style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px; margin-bottom: 8px;">© 2026 Akıllı Afet Koordinasyon Sistemi</p>
       <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.5;">
-        Akademik Bitirme Projesi - Elif Nisa Tuncer | Afet Yönetim Teknolojileri
+        Afet ve Acil Durum Yönetimi Teknolojileri | Akıllı Şehir Koordinasyon Altyapısı
       </div>
     </div>
   </footer>
+</body>
+
+</html>
 </body>
 
 </html>

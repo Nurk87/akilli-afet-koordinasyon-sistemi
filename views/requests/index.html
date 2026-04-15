@@ -192,7 +192,7 @@
                 </span>
               </div>
               <div class="meta-item"><i class="fas fa-map-marker-alt"></i> <b>Bölge:</b> ${req.il_adi || 'Bilinmiyor'} / ${req.ilce_adi || 'Bilinmiyor'}</div>
-              <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.ad} ${req.soyad}</div>
+              <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.ad} ${req.soyad || ''}</div>
               <div class="meta-item"><i class="fas fa-phone-alt"></i> <b>İrtibat:</b> ${req.telefon || 'Girilmemiş'}</div>
               ${volunteerInfo}
               ${req.fotograf_yolu ? `
@@ -204,6 +204,15 @@
                 </div>
               ` : ''}
               <p style="color: #475569; margin-top: 15px; line-height: 1.6; font-size: 0.95rem; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px;">${req.aciklama || 'Açıklama detayı bulunmuyor.'}</p>
+              ${req.ses_kaydi_yolu ? `
+                <div style="margin-top: 15px; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                  <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 5px; font-weight: 700;"><i class="fas fa-microphone"></i> SESLİ MESAJ</p>
+                  <audio controls style="width: 100%; height: 35px;">
+                    <source src="${req.ses_kaydi_yolu}" type="audio/webm">
+                    Tarayıcınız ses çalmayı desteklemiyor.
+                  </audio>
+                </div>
+              ` : ''}
             </div>
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Öncelik: ${req.oncelik} ${isCompleted ? '✓' : ''}</span>

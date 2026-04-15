@@ -16,3 +16,9 @@ test-manger.js
 scripts/debug.sql
 scripts/setup.sql
 tmp/
+
+database.db
+uploads/
+*.db
+*.sqlite
+*.pdf

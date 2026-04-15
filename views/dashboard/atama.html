@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <title>Gönüllü Atama | AFAD</title>
@@ -15,22 +16,25 @@
       gap: 30px;
       margin-top: 30px;
     }
+
     .panel-card {
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(10px);
       border-radius: 20px;
       padding: 25px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
       min-height: 600px;
       display: flex;
       flex-direction: column;
     }
+
     .item-list {
       flex: 1;
       overflow-y: auto;
       margin-top: 15px;
       padding-right: 10px;
     }
+
     .selectable-item {
       padding: 15px;
       border-radius: 12px;
@@ -39,15 +43,18 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .selectable-item:hover {
       border-color: var(--afad-red);
       background: rgba(227, 6, 19, 0.02);
     }
+
     .selectable-item.selected {
       border-color: var(--afad-red);
       background: rgba(227, 6, 19, 0.05);
       box-shadow: 0 0 10px rgba(227, 6, 19, 0.1);
     }
+
     .sticky-header {
       position: sticky;
       top: 0;
@@ -58,9 +65,11 @@
     }
   </style>
 </head>
+
 <body>
   <nav class="navbar">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+    <div class="container"
+      style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
       <div class="logo-afad">
         <span class="logo-text">🚨 AFET <span class="logo-accent">ATAMA</span></span>
       </div>
@@ -71,7 +80,8 @@
   </nav>
 
   <div class="container" style="width: 95%; margin: 40px auto;">
-    <h2 style="font-weight: 800; color: var(--afad-navy);">Gönüllü <span style="color: var(--afad-red);">Koordinasyon Paneli</span></h2>
+    <h2 style="font-weight: 800; color: var(--afad-navy);">Gönüllü <span style="color: var(--afad-red);">Koordinasyon
+        Paneli</span></h2>
     <p style="color: #64748b;">Onaylanmış talepleri saha gönüllüleri ile manuel olarak eşleştirin.</p>
 
     <div class="atama-container">
@@ -90,7 +100,8 @@
       <div class="panel-card">
         <div class="sticky-header">
           <h3 style="margin: 0;"><i class="fas fa-user-ninja" style="color: #2563eb;"></i> Müsait Gönüllüler</h3>
-          <p style="font-size: 0.85rem; color: #94a3b8; margin: 5px 0 0 0;">Bölgedeki aktif ve müsait saha personeli.</p>
+          <p style="font-size: 0.85rem; color: #94a3b8; margin: 5px 0 0 0;">Bölgedeki aktif ve müsait saha personeli.
+          </p>
         </div>
         <div class="item-list" id="volunteers-list">
           <!-- Dinamik Yüklenecek -->
@@ -118,15 +129,15 @@
       const reqRes = await fetch('/requests/api/list');
       const reqData = await reqRes.json();
       const approvedRequests = reqData.filter(r => r.durum === 'onaylandi' || r.durum === 'yeni');
-      
+
       const requestsList = document.getElementById('requests-list');
       requestsList.innerHTML = approvedRequests.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Atama bekleyen talep yok.</p>' : '';
-      
+
       approvedRequests.forEach(req => {
         const div = document.createElement('div');
         div.className = 'selectable-item';
         if (targetId && req.id == targetId) div.classList.add('selected'), selectedRequestId = req.id;
-        
+
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between;">
             <strong style="color:var(--afad-navy);">${req.baslik}</strong>
@@ -148,10 +159,10 @@
       // ... Volunteers ...
       const volRes = await fetch('/atamalar/api/available-volunteers');
       const volData = await volRes.json();
-      
+
       const volunteersList = document.getElementById('volunteers-list');
       volunteersList.innerHTML = volData.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Müsait gönüllü bulunamadı.</p>' : '';
-      
+
       volData.forEach(vol => {
         const div = document.createElement('div');
         div.className = 'selectable-item';
@@ -169,7 +180,7 @@
         };
         volunteersList.appendChild(div);
       });
-      
+
       checkSelection();
     }
 
@@ -179,13 +190,13 @@
 
     document.getElementById('assignBtn').onclick = async () => {
       if (!selectedRequestId || !selectedVolunteerId) return;
-      
+
       const res = await fetch('/atamalar/api/manual-assign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ talep_id: selectedRequestId, gonullu_id: selectedVolunteerId })
       });
-      
+
       if (res.ok) {
         alert('Gönüllü başarıyla atandı ve ekipler yola çıkarıldı!');
         selectedRequestId = null;
@@ -200,4 +211,5 @@
     loadData();
   </script>
 </body>
+
 </html>

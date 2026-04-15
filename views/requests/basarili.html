@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Talep Alındı | AFAD Koordinasyon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    :root {
+      --afad-red: #e30613;
+      --afad-navy: #003366;
+      --success-green: #10b981;
+    }
+    body {
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .success-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .success-card {
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 20px 50px rgba(0, 51, 102, 0.1);
+      padding: 50px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      border-bottom: 8px solid var(--success-green);
+    }
+    .icon-box {
+      width: 100px;
+      height: 100px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 30px auto;
+      animation: scaleUp 0.5s ease-out;
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0); }
+      to { transform: scale(1); }
+    }
+    .takip-box {
+      background: #f1f5f9;
+      border: 2px dashed #cbd5e1;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 30px 0;
+    }
+    .kod-text {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: var(--afad-navy);
+      display: block;
+      margin-top: 10px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .btn-track {
+      flex: 2;
+      background: var(--afad-navy);
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-track:hover {
+      background: #002244;
+      transform: translateY(-2px);
+    }
+    .btn-home {
+      flex: 1;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 15px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="success-card">
+      <div class="icon-box">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h1 style="color: var(--afad-navy); font-size: 2rem; margin-bottom: 15px;">Talebiniz Başarıyla Alındı!</h1>
+      <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">
+        Yardım talebiniz sisteme iletildi. Ekiplerimiz en kısa sürede bölgeye yönlendirilecektir. 
+        Aşağıdaki kod ile talebinizin durumunu canlı olarak takip edebilirsiniz.
+      </p>
+
+      <div class="takip-box">
+        <span style="color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Takip Kodunuz</span>
+        <span class="kod-text" id="kod">X-X-X-X</span>
+      </div>
+
+      <div class="btn-group">
+        <a href="/" class="btn-home">Ana Sayfa</a>
+        <a href="#" id="track-link" class="btn-track"><i class="fas fa-map-location-dot" style="margin-right: 8px;"></i> Talebi Haritada Takip Et</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const kod = urlParams.get('kod');
+    const baslik = urlParams.get('baslik') || 'Yardım Talebi';
+
+    if (kod) {
+      document.getElementById('kod').textContent = kod;
+      document.getElementById('track-link').href = '/requests/takip/' + kod;
+
+      // LocalStorage Kaydı (Kod Hatırlatıcı için)
+      try {
+        let talepler = JSON.parse(localStorage.getItem('afad_talepler') || '[]');
+        // Eğer bu kod zaten yoksa listeye ekle
+        if (!talepler.find(t => t.kod === kod)) {
+          talepler.unshift({
+            kod: kod,
+            baslik: baslik,
+            tarih: new Date().toLocaleString('tr-TR')
+          });
+          // Tarayıcıda sadece son 5 talebi sakla
+          localStorage.setItem('afad_talepler', JSON.stringify(talepler.slice(0, 5)));
+        }
+      } catch (e) {
+        console.error('LocalStorage hatası:', e);
+      }
+    }
+  </script>
+</body>
+</html>

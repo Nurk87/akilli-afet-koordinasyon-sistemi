@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canlı Takip | AFAD Koordinasyon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    :root {
+      --afad-red: #e30613;
+      --afad-navy: #003366;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+    body { background: #f1f5f9; }
+    .tracking-grid {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 20px;
+      height: calc(100vh - 80px);
+      padding: 20px;
+    }
+    #map {
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      z-index: 1;
+    }
+    .status-panel {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-yeni { background: #fee2e2; color: #dc2626; }
+    .status-atandi { background: #fef3c7; color: #92400e; }
+    .status-yola-cikti { background: #e0f2fe; color: #0369a1; }
+    .status-talep-alindi { background: #ffedd5; color: #9a3412; }
+    .status-tamamlandi { background: #d1fae5; color: #065f46; }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+      margin-top: 20px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #e2e8f0;
+    }
+    .timeline-item {
+      position: relative;
+      padding-bottom: 25px;
+    }
+    .timeline-item::after {
+      content: '';
+      position: absolute;
+      left: -30px;
+      top: 5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #cbd5e1;
+      z-index: 2;
+    }
+    .timeline-item.active::after {
+      border-color: var(--afad-red);
+      background: var(--afad-red);
+      box-shadow: 0 0 10px rgba(227, 6, 19, 0.4);
+    }
+    .timeline-item h4 { font-size: 0.95rem; margin-bottom: 5px; color: var(--afad-navy); }
+    .timeline-item p { font-size: 0.8rem; color: #64748b; }
+
+    .assigned-info {
+        background: #f8fafc;
+        border-radius: 15px;
+        padding: 15px;
+        border-left: 5px solid var(--afad-navy);
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar" style="height: 60px; background: var(--afad-navy);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <span style="color: white; font-weight: 700;">🚨 CANLI TAKİP SİSTEMİ</span>
+        <span id="takip-kodu-display" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Kod: ....</span>
+        <a href="/" style="color: white; text-decoration: none; font-size: 0.9rem;"><i class="fas fa-home"></i> Ana Sayfa</a>
+    </div>
+  </nav>
+
+  <div class="tracking-grid">
+    <div id="map"></div>
+    
+    <div class="status-panel">
+      <div>
+        <h3 id="talep-baslik" style="color: var(--afad-navy); margin-bottom: 10px;">Yükleniyor...</h3>
+        <span id="label-durum" class="status-badge status-yeni">Durum Bekleniyor</span>
+      </div>
+
+      <div id="photo-container" style="display: none; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px;">
+        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-camera"></i> GÖNDERDİĞİNİZ FOTOĞRAF</p>
+        <img id="victim-photo" src="" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: zoom-in;" onclick="window.open(this.src)">
+      </div>
+
+      <div id="voice-note-container" style="display: none; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px;">
+        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-microphone"></i> GÖNDERDİĞİNİZ SESLİ MESAJ</p>
+        <audio id="voice-player" controls style="width: 100%; height: 35px;">
+           <source id="voice-source" src="" type="audio/webm">
+        </audio>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid #f1f5f9;">
+
+      <div class="timeline">
+        <div class="timeline-item" id="step-yeni">
+          <h4>Talep Oluşturuldu</h4>
+          <p id="tarih-olusturma">Tarih bekleniyor...</p>
+        </div>
+        <div class="timeline-item" id="step-atandi">
+          <h4>Ekip Atandı</h4>
+          <p id="tarih-atama">İşlem bekleniyor...</p>
+        </div>
+        <div class="timeline-item" id="step-yolda">
+          <h4>Ekip Yolda / Müdahale</h4>
+          <p>Ekipler koordinatlara ilerliyor.</p>
+        </div>
+        <div class="timeline-item" id="step-tamamlandi">
+          <h4>Tamamlandı</h4>
+          <p>Yardım ulaştırıldı.</p>
+        </div>
+      </div>
+
+      <div id="gonullu-card" style="display: none;">
+        <p style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 10px;">ATANAN EKİP BİLGİSİ</p>
+        <div class="assigned-info">
+            <h4 id="gonullu-ad">...</h4>
+            <p id="gonullu-tel" style="font-size: 0.85rem; margin-top: 5px;"><i class="fas fa-phone"></i> ...</p>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 20px;">
+          <p style="font-size: 0.75rem; color: #94a3b8; text-align: center;">Veriler anlık olarak güncellenmektedir. Lütfen sayfayı kapatmayınız.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const pathParts = window.location.pathname.split('/');
+    const KOD = pathParts[pathParts.length - 1];
+    document.getElementById('takip-kodu-display').textContent = 'Kod: ' + KOD;
+
+    var map = L.map('map').setView([39.92, 32.85], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+
+    var victimMarker, volunteerMarker;
+
+    async function updateTracking() {
+      try {
+        const response = await fetch('/requests/api/track/' + KOD);
+        const data = await response.json();
+        
+        if (data.error) {
+          alert('Hata: ' + data.error);
+          return;
+        }
+
+        // UI Güncelleme
+        document.getElementById('talep-baslik').textContent = data.baslik;
+        const durBadge = document.getElementById('label-durum');
+        durBadge.textContent = data.durum.toUpperCase();
+        durBadge.className = 'status-badge status-' + data.durum;
+        
+        document.getElementById('tarih-olusturma').textContent = new Date(data.olusturulma_tarihi).toLocaleString('tr-TR');
+
+        // Timeline Kontrolü
+        resetTimeline();
+        document.getElementById('step-yeni').classList.add('active');
+        
+        if (['atandi', 'yola cikti', 'talep alindi', 'tamamlandi'].includes(data.durum)) {
+            document.getElementById('step-atandi').classList.add('active');
+            if(data.atama_tarihi) document.getElementById('tarih-atama').textContent = new Date(data.atama_tarihi).toLocaleString('tr-TR');
+        }
+        if (['yola cikti', 'talep alindi', 'tamamlandi'].includes(data.durum)) {
+            document.getElementById('step-yolda').classList.add('active');
+        }
+        if (data.durum === 'tamamlandi') document.getElementById('step-tamamlandi').classList.add('active');
+
+        // Gönüllü Bilgisi
+        if (data.gonullu_ad) {
+            document.getElementById('gonullu-card').style.display = 'block';
+            document.getElementById('gonullu-ad').textContent = data.gonullu_ad + ' ' + (data.gonullu_soyad || '');
+            document.getElementById('gonullu-tel').innerHTML = `<i class="fas fa-phone"></i> ${data.gonullu_telefon || 'Bilinmiyor'}`;
+        }
+
+        // Fotoğraf Kontrolü
+        if (data.fotograf_yolu) {
+            document.getElementById('photo-container').style.display = 'block';
+            document.getElementById('victim-photo').src = data.fotograf_yolu;
+        }
+
+        // Ses Kaydı Kontrolü
+        if (data.ses_kaydi_yolu) {
+            document.getElementById('voice-note-container').style.display = 'block';
+            const player = document.getElementById('voice-player');
+            if (player.querySelector('source').src !== window.location.origin + data.ses_kaydi_yolu) {
+                player.querySelector('source').src = data.ses_kaydi_yolu;
+                player.load();
+            }
+        }
+
+        // Harita Güncelleme
+        if (data.enlem && data.boylam) {
+            const victimPos = [data.enlem, data.boylam];
+            if (!victimMarker) {
+                victimMarker = L.marker(victimPos, {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    })
+                }).addTo(map).bindPopup('Sizin Konumunuz').openPopup();
+                map.setView(victimPos, 13);
+            }
+        }
+
+      } catch (err) {
+        console.error('Tracking Error:', err);
+      }
+    }
+
+    function resetTimeline() {
+        document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+    }
+
+    // İlk yükleme ve periyodik güncelleme
+    updateTracking();
+    setInterval(updateTracking, 10000); // 10 saniyede bir güncelle
+  </script>
+</body>
+</html>

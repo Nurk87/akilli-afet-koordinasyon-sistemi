@@ -12,8 +12,9 @@
 <body style="background: radial-gradient(circle at top right, #f8fafc, #e2e8f0);">
   <nav class="navbar">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
-      <div class="logo-afad">
-        <span class="logo-text">🚨 AFET <span class="logo-accent">GÖNÜLLÜ</span></span>
+      <div class="logo-afad" style="display: flex; align-items: center; gap: 12px;">
+        <img src="/images/logo.png" alt="AFAD Logo" style="height: 40px; border-radius: 6px;">
+        <span class="logo-text">AFET <span class="logo-accent">GÖNÜLLÜ</span></span>
       </div>
       <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
         <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-tag"></i> Saha Gönüllüsü</span>
@@ -76,24 +77,42 @@
       try {
         const authRes = await fetch('/status');
         const authData = await authRes.json();
-        const myId = authData.id;
+        const myId = String(authData.id);
 
         const res = await fetch('/requests/api/list');
         const data = await res.json();
         
-        const myTasks = data.filter(r => r.gonullu_id == myId);
-        const activeTasks = myTasks.filter(r => r.durum !== 'tamamlandi');
+        let myTasks = Array.isArray(data) ? data.filter(r => String(r.assigned_volunteer_id || r.gonullu_id || '') === myId) : [];
+        let activeTasks = myTasks.filter(r => r.durum !== 'tamamlandi');
         
+        // --- AKILLI SIRALAMA (Öncelik Skoruna Göre) ---
+        activeTasks.sort((a, b) => (b.hesaplanan_oncelik_skoru || 0) - (a.hesaplanan_oncelik_skoru || 0));
+
         activeContainer.innerHTML = activeTasks.length === 0 ? `
           <div style="text-align: center; padding: 30px; border: 2px dashed #e2e8f0; border-radius: 15px;">
             <p style="color: #94a3b8;">Şu an aktif bir göreviniz bulunmuyor.</p>
           </div>
         ` : '';
         
-        activeTasks.forEach(task => {
-          const statusText = (task.durum || 'atandi').toUpperCase();
-          const color = statusText === 'EKİPLER YOLDA' ? '#3b82f6' : '#2563eb';
-          const card = createTaskCard(task, color, statusText);
+        activeTasks.forEach((task, index) => {
+          const status = (task.durum || 'atandi').toLowerCase();
+          const isRecommended = index === 0 && activeTasks.length > 0;
+          
+          let color = '#2563eb'; // Default Blue (Atandi)
+          let label = 'ATANDI';
+
+          if (status === 'yola cikti') {
+            color = '#0ea5e9'; // Sky Blue
+            label = 'YOLA ÇIKTI';
+          } else if (status === 'talep alindi') {
+            color = '#f59e0b'; // Amber
+            label = 'TALEP ALINDI';
+          } else if (status === 'ekipler yolda') {
+            color = '#3b82f6';
+            label = 'EKİPLER YOLDA';
+          }
+
+          const card = createTaskCard(task, color, label, status, isRecommended);
           activeContainer.appendChild(card);
         });
 
@@ -103,71 +122,124 @@
       }
     }
 
-    function createTaskCard(task, color, statusLabel) {
+    function createTaskCard(task, color, statusLabel, rawStatus, isRecommended) {
       const card = document.createElement('div');
+      const isLocked = !isRecommended && rawStatus !== 'tamamlandi';
+      
       card.style.background = 'white';
-      card.style.padding = '20px';
-      card.style.borderRadius = '15px';
-      card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
-      card.style.borderLeft = `5px solid ${color}`;
+      card.style.padding = '25px';
+      card.style.borderRadius = '20px';
+      card.style.boxShadow = isRecommended ? '0 10px 30px rgba(227, 6, 19, 0.1)' : '0 4px 12px rgba(0,0,0,0.03)';
+      card.style.borderLeft = `8px solid ${isLocked ? '#cbd5e1' : color}`;
+      card.style.position = 'relative';
+      card.style.opacity = isLocked ? '0.7' : '1';
+      
+      if (isRecommended) {
+        card.style.border = '2px solid rgba(227, 6, 19, 0.2)';
+        card.style.borderLeft = '8px solid var(--afad-red)';
+      }
+
+      // Öncelik Renkleri
+      const pColors = {
+        'acil': '#e30613',
+        'yuksek': '#f97316',
+        'orta': '#eab308',
+        'dusuk': '#10b981'
+      };
+      const pColor = pColors[task.oncelik?.toLowerCase()] || '#64748b';
+
       card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        ${isRecommended ? `
+          <div style="position: absolute; top: -12px; left: 20px; background: var(--afad-red); color: white; padding: 4px 15px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 10px rgba(227, 6, 19, 0.3);">
+            <i class="fas fa-star"></i> SİSTEMİN ÖNERDİĞİ İLK GÖREV
+          </div>
+        ` : ''}
+
+        ${isLocked ? `
+          <div style="position: absolute; top: 10px; right: 10px; color: #94a3b8; font-size: 0.8rem; font-weight: 600;">
+             <i class="fas fa-lock"></i> SIRALI GÖREV KİLİDİ
+          </div>
+        ` : ''}
+        
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top: ${isRecommended ? '10px' : '0'};">
           <div>
-            <h4 style="margin:0; color:var(--afad-navy); font-size:1.1rem;">${task.baslik}</h4>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                <span style="background: ${pColor}15; color: ${pColor}; padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${pColor}30;">
+                    ${task.oncelik || 'Bilinmiyor'}
+                </span>
+                ${task.hesaplanan_oncelik_skoru ? `<span style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">Skor: ${task.hesaplanan_oncelik_skoru}</span>` : ''}
+            </div>
+            <h4 style="margin:0; color:var(--afad-navy); font-size:1.2rem; font-weight: 800;">${task.baslik}</h4>
             <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
               <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
             </div>
           </div>
-          <span class="badge" style="background:${color}10; color:${color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
+          <span class="badge" style="background:${isLocked ? '#f1f5f9' : color + '10'}; color:${isLocked ? '#94a3b8' : color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
         </div>
-        <p style="font-size:0.9rem; color:#475569; margin:15px 0;">${task.aciklama || 'Açıklama yok'}</p>
-        ${statusLabel === 'ATANDI' ? `
-          <button onclick="startMission(${task.id})" class="btn btn-premium" style="font-size:0.8rem; padding:8px 15px; margin-top:10px; width:100%;">
-            <i class="fas fa-truck-moving"></i> EKİP YOLA ÇIKTI
-          </button>` : ''}
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          ${statusLabel !== 'TAMAMLANDI' ? `<a href="https://www.google.com/maps?q=${task.enlem},${task.boylam}" target="_blank" class="btn btn-navy" style="font-size:0.8rem; padding:8px 15px; flex:1;">
-            <i class="fas fa-location-arrow"></i> NAVİGASYON
-          </a>` : ''}
-          ${statusLabel === 'EKİP YOLDA' ? `
-          <button onclick="completeMission(${task.id})" class="btn btn-success" style="font-size:0.8rem; padding:8px 15px; flex:1;">
-            <i class="fas fa-check-double"></i> TAMAMLANDI
-          </button>` : ''}
+        
+        <p style="font-size:0.95rem; color:#475569; margin:15px 0; line-height: 1.5;">${task.aciklama || 'Açıklama yok'}</p>
+
+        ${task.fotograf_yolu ? `
+        <div style="margin-bottom:15px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; height:180px; position: relative; cursor: zoom-in;" onclick="window.open(this.src)">
+          <img src="${task.fotograf_yolu}" style="width:100%; height:100%; object-fit:cover; filter: ${isLocked ? 'grayscale(100%) opacity(0.5)' : 'none'};">
+        </div>
+        ` : ''}
+        
+        <div id="actions-${task.id}" style="display: flex; flex-direction: column; gap: 10px;">
+            ${rawStatus === 'atandi' || rawStatus === 'onaylandi' ? `
+              <button onclick="updateMissionStatus(${task.id}, 'yola cikti', ${isLocked})" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                <i class="fas fa-truck-moving"></i> GÖREVİ BAŞLAT / YOLA ÇIK
+              </button>` : ''}
+              
+            ${rawStatus === 'yola cikti' || rawStatus === 'ekipler yolda' ? `
+              <button onclick="updateMissionStatus(${task.id}, 'talep alindi', ${isLocked})" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: ${isLocked ? '#cbd5e1' : '#f59e0b'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                <i class="fas fa-location-dot"></i> OLAY YERİNE VARILDI
+              </button>` : ''}
+
+            <div style="display:flex; gap:10px;">
+              ${rawStatus !== 'tamamlandi' ? `<a href="${isLocked ? '#' : 'https://www.google.com/maps?q=' + task.enlem + ',' + task.boylam}" target="${isLocked ? '_self' : '_blank'}" class="btn btn-navy" style="font-size:0.85rem; padding:10px; flex:1; background: #f1f5f9 !important; color: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'} !important; border: 1px solid #e2e8f0; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                <i class="fas fa-directions"></i> NAVİGASYON
+              </a>` : ''}
+              
+              ${rawStatus === 'talep alindi' ? `
+              <button onclick="updateMissionStatus(${task.id}, 'tamamlandi', ${isLocked})" class="btn btn-success" style="font-size:0.85rem; padding:10px; flex:1; background: ${isLocked ? '#cbd5e1' : '#10b981'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                <i class="fas fa-check-double"></i> GÖREV TAMAM
+              </button>` : ''}
+            </div>
         </div>
       `;
       return card;
     }
 
-    async function startMission(taskId) {
-      if(!confirm('Görevi başlatmak ve yola çıkmak istediğinize emin misiniz?')) return;
+    async function updateMissionStatus(taskId, newStatus, isLocked) {
+      if (isLocked) {
+        alert("⚠️ SIRALI GÖREV KURALI: Lütfen önce listenin en üstündeki yüksek öncelikli görevinizi tamamlayın.");
+        return;
+      }
+      
+      const messages = {
+        'yola cikti': 'Görevi başlattınız ve yola çıktınız.',
+        'talep alindi': 'Olay yerine ulaştınız ve talebi teslim aldınız.',
+        'tamamlandi': 'Görevi başarıyla tamamladınız.'
+      };
+      
+      if(!confirm(`${messages[newStatus]} Emin misiniz?`)) return;
+      
       try {
         const res = await fetch('/requests/api/update-status-gonullu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: taskId, durum: 'ekipler yolda' })
+          body: JSON.stringify({ id: taskId, durum: newStatus })
         });
         const data = await res.json();
         if(data.success) {
-          alert('Başarılar! Ekipler yola çıktı olarak işaretlendi.');
+          alert('Durum güncellendi: ' + newStatus.toUpperCase());
           loadVolunteerTasks();
         }
-      } catch (err) { alert('Hata oluştu.'); }
-    }
-
-    async function completeMission(taskId) {
-      if(!confirm('Görevi tamamlandı olarak işaretlemek istiyor musunuz?')) return;
-      try {
-        const res = await fetch('/requests/api/update-status-gonullu', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: taskId, durum: 'tamamlandi' })
-        });
-        const data = await res.json();
-        if(data.success) {
-          alert('Görev başarıyla tamamlandı. Teşekkürler!');
-          loadVolunteerTasks();
-        }
-      } catch (err) { alert('Hata oluştu.'); }
+      } catch (err) { 
+        console.error(err);
+        alert('Hata oluştu.'); 
+      }
     }
 
     loadVolunteerTasks();

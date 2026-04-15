@@ -39,20 +39,40 @@ GO
 -- Yardım Talepleri Tablosu
 CREATE TABLE yardim_talepleri (
   id INT IDENTITY(1,1) PRIMARY KEY,
-  kullanici_id INT NOT NULL,
-  il_id INT NOT NULL,
-  ilce_id INT NOT NULL,
-  enlem DECIMAL(10, 8),
-  boylam DECIMAL(11, 8),
+  kullanici_id INT NULL,
+  il_id INT,
+  ilce_id INT,
+  mahalle NVARCHAR(255),
   baslik NVARCHAR(255) NOT NULL,
   aciklama NVARCHAR(MAX),
-  durum NVARCHAR(20) DEFAULT 'yeni' CHECK (durum IN ('yeni', 'devam_ediyor', 'tamamlandi', 'iptal_edildi')),
+  enlem DECIMAL(10, 8),
+  boylam DECIMAL(11, 8),
+  durum NVARCHAR(20) DEFAULT 'yeni' CHECK (durum IN ('yeni', 'atandi', 'tamamlandi', 'iptal')),
   oncelik NVARCHAR(20) DEFAULT 'orta' CHECK (oncelik IN ('dusuk', 'orta', 'yuksek', 'acil')),
+  fotograf_yolu NVARCHAR(500),
+  ses_kaydi_yolu NVARCHAR(500),
+  ad_soyad NVARCHAR(255),
+  telefon NVARCHAR(20),
+  takip_kodu NVARCHAR(20),
   olusturulma_tarihi DATETIME DEFAULT GETDATE(),
-  guncellenme_tarihi DATETIME DEFAULT GETDATE(),
   FOREIGN KEY (kullanici_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (il_id) REFERENCES iller(id),
   FOREIGN KEY (ilce_id) REFERENCES ilceler(id)
+);
+GO
+
+-- Atamaları tutacak tablo
+CREATE TABLE yardim_atamalari (
+  id INT IDENTITY(1,1) PRIMARY KEY,
+  talep_id INT,
+  gonullu_id INT NOT NULL,
+  atama_tarihi DATETIME DEFAULT GETDATE(),
+  tamamlanma_tarihi DATETIME NULL,
+  durum NVARCHAR(20) DEFAULT 'atandi',
+  mesafe_km DECIMAL(8, 2) NULL,
+  oncelik_skoru DECIMAL(8, 2) NULL,
+  FOREIGN KEY (talep_id) REFERENCES yardim_talepleri(id) ON DELETE CASCADE,
+  FOREIGN KEY (gonullu_id) REFERENCES users(id)
 );
 GO
 

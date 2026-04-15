@@ -54,10 +54,10 @@ router.post('/giris', async (req, res) => {
   const { email, sifre } = req.body;
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (!rows || rows.length === 0) return res.status(401).send('Email veya şifre yanlış');
+    if (!rows || rows.length === 0) return res.status(401).send('<script>alert("Email veya şifre yanlış");window.location.href="/giris";</script>');
     const user = rows[0];
     const validPassword = await bcrypt.compare(sifre, user.sifre);
-    if (!validPassword) return res.status(401).send('Email veya şifre yanlış');
+    if (!validPassword) return res.status(401).send('<script>alert("Email veya şifre yanlış");window.location.href="/giris";</script>');
     const token = jwt.sign(
       { id: user.id, email: user.email, rol: user.rol },
       process.env.JWT_SECRET,

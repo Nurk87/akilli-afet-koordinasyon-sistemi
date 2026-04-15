@@ -35,7 +35,7 @@ a:hover {
   background: white;
   border-bottom: 2px solid var(--afad-red);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  padding: 12px 0;
+  padding: 5px 0;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -45,7 +45,7 @@ a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
+  padding: 10px 0;
 }
 
 .logo-afad {
@@ -68,6 +68,12 @@ a:hover {
 
 .logo-accent {
   color: var(--afad-red);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* Butonlar */
@@ -215,7 +221,8 @@ a:hover {
 .hero-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   gap: 40px;
   flex-wrap: wrap;
 }
@@ -254,7 +261,11 @@ a:hover {
 }
 
 .hero-buttons {
-  margin-top: 18px;
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .hero-image {
@@ -273,18 +284,36 @@ a:hover {
   border: 4px solid #fff;
 }
 
-/* Info Section */
+/* Info Section Enhancement */
 .info-section {
-  background: #fff;
-  padding: 48px 0 36px 0;
+  position: relative;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.72)), url('/images/section-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 100px 0;
   text-align: center;
 }
 
 .info-section h2 {
-  font-size: 2rem;
-  color: #003366;
-  margin-bottom: 12px;
-  font-weight: 700;
+  font-size: 2.8rem;
+  color: var(--afad-navy);
+  margin-bottom: 15px;
+  font-weight: 800;
+  position: relative;
+  display: inline-block;
+}
+
+.info-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--afad-red);
+  border-radius: 2px;
 }
 
 .info-section p {
@@ -307,37 +336,127 @@ a:hover {
 }
 
 .info-card {
-  background: linear-gradient(120deg, #e3eafc 0%, #fff 100%);
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  padding: 28px 22px;
-  width: 260px;
-  min-width: 220px;
-  margin-bottom: 18px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(0, 51, 102, 0.1);
+  border-bottom: 5px solid var(--afad-red);
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0, 51, 102, 0.06);
+  padding: 40px 30px;
+  width: 320px;
+  min-width: 280px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .info-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  transform: translateY(-12px);
+  box-shadow: 0 25px 50px rgba(0, 51, 102, 0.1);
+  background: white;
 }
 
 .info-card i {
-  font-size: 2.2rem;
-  color: #ff6600;
-  margin-bottom: 12px;
+  font-size: 2.5rem;
+  color: var(--afad-red);
+  margin-bottom: 20px;
+  background: #fff1f2;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .info-card h3 {
-  font-size: 1.18rem;
-  color: #003366;
-  margin-bottom: 8px;
+  font-size: 1.4rem;
+  color: var(--afad-navy);
+  margin-bottom: 15px;
   font-weight: 700;
 }
 
 .info-card p {
-  color: #444;
-  font-size: 1rem;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* Impact Gallery Section */
+.impact-section {
+  position: relative;
+  background-image: linear-gradient(rgba(0, 51, 102, 0.92), rgba(0, 51, 102, 0.88)), url('/images/impact-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 120px 0;
+  color: white;
+}
+
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.impact-item {
+  background: white;
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.impact-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.impact-img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.impact-content {
+  padding: 30px;
+}
+
+.impact-content h4 {
+  color: var(--afad-navy);
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.impact-content p {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.impact-badge {
+  background: #ecfdf5;
+  color: #059669;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.badge-urgent {
+  background: var(--afad-red);
+  color: white;
+  padding: 8px 22px;
+  border-radius: 50px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(227, 6, 19, 0.15);
 }
 
 /* Auth Sayfaları */
@@ -346,7 +465,10 @@ a:hover {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #ff6600 100%);
+  background-image: linear-gradient(rgba(0, 30, 60, 0.85), rgba(0, 20, 40, 0.9)), url('/images/auth-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .auth-container {

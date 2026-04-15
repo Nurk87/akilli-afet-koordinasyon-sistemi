@@ -173,10 +173,13 @@ router.get('/api/export-csv', async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT 
-        id, baslik, durum, oncelik, adres, 
-        olusturulma_tarihi,
-        (SELECT TOP 1 tamamlanma_tarihi FROM yardim_atamalari WHERE talep_id = yardim_talepleri.id AND durum = 'tamamlandi') as tamam_tarih
-      FROM yardim_talepleri`);
+        y.id, y.baslik, y.durum, y.oncelik, 
+        (i.ad + ' / ' + ilc.ad) as adres,
+        y.olusturulma_tarihi,
+        (SELECT TOP 1 tamamlanma_tarihi FROM yardim_atamalari WITH (NOLOCK) WHERE talep_id = y.id AND durum = 'tamamlandi') as tamam_tarih
+      FROM yardim_talepleri y WITH (NOLOCK)
+      LEFT JOIN iller i WITH (NOLOCK) ON y.il_id = i.id
+      LEFT JOIN ilceler ilc WITH (NOLOCK) ON y.ilce_id = ilc.id`);
     
     let csv = '\uFEFF'; // BOM for Excel Turkish Char Support
     csv += 'ID,Baslik,Durum,Öncelik,Adres,Oluşturulma Tarihi,Tamamlanma Tarihi\n';

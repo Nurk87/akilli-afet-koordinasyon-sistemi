@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 const dbPath = path.join(__dirname, 'database.db');
 const db = new sqlite3.Database(dbPath);
@@ -72,16 +73,32 @@ db.serialize(() => {
     });
   });
   
-  // Örnek iller ve ilçeler (eğer boşsa)
+  // Tüm iller ve ilçeler (eğer boşsa iller-ilceler.js'den yükle)
   db.get("SELECT COUNT(*) as count FROM iller", (err, row) => {
-    if (err) {
-      // Tablo henüz yoksa (hata durumunda) devam et
-      return finishInit();
-    }
+    if (err) return finishInit();
     if (row && row.count === 0) {
-      db.run("INSERT INTO iller (ad) VALUES ('İstanbul'), ('Ankara'), ('İzmir')");
-      db.run("INSERT INTO ilceler (il_id, ad) VALUES (1, 'Kadıköy'), (1, 'Beşiktaş'), (2, 'Çankaya')");
-      console.log('✅ Örnek yerleşim verileri eklendi.');
+      try {
+        const content = fs.readFileSync(path.join(__dirname, 'public', 'js', 'iller-ilceler.js'), 'utf8');
+        const match = content.match(/var iller = (\{[\s\S]+\});/);
+        if (match) {
+          const illerObj = eval('(' + match[1] + ')');
+          const stmt = db.prepare("INSERT INTO iller (id, ad) VALUES (?, ?)");
+          for (const plate in illerObj) {
+            stmt.run(parseInt(plate), illerObj[plate].ad);
+          }
+          stmt.finalize();
+          const stmt2 = db.prepare("INSERT INTO ilceler (il_id, ad) VALUES (?, ?)");
+          for (const plate in illerObj) {
+            for (const ilce of illerObj[plate].ilceler) {
+              stmt2.run(parseInt(plate), ilce);
+            }
+          }
+          stmt2.finalize();
+          console.log('✅ Tüm iller ve ilçeler yüklendi (81 il).');
+        }
+      } catch(e) {
+        console.error('İl/ilçe yükleme hatası:', e.message);
+      }
     }
     finishInit();
   });

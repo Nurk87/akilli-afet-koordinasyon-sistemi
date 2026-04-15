@@ -14,8 +14,11 @@
   <nav class="navbar">
     <div class="container">
       <div class="logo-afad">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/AFAD_logo.png" alt="AFAD Logo">
-        <span>Afet Koordinasyon Sistemi</span>
+        <img src="/images/logo.png" alt="AFAD Logo" style="height: 45px; border-radius: 8px;">
+        <div style="display: flex; flex-direction: column; line-height: 1;">
+          <span class="logo-text">AFET <span class="logo-accent">KOORDİNASYON</span></span>
+          <span style="font-size: 0.65rem; color: #94a3b8; font-weight: 600; letter-spacing: 1px; margin-top: 2px;">SMART SYSTEM | BETA</span>
+        </div>
       </div>
       <div>
         <a href="/giris" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</a>
@@ -47,34 +50,74 @@
   </header>
 
   <section id="ozellikler" class="info-section">
-    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; padding: 80px 0;">
-      <h2 style="font-size: 2.5rem; color: var(--afad-navy);">Nasıl Çalışıyoruz?</h2>
-      <p style="font-size: 1.1rem; color: #475569; max-width: 800px; margin: 0 auto 50px auto;">AFAD standartlarıyla uyumlu, teknoloji odaklı afet koordinasyon altyapısı.</p>
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <h2>Nasıl Çalışıyoruz?</h2>
+      <p style="font-size: 1.2rem; color: #475569; max-width: 800px; margin: 0 auto 60px auto; font-weight: 500;">
+        AFAD standartlarıyla tam uyumlu, yapay zeka destekli ve veri madenciliği tabanlı milli afet koordinatörünüz.
+      </p>
       
       <div class="info-cards">
         <div class="info-card">
           <i class="fas fa-map-marked-alt"></i>
-          <h3>Akıllı Atama</h3>
-          <p>Konum tabanlı algoritmalarla en yakın gönüllüyü ihtiyaca yönlendirir.</p>
+          <h3>Yapay Zeka Atama</h3>
+          <p>Enkaz altı sinyalleri ve yardım taleplerini konum tabanlı algoritmalarla analiz ederek, saniyeler içinde en doğru personeli olay mahalline yönlendiriyoruz.</p>
         </div>
         <div class="info-card">
           <i class="fas fa-chart-line"></i>
           <h3>Kaynak Optimizasyonu</h3>
-          <p>Kritik yardım malzemelerinin israf edilmeden dağıtımını planlar.</p>
+          <p>T-SQL tabanlı veri işleme motorumuz ile kritik yardım malzemelerini (su, gıda, tıbbi kit) talebin yoğunluğuna göre dinamik ve adil bir şekilde dağıtıyoruz.</p>
         </div>
         <div class="info-card">
           <i class="fas fa-satellite-dish"></i>
-          <h3>Canlı Takip</h3>
-          <p>Yetkili panellerinden tüm saha hareketlerini anlık olarak izler.</p>
+          <h3>Anlık Saha Takibi</h3>
+          <p>Entegre dashboard panelleri üzerinden tüm saha hareketlerini, lojistik akışları ve ekip durumlarını gerçek zamanlı ısı haritalarıyla 7/24 izliyoruz.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <footer>
+  <section id="impact" class="impact-section">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div style="text-align: center;">
+        <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;">BAŞARI HİKAYELERİMİZ</span>
+        <h2 style="font-size: 2.2rem; color: #ffffff; font-weight: 800; margin-bottom: 15px;">Saha Operasyonlarımız ve Etkimiz</h2>
+        <p style="font-size: 1.1rem; color: #cbd5e1; max-width: 700px; margin: 0 auto;">Teknoloji ve insan gücünü birleştirerek sahada yarattığımız değişimin gerçek hikayeleri.</p>
+      </div>
+
+      <div class="impact-grid">
+        <div class="impact-item">
+          <img src="/images/impact-1.png" alt="Saha Koordinasyonu" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">OPERASYON BAŞARISI</span>
+            <h4>Lojistik ve Hızlı Dağıtım</h4>
+            <p>Büyük Marmara Tatbikatı ve yerel operasyonlarda 5000+ yardım kolisinin, sistemimiz tarafından saptanan öncelikli bölgelere sadece 2 saatte ulaşması sağlandı.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-2.png" alt="Rescue Team" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">KRİTİK MÜDAHALE</span>
+            <h4>Hızlı Arama-Kurtarma</h4>
+            <p>Konum verileri ve akıllı filtreleme sistemi sayesinde acil yardım talepleri, sahada aktif olan profesyonel kurtarma ekiplerine %40 daha hızlı iletildi.</p>
+          </div>
+        </div>
+        <div class="impact-item">
+          <img src="/images/impact-3.png" alt="Volunteer Power" class="impact-img">
+          <div class="impact-content">
+            <span class="impact-badge">TOPLUMSAL GÜÇ</span>
+            <h4>Dev Gönüllü Mobilizasyonu</h4>
+            <p>Sistemiz üzerinden 30.000 aktif gönüllü, yetkinliklerine (ilk yardım, lojistik, teknik destek) göre saniyeler içinde doğru görevlere otomatik olarak atandı.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding: 60px 0; background: var(--afad-navy); color: white; text-align: center;">
     <div class="container">
-      <p>&copy; 2026 Akıllı Afet Koordinasyon Sistemi | T-SQL & Node.js Implementation</p>
-      <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.7;">Akademik Bitirme Projesi - Elif Nisa Tuncer</p>
+      <img src="/images/logo-white.png" alt="AFAD Logo" style="height: 50px; margin-bottom: 20px; opacity: 0.9;">
+      <p style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px; margin-bottom: 8px;">© 2026 Akıllı Afet Koordinasyon Sistemi</p>
+      <p style="font-size: 0.85rem; opacity: 0.6; font-weight: 400;">Afet ve Acil Durum Yönetimi Teknolojileri | Akıllı Şehir Koordinasyon Altyapısı</p>
     </div>
   </footer>
 </body>

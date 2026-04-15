@@ -16,7 +16,7 @@ router.post('/otomatik', async (req, res) => {
 
     // Bekleyen (yeni veya onaylanmış) yardım taleplerini çek
     const [talepler] = await pool.query(
-      "SELECT TOP 100 id, enlem, boylam, oncelik FROM yardim_talepleri WHERE durum IN ('yeni', 'onaylandi') ORDER BY olusturulma_tarihi ASC"
+      "SELECT TOP 100 id, enlem, boylam, oncelik, olusturulma_tarihi FROM yardim_talepleri WHERE durum IN ('yeni', 'onaylandi') ORDER BY olusturulma_tarihi ASC"
     );
 
     if (talepler.length === 0) {
@@ -52,7 +52,7 @@ router.post('/otomatik', async (req, res) => {
         
         // Talebin durumunu 'atandı' olarak güncelle (Hafta 5 Akış: Yeni -> Onaylandı -> Atandı -> Ekip Yolda)
         await pool.query(
-          "UPDATE yardim_talepleri SET durum = 'atandı', hesaplanan_oncelik_skoru = ? WHERE id = ?",
+          "UPDATE yardim_talepleri SET durum = 'atandi', hesaplanan_oncelik_skoru = ? WHERE id = ?",
           [atama.oncelik_skoru, atama.talep_id]
         );
 
@@ -110,7 +110,7 @@ router.post('/api/manual-assign', async (req, res) => {
 
     // 2. Update request status to 'atandı'
     await pool.query(
-      "UPDATE yardim_talepleri SET durum = 'atandı' WHERE id = ?",
+      "UPDATE yardim_talepleri SET durum = 'atandi' WHERE id = ?",
       [talep_id]
     );
 

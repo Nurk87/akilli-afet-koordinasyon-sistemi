@@ -8,8 +8,9 @@
 <body>
   <nav class="navbar">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 90%; max-width: 1200px; margin: 0 auto;">
-      <div class="logo-afad">
-        <span class="logo-text">🚨 AFET <span class="logo-accent">YARDIM</span></span>
+      <div class="logo-afad" style="display: flex; align-items: center; gap: 12px;">
+        <img src="/images/logo.png" alt="AFAD Logo" style="height: 40px; border-radius: 6px;">
+        <span class="logo-text">AFET <span class="logo-accent">YARDIM</span></span>
       </div>
       <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
         <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-house-user"></i> Kazazede Paneli</span>
@@ -70,7 +71,8 @@
         // My requests filtering (if implemented server-side, this list is already filtered or just shows latest)
         // For now we use the logic provided:
         
-        const dispatched = data.find(r => (r.durum || '').toLowerCase() === 'ekipler yolda');
+        const dispatched = data.find(r => ['yola cikti', 'ekipler yolda'].includes((r.durum || '').toLowerCase()));
+        const assigned = data.find(r => (r.durum || '').toLowerCase() === 'atandi');
         const approved = data.find(r => (r.durum || '').toLowerCase() === 'onaylandi');
         const completed = data.find(r => (r.durum || '').toLowerCase() === 'tamamlandi');
         
@@ -87,7 +89,7 @@
                 <div style="display:flex; gap:20px; margin-top:10px;">
                    <div>
                       <p style="margin:0; font-size:0.9rem; color:#64748b; text-transform:uppercase; font-weight:700;">Görevli Personel</p>
-                      <p style="margin:3px 0 0 0; font-size:1.1rem; color:#1e3a8a; font-weight:600;">${dispatched.gonullu_ad || 'Atanıyor...'} ${dispatched.gonullu_soyad || ''}</p>
+                      <p style="margin:3px 0 0 0; font-size:1.1rem; color:#1e3a8a; font-weight:600;">${dispatched.gonullu_ad || 'Saha Gönüllüsü'} ${dispatched.gonullu_soyad || ''}</p>
                    </div>
                    <div>
                       <p style="margin:0; font-size:0.9rem; color:#64748b; text-transform:uppercase; font-weight:700;">İrtibat</p>
@@ -97,6 +99,19 @@
                 <div style="margin-top:15px; background:#e2e8f0; height:10px; border-radius:5px; overflow:hidden;">
                   <div style="width:85%; background:linear-gradient(90deg, #3b82f6, #60a5fa); height:100%; animation: progressMove 2s infinite linear; background-size: 30px 30px; background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);"></div>
                 </div>
+              </div>
+            </div>`;
+        } else if (assigned) {
+          statusWidget.style.borderLeftColor = '#f59e0b';
+          statusWidget.style.background = '#fffbeb';
+          statusWidget.innerHTML = `
+            <div style="display:flex; align-items:center; gap:20px;">
+              <div style="background:#f59e0b; width:60px; height:60px; border-radius:15px; display:flex; align-items:center; justify-content:center; box-shadow: 0 8px 12px rgba(245, 158, 11, 0.2);">
+                <i class="fas fa-user-check" style="color:white; font-size:1.5rem;"></i>
+              </div>
+              <div>
+                <h4 style="margin:0; color:#92400e; font-size:1.3rem; font-weight:700;">Gönüllü Atandı</h4>
+                <p style="margin:5px 0 0 0; font-size:1rem; color:#b45309;">${assigned.gonullu_ad || 'Bir gönüllü'} talebinizle ilgileniyor. Hazırlıklar tamamlandığında yola çıkacak.</p>
               </div>
             </div>`;
         } else if (approved) {

@@ -1,6 +1,4 @@
 const sql = require('mssql');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
 require('dotenv').config();
 
 const mssqlConfig = {
@@ -23,56 +21,37 @@ const mssqlConfig = {
 };
 
 let mssqlPool;
-let sqliteDb;
-let dbType = 'none';
+let dbType = 'mssql';
 
 async function initDb() {
-    if (dbType !== 'none') return;
+    if (mssqlPool) return;
 
     try {
         mssqlPool = await sql.connect(mssqlConfig);
         console.log('✅ MSSQL Veritabanına BAĞLANDI!');
-        dbType = 'mssql';
     } catch (err) {
-        console.warn('⚠️ MSSQL BAĞLANTI HATASI! SQLite yedeğine geçiliyor...');
-        const dbPath = path.join(__dirname, '..', 'database.db');
-        sqliteDb = new sqlite3.Database(dbPath);
-        dbType = 'sqlite';
-        console.log('✅ SQLite Veritabanı Aktif:', dbPath);
+        console.error('❌ MSSQL BAĞLANTI HATASI! Lütfen veritabanı ayarlarını kontrol edin.');
+        console.error(err.message);
+        throw err;
     }
 }
 
 const queryExecuter = async (query, params = []) => {
     await initDb();
 
-    if (dbType === 'mssql') {
-        const request = mssqlPool.request();
-        let mssqlQuery = query;
-        if (Array.isArray(params) && params.length > 0) {
-            params.forEach((param, i) => {
-                request.input(`p${i}`, param);
-                mssqlQuery = mssqlQuery.replace('?', `@p${i}`);
-            });
-        }
-        const result = await request.query(mssqlQuery);
-        return [result.recordset || [], []];
-    } else {
-        // SQLite
-        return new Promise((resolve, reject) => {
-            const method = query.trim().toUpperCase().startsWith('SELECT') ? 'all' : 'run';
-            sqliteDb[method](query, params, function(err, rows) {
-                if (err) {
-                    console.error('❌ SQLite Hata:', err.message, 'Sorgu:', query);
-                    return reject(err);
-                }
-                if (method === 'run') {
-                    resolve([{ id: this.lastID, changes: this.changes }, []]);
-                } else {
-                    resolve([rows, []]);
-                }
-            });
+    const request = mssqlPool.request();
+    let mssqlQuery = query;
+    if (Array.isArray(params) && params.length > 0) {
+        params.forEach((param, i) => {
+            request.input(`p${i}`, param);
+            const index = mssqlQuery.indexOf('?');
+            if (index !== -1) {
+                mssqlQuery = mssqlQuery.substring(0, index) + `@p${i}` + mssqlQuery.substring(index + 1);
+            }
         });
     }
+    const result = await request.query(mssqlQuery);
+    return [result.recordset || [], []];
 };
 
 module.exports = {

@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "email": "admin@test.com",
+    "sifre": "Admin123!",
+    "rol": "admin"
+  },
+  {
+    "id": 2,
+    "email": "nkpodyumsahneee@gmail.com",
+    "sifre": "$2a$10$PYmrw1K.DCp7xgRUbliO8Okm6Oya5NGBZqY4jBBbyDuGHH3bPRdLO",
+    "rol": "yetkili"
+  },
+  {
+    "id": 3,
+    "email": "zehra@gmail.com",
+    "sifre": "$2a$10$u5W8hBcGzoBven5H.LC5HuI6Lsn9W3A1AaIQFbpMpsQQui8tPZWSa",
+    "rol": "kazazede"
+  },
+  {
+    "id": 4,
+    "email": "nisa.7137k@gmail.com",
+    "sifre": "$2a$10$gCBXRL1K4c3aPBUQ9pK7DO/bQ.C6.v02aXLs5EvguLDVIg2nUTNBm",
+    "rol": "yetkili"
+  },
+  {
+    "id": 5,
+    "email": "elif@gmail.com",
+    "sifre": "$2a$10$Czw2CpqSNGIG.WejnOPZfuGA/mS0qqxBUiuUkyoXFrl/Gof2s1Bp6",
+    "rol": "gonullu"
+  },
+  {
+    "id": 6,
+    "email": "test@test.com",
+    "sifre": "$2a$10$Bh5idFwvZeV1g35.M8n8UuRsb/Mx9zseIR2Bz19hvX66tWBN3sRSy",
+    "rol": "kazazede"
+  },
+  {
+    "id": 7,
+    "email": "test2@test.com",
+    "sifre": "$2a$10$1YOcbpWOtxP/ptL.NB8BV.ZY8Dy9EpI/y9OM85rnQJ7ZiyGCS4MoK",
+    "rol": "kazazede"
+  },
+  {
+    "id": 8,
+    "email": "zera@gmail.com",
+    "sifre": "$2a$10$xTZYa6.jzSGfrxc9iCoR.Ommqki7zvkWCc2inrZq.iM8qAne5qb3m",
+    "rol": "gonullu"
+  },
+  {
+    "id": 9,
+    "email": "elifselalmaz@gmail.com",
+    "sifre": "$2a$10$SPIA6qVcgKGO/HDbP.xa4eZ3wyLhhQPxGEpqVJajRNt9.ujUy1MS.",
+    "rol": "kazazede"
+  },
+  {
+    "id": 10,
+    "email": "kubra@gmail.com",
+    "sifre": "$2a$10$rCUKHCYnNhZ/V01uS7jLCenxW2GlvSxz4emYYbpREBGXedUxBOqde",
+    "rol": "gonullu"
+  },
+  {
+    "id": 11,
+    "email": "eda@gmail.com",
+    "sifre": "$2a$10$YKUa3AYn3iSgDbTDL.WbBeM/5WQ9pMhRrj.pbamCPXzOPG/Ct./nW",
+    "rol": "gonullu"
+  },
+  {
+    "id": 12,
+    "email": "ceren@gmail.com",
+    "sifre": "$2a$10$QyRWcwB8Aaf.p9iO7l9is.AEfdyEcG7vjFuYSAdH9DGxpI1s.ig0.",
+    "rol": "kazazede"
+  },
+  {
+    "id": 13,
+    "email": "test_gonullu@afad.gov.tr",
+    "sifre": "$2a$10$Hdok1H1irdcsiKwefd2dg.wOXpZmeNWS/IICHoVEeWtBxb6CMKop.",
+    "rol": "gonullu"
+  }
+]

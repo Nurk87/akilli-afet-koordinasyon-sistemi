@@ -19,9 +19,11 @@
       <div class="logo-afad">
         <span style="font-size: 1.5rem; font-weight: 800; color: #003366;">🚨 AFET KOORDİNASYON</span>
       </div>
-      <div style="display: flex; gap: 15px; align-items: center;">
+      <div style="display: flex; gap: 15px; align-items: center;" id="nav-actions">
         <span style="color: #486581; font-weight: 600;">Yardım Talebi v1.0</span>
-        <a href="/cikis" class="btn btn-danger" style="border-radius: 10px; padding: 8px 20px;">Çıkış</a>
+        <a href="/" class="btn btn-navy" style="text-decoration: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-home"></i> Ana Sayfaya Dön
+        </a>
       </div>
     </div>
   </nav>
@@ -35,6 +37,16 @@
       </div>
 
       <form method="POST" action="/requests/olustur" enctype="multipart/form-data">
+        <div id="anonymous-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+          <div class="form-group">
+            <label><i class="fas fa-user" style="margin-right: 8px; color: #ff6600;"></i>Ad Soyad</label>
+            <input type="text" name="ad_soyad" id="ad_soyad" placeholder="Lütfen adınızı ve soyadınızı giriniz" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-phone" style="margin-right: 8px; color: #ff6600;"></i>Telefon Numarası</label>
+            <input type="tel" name="telefon" id="telefon" placeholder="05XX XXX XX XX" required>
+          </div>
+        </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
           <div class="form-group">
             <label><i class="fas fa-city" style="margin-right: 8px; color: #ff6600;"></i>İl</label>
@@ -54,8 +66,16 @@
         </div>
 
         <div class="form-group">
-          <label><i class="fas fa-align-left" style="margin-right: 8px; color: #ff6600;"></i>Detaylı Açıklama</label>
-          <textarea name="aciklama" placeholder="İhtiyacın detaylarını, kişi sayısını ve varsa bina durumunu belirtiniz..."></textarea>
+          <label style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-align-left" style="margin-right: 8px; color: #ff6600;"></i>Detaylı Açıklama</span>
+            <button type="button" id="sesli-yaz" class="btn-secondary-premium" style="padding: 6px 15px; font-size: 0.85rem; background: #fff7ed; border: 1px solid #ff6600; color: #ff6600;">
+              <i class="fas fa-microphone"></i> Sesle Yazdır
+            </button>
+          </label>
+          <textarea name="aciklama" id="aciklama" placeholder="İhtiyacın detaylarını, kişi sayısını ve varsa bina durumunu belirtiniz..." style="min-height: 120px;"></textarea>
+          <p id="ses-durum" style="display: none; font-size: 0.8rem; color: var(--afad-red); margin-top: 5px; font-weight: 600;">
+            <i class="fas fa-circle-dot fa-beat"></i> Dinleniyor... Lütfen konuşun.
+          </p>
         </div>
 
         <div class="form-group" style="margin-bottom: 30px;">
@@ -66,15 +86,35 @@
             </button>
           </label>
           <div id="map" style="height: 350px;"></div>
+          <p id="konum-durum" style="display: none; font-size: 0.85rem; color: #dc2626; margin-top: 8px; font-weight: 600;">
+            <i class="fas fa-exclamation-circle"></i> Konumunuz tespit edilemedi. Lütfen aşağıdaki alana açık adres giriniz.
+          </p>
           <p style="font-size: 0.85rem; color: #627d98; margin-top: 8px; font-style: italic;">Haritaya tıklayarak nokta atışı konum belirleyebilirsiniz.</p>
           <input type="hidden" name="enlem" id="enlem">
           <input type="hidden" name="boylam" id="boylam">
         </div>
 
+        <div class="form-group" id="adres-grubu" style="margin-bottom: 25px;">
+          <label><i class="fas fa-map-location-dot" style="margin-right: 8px; color: #ff6600;"></i>Açık Adres / Bina Bilgisi</label>
+          <textarea name="acik_adres" id="acik_adres" placeholder="Sokak, Bina No, Kat, Daire veya belirgin yer tarifini buraya yazınız..." style="min-height: 80px;"></textarea>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label style="display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-microphone-lines" style="margin-right: 8px; color: #ff6600;"></i>Ses Kaydı (Opsiyonel)</span>
+            <span id="kayit-sure" style="display: none; color: var(--afad-red); font-weight: 700; font-family: monospace;">00:00</span>
+          </label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button type="button" id="kayit-baslat" class="btn-secondary-premium" style="flex: 1; border: 1px solid #cbd5e1;"><i class="fas fa-play"></i> Kaydı Başlat</button>
+            <button type="button" id="kayit-durdur" class="btn-secondary-premium" style="flex: 1; display: none; background: #fee2e2; border: 1px solid var(--afad-red); color: var(--afad-red);"><i class="fas fa-stop"></i> Durdur</button>
+          </div>
+          <audio id="ses-onizleme" controls style="display: none; width: 100%; margin-top: 10px; height: 40px; border-radius: 10px;"></audio>
+          <p style="font-size: 0.8rem; color: #627d98; margin-top: 5px;">Yazacak durumda değilseniz veya daha fazla detay iletmek isterseniz sesli mesaj bırakabilirsiniz.</p>
+        </div>
+
         <div class="form-group" style="margin-bottom: 25px;">
           <label><i class="fas fa-camera" style="margin-right: 8px; color: #ff6600;"></i>Olay Yeri Fotoğrafı (Opsiyonel)</label>
           <input type="file" name="fotograf" accept="image/*" style="padding: 10px; border: 2px dashed #cbd5e1; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.4);" onchange="this.style.borderColor='#ff6600'; this.style.background='#fff7ed';">
-          <p style="font-size: 0.8rem; color: #627d98; margin-top: 5px;">Enkazın veya ihtiyacın fotoğrafını çekip yükleyerek koordinasyonun hızlanmasına yardımcı olabilirsiniz.</p>
         </div>
 
         <div class="form-group" style="margin-bottom: 35px;">
@@ -88,7 +128,7 @@
         </div>
 
         <div style="display: flex; gap: 15px;">
-          <a href="/requests" class="btn-secondary-premium" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none;">Vazgeç</a>
+          <a href="/" class="btn-secondary-premium" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none;">Vazgeç</a>
           <button type="submit" class="btn-premium" style="flex: 2;">Talebi Yayınla ve Yardım İste</button>
         </div>
       </form>
@@ -125,10 +165,19 @@
     });
 
     document.getElementById('konumum').onclick = function() {
+      const statusP = document.getElementById('konum-durum');
+      statusP.style.display = 'none';
+      
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
           setMarker(pos.coords.latitude, pos.coords.longitude);
           map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+        }, function(err) {
+          console.error(err);
+          statusP.textContent = "⚠️ Konum bulunamadı. Lütfen manuel adres giriniz.";
+          statusP.style.display = 'block';
+          document.getElementById('acik_adres').focus();
+          document.getElementById('acik_adres').style.borderColor = '#dc2626';
         });
       } else {
         alert("Tarayıcınız konum bilgisini desteklemiyor.");
@@ -136,8 +185,16 @@
     };
 
     // İl/ilçe doldurma
-    // /js/iller-ilceler.js dosyasında iller ve ilçeler JS objesi olarak olmalı
     window.onload = function() {
+      // Oturum kontrolü
+      const cookies = document.cookie.split('; ');
+      const token = cookies.find(row => row.startsWith('token='));
+      if (token) {
+        // Giriş yapmışsa ad/soyad zorunlu olmaktan çıkabilir (arka planda user.id kullanılacak)
+        document.getElementById('ad_soyad').required = false;
+        document.getElementById('telefon').required = false;
+      }
+
       var ilSelect = document.getElementById('il');
       var ilceSelect = document.getElementById('ilce');
       for (var il in iller) {
@@ -161,6 +218,127 @@
           opt.value = '';
           opt.text = '-- Önce İl Seçiniz --';
           ilceSelect.add(opt);
+        }
+      };
+
+      // Sesli Yazma Özelliği (Speech to Text)
+      const speechBtn = document.getElementById('sesli-yaz');
+      const textarea = document.getElementById('aciklama');
+      const statusP = document.getElementById('ses-durum');
+
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'tr-TR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        speechBtn.onclick = () => {
+          try {
+            recognition.start();
+            speechBtn.style.background = '#fee2e2';
+            speechBtn.innerHTML = '<i class="fas fa-stop"></i> Dinleniyor...';
+            statusP.style.display = 'block';
+          } catch (e) {
+            recognition.stop();
+          }
+        };
+
+        recognition.onresult = (event) => {
+          const text = event.results[0][0].transcript;
+          textarea.value += (textarea.value ? ' ' : '') + text;
+          stopRecognition();
+        };
+
+        recognition.onerror = () => stopRecognition();
+        recognition.onend = () => stopRecognition();
+
+        function stopRecognition() {
+          speechBtn.style.background = '#fff7ed';
+          speechBtn.innerHTML = '<i class="fas fa-microphone"></i> Sesle Yazdır';
+          statusP.style.display = 'none';
+        }
+      } else {
+        speechBtn.style.display = 'none';
+      }
+
+      // --- SES KAYIT MANTIĞI (MediaRecorder) ---
+      let mediaRecorder;
+      let audioChunks = [];
+      let startTime;
+      let timerInterval;
+      let recordedBlob;
+
+      const kayitBaslatBtn = document.getElementById('kayit-baslat');
+      const kayitDurdurBtn = document.getElementById('kayit-durdur');
+      const sureDisplay = document.getElementById('kayit-sure');
+      const onizleme = document.getElementById('ses-onizleme');
+
+      kayitBaslatBtn.onclick = async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(recordedBlob);
+          onizleme.src = audioUrl;
+          onizleme.style.display = 'block';
+        };
+
+        mediaRecorder.start();
+        startTime = Date.now();
+        kayitBaslatBtn.style.display = 'none';
+        kayitDurdurBtn.style.display = 'block';
+        sureDisplay.style.display = 'inline';
+        
+        timerInterval = setInterval(() => {
+          const seconds = Math.floor((Date.now() - startTime) / 1000);
+          const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+          const secs = (seconds % 60).toString().padStart(2, '0');
+          sureDisplay.textContent = `${mins}:${secs}`;
+        }, 1000);
+      };
+
+      kayitDurdurBtn.onclick = () => {
+        mediaRecorder.stop();
+        clearInterval(timerInterval);
+        kayitBaslatBtn.style.display = 'block';
+        kayitBaslatBtn.innerHTML = '<i class="fas fa-redo"></i> Yeniden Kaydet';
+        kayitDurdurBtn.style.display = 'none';
+      };
+
+      // --- FORM GÖNDERİMİ (AJAX/FETCH) ---
+      const form = document.querySelector('form');
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
+
+        const formData = new FormData(form);
+        if (recordedBlob) {
+          formData.append('ses_kaydi', recordedBlob, 'kayit.webm');
+        }
+
+        try {
+          const response = await fetch('/requests/olustur', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.redirected) {
+            window.location.href = response.url;
+          } else {
+            const result = await response.text();
+            document.body.innerHTML = result; // Hata veya başka bir yanıt gelirse göster
+          }
+        } catch (err) {
+          alert('Gönderim sırasında bir hata oluştu: ' + err.message);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Talebi Yayınla ve Yardım İste';
         }
       };
     };

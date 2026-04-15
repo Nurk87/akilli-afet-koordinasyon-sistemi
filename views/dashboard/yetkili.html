@@ -15,8 +15,9 @@
 <body>
   <nav class="navbar">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
-      <div class="logo-afad">
-        <span class="logo-text">🚨 AFET <span class="logo-accent">YÖNETİM</span></span>
+      <div class="logo-afad" style="display: flex; align-items: center; gap: 12px;">
+        <img src="/images/logo.png" alt="AFAD Logo" style="height: 42px; border-radius: 6px;">
+        <span class="logo-text">AFET <span class="logo-accent">YÖNETİM</span></span>
       </div>
       <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
         <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-shield"></i> Yetkili Paneli</span>
@@ -143,6 +144,25 @@
           </a>
         </div>
       </div>
+
+      <!-- Atama Sonuç Modalı -->
+      <div id="assignmentResultsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 51, 102, 0.4); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="glass-card" style="width: 90%; max-width: 650px; background: white; padding: 40px; border-radius: 30px; border-top: 8px solid var(--afad-red); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <div style="background: rgba(227, 6, 19, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+              <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--afad-red);"></i>
+            </div>
+            <h2 style="color: var(--afad-navy); font-weight: 800; font-size: 1.8rem; margin: 0;">Atama Operasyonu Tamamlandı</h2>
+            <p id="assignmentSummaryText" style="color: #64748b; margin-top: 10px; font-weight: 500;">X adet talep en uygun gönüllülere yönlendirildi.</p>
+          </div>
+          
+          <div id="assignmentDetailList" style="max-height: 250px; overflow-y: auto; margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0;">
+            <!-- Detaylı liste buraya gelecek -->
+          </div>
+          
+          <button onclick="document.getElementById('assignmentResultsModal').style.display = 'none'" class="btn btn-navy" style="width: 100%; padding: 18px; border-radius: 15px; font-weight: 800; font-size: 1rem;">ANLADIM, DEVAM ET</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -168,15 +188,24 @@
         
         latestRequests.innerHTML = '';
         requests.slice(0, 5).forEach(req => {
+          const status = (req.durum || 'yeni').toLowerCase();
+          const statusColors = {
+            'yeni': { bg: '#fee2e2', text: '#dc2626' },
+            'yola cikti': { bg: '#e0f2fe', text: '#0369a1' },
+            'talep alindi': { bg: '#ffedd5', text: '#9a3412' },
+            'tamamlandi': { bg: '#dcfce7', text: '#15803d' }
+          };
+          const sColor = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
+          
           const div = document.createElement('div');
           div.style.padding = '12px';
           div.style.borderBottom = '1px solid #f1f5f9';
-          div.style.background = req.durum === 'yeni' ? 'rgba(227, 6, 19, 0.03)' : 'transparent';
+          div.style.background = status === 'yeni' ? 'rgba(227, 6, 19, 0.03)' : 'transparent';
           div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <strong style="font-size:0.9rem; color:var(--afad-navy);">${req.baslik}</strong>
-              <span style="font-size:0.65rem; padding:2px 6px; border-radius:10px; background:${req.durum === 'yeni' ? '#fee2e2' : '#f1f5f9'}; color:${req.durum === 'yeni' ? '#dc2626' : '#64748b'}; font-weight:700;">
-                ${req.durum.toUpperCase()}
+              <span style="font-size:0.65rem; padding:2px 8px; border-radius:10px; background:${sColor.bg}; color:${sColor.text}; font-weight:700;">
+                ${status.toUpperCase()}
               </span>
             </div>
             <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">
@@ -196,7 +225,7 @@
     setInterval(loadStats, 10000);
 
     // --- LEAFLET HARİTA ENTEGRASYONU ---
-    const map = L.map('adminMap').setView([39.9334, 32.8597], 6); // Türkiye merkezi
+    const map = L.map('adminMap').setView([39.0, 35.0], 6); // Türkiye geneli odaklı (Ulusal Demo Senaryosu)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
@@ -215,17 +244,23 @@
           if (layer instanceof L.Marker || layer instanceof L.CircleMarker) map.removeLayer(layer);
         });
 
-        // Talepleri Ekle (Kırmızı/Turuncu)
+        // Talepleri Ekle (Durum Bazlı Renklendirme)
         requests.filter(r => r.enlem && r.boylam && r.durum !== 'tamamlandi').forEach(r => {
-          const color = r.oncelik === 'acil' ? '#dc2626' : '#f59e0b';
+          let color = '#dc2626'; // Varsayılan: Yeni (Kırmızı)
+          const status = (r.durum || 'yeni').toLowerCase();
+
+          if (status === 'atandi') color = '#2563eb'; // Atandı (Mavi)
+          if (status === 'yola cikti') color = '#0ea5e9'; // Yolda (Açık Mavi)
+          if (status === 'talep alindi') color = '#f59e0b'; // Varıldı (Turuncu)
+
           L.circleMarker([r.enlem, r.boylam], {
-            radius: 8,
+            radius: r.oncelik === 'acil' ? 9 : 7,
             fillColor: color,
-            color: '#fff',
+            color: r.oncelik === 'acil' ? '#000' : '#fff',
             weight: 2,
             opacity: 1,
             fillOpacity: 0.8
-          }).addTo(map).bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik}<br>Durum: ${r.durum}`);
+          }).addTo(map).bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik}<br>Durum: ${status.toUpperCase()}`);
         });
 
         // Gönüllüleri Ekle (Mavi)
@@ -257,14 +292,45 @@
       try {
         const res = await fetch('/atamalar/otomatik', { method: 'POST' });
         const data = await res.json();
-        if (res.ok) {
-          alert(data.message);
+        if (res.ok && data.success) {
+          // Başarılı Durum - Detaylı Rapor Göster
+          const modal = document.getElementById('assignmentResultsModal');
+          const summaryText = document.getElementById('assignmentSummaryText');
+          const detailList = document.getElementById('assignmentDetailList');
+          
+          summaryText.innerText = data.message;
+          detailList.innerHTML = '';
+          
+          if (data.atamalar && data.atamalar.length > 0) {
+            data.atamalar.forEach(atama => {
+              const div = document.createElement('div');
+              div.style.padding = '12px 18px';
+              div.style.borderBottom = '1px solid #e2e8f0';
+              div.style.display = 'flex';
+              div.style.justifyContent = 'space-between';
+              div.style.alignItems = 'center';
+              div.innerHTML = `
+                <div>
+                  <span style="display:block; font-weight:700; color:var(--afad-navy); font-size:0.9rem;">Talep #${atama.talep_id}</span>
+                  <span style="font-size:0.75rem; color:#64748b;"><i class="fas fa-map-pin"></i> ${atama.mesafe_km} KM Mesafe</span>
+                </div>
+                <div style="text-align:right;">
+                  <span style="display:block; font-weight:600; color:var(--afad-red); font-size:0.85rem;">Gönüllü #${atama.gonullu_id}</span>
+                  <span style="font-size:0.75rem; color:#94a3b8;">Skor: ${atama.oncelik_skoru}</span>
+                </div>
+              `;
+              detailList.appendChild(div);
+            });
+          }
+          
+          modal.style.display = 'flex';
           loadStats();
           updateMap();
         } else {
-          alert('Hata: ' + (data.message || 'Atama işlemi başarısız.'));
+          alert('Uyarı: ' + (data.message || 'Atama işlemi için uygun kayıt bulunamadı.'));
         }
       } catch (err) {
+        console.error('Atama hatası:', err);
         alert('Sunucuyla bağlantı kurulamadı veya bir hata oluştu.');
       } finally {
         btn.innerHTML = originalText;
@@ -361,6 +427,8 @@
       const colors = {
         'yeni': '#ef4444',
         'onaylandi': '#f59e0b',
+        'yola cikti': '#0ea5e9',
+        'talep alindi': '#f59e0b',
         'ekipler yolda': '#3b82f6',
         'tamamlandi': '#10b981',
         'iptal': '#94a3b8'

@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/dashboard', verifyToken, dashboardRoutes);
-app.use('/requests', verifyToken, requestRoutes);
+app.use('/requests', requestRoutes); // verifyToken kaldırıldı, router içinde kontrol edilecek
 app.use('/atamalar', verifyToken, assignmentRoutes);
 
 app.get('/admin', verifyToken, requireRole('yetkili'), (req, res) => {
