@@ -60,9 +60,23 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label><i class="fas fa-heading" style="margin-right: 8px; color: #ff6600;"></i>Talep Başlığı</label>
-          <input type="text" name="baslik" placeholder="Örn: Acil Gıda ve Battaniye İhtiyacı" required>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+          <div class="form-group">
+            <label><i class="fas fa-heading" style="margin-right: 8px; color: #ff6600;"></i>Talep Başlığı</label>
+            <input type="text" name="baslik" placeholder="Örn: Acil Gıda ve Battaniye İhtiyacı" required>
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-tags" style="margin-right: 8px; color: #ff6600;"></i>Yardım Tipi / Kategori</label>
+            <select name="yardim_tipi" required style="border-left: 5px solid #ff6600;">
+              <option value="">-- Kategori Seçiniz --</option>
+              <option value="Gıda">🍎 Gıda / Su</option>
+              <option value="Arama Kurtarma">🔍 Arama Kurtarma</option>
+              <option value="Barınma">🏠 Barınma / Çadır</option>
+              <option value="Sağlık">🚑 Sağlık / İlaç</option>
+              <option value="Lojistik">🚛 Lojistik / Ulaşım</option>
+              <option value="Diğer">❔ Diğer</option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">

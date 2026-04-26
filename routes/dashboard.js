@@ -6,8 +6,6 @@ const router = express.Router();
 router.get('/', (req, res) => {
   if (req.user.rol === 'gonullu') {
     res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'gonullu.html'));
-  } else if (req.user.rol === 'kazazede') {
-    res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'kazazede.html'));
   } else if (req.user.rol === 'yetkili') {
     res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'yetkili.html'));
   } else {
@@ -20,6 +18,13 @@ router.get('/atama', (req, res) => {
     return res.redirect('/dashboard');
   }
   res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'atama.html'));
+});
+
+router.get('/analiz', (req, res) => {
+  if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'analiz.html'));
 });
 
 router.get('/users', (req, res) => {
@@ -162,7 +167,14 @@ router.get('/api/analytics', async (req, res) => {
     const [weekly] = await pool.query(weeklyQuery);
     const [monthly] = await pool.query(monthlyQuery);
 
-    res.json({ statusDist, daily, weekly, monthly });
+    // 3. Kategori Bazlı Dağılım (Bar Chart)
+    const [typeDist] = await pool.query(`
+      SELECT yardim_tipi as label, COUNT(*) as value 
+      FROM yardim_talepleri 
+      WHERE yardim_tipi IS NOT NULL
+      GROUP BY yardim_tipi`);
+
+    res.json({ statusDist, daily, weekly, monthly, typeDist });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Analiz verileri alınamadı' });

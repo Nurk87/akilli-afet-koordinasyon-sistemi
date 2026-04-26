@@ -32,14 +32,23 @@ app.use('/', authRoutes);
 const dashboardRoutes = require('./routes/dashboard');
 const requestRoutes = require('./routes/requests');
 const assignmentRoutes = require('./routes/assignments');
+const notificationRoutes = require('./routes/notifications');
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'anasayfa.html'));
 });
 
+app.get('/dashboard/analiz', verifyToken, (req, res) => {
+  if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, 'views', 'dashboard', 'analiz.html'));
+});
+
 app.use('/dashboard', verifyToken, dashboardRoutes);
-app.use('/requests', requestRoutes); // verifyToken kaldırıldı, router içinde kontrol edilecek
+app.use('/requests', requestRoutes); 
 app.use('/atamalar', verifyToken, assignmentRoutes);
+app.use('/api/notifications', verifyToken, notificationRoutes);
 
 app.get('/admin', verifyToken, requireRole('yetkili'), (req, res) => {
   res.send('Yalnızca yetkililer görebilir.');

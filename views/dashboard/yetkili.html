@@ -20,6 +20,24 @@
         <span class="logo-text">AFET <span class="logo-accent">YÖNETİM</span></span>
       </div>
       <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <!-- BİLDİRİM PANELİ -->
+        <div class="notification-wrapper" style="position: relative; cursor: pointer;">
+          <div id="notif-icon" style="position: relative; padding: 5px;">
+            <i class="fas fa-bell" style="font-size: 1.3rem; color: var(--afad-navy);"></i>
+            <span id="notif-badge" style="display: none; position: absolute; top: -5px; right: -5px; background: var(--afad-red); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; align-items: center; justify-content: center; border: 2px solid white; font-weight: 800;">0</span>
+          </div>
+          
+          <div id="notif-panel" class="glass-card" style="display: none; position: absolute; top: 45px; right: -10px; width: 320px; max-height: 400px; overflow-y: auto; z-index: 1000; padding: 0; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: 1px solid rgba(0,51,102,0.1);">
+            <div style="padding: 15px; border-bottom: 1px solid rgba(0,51,102,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8);">
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--afad-navy);">Bildirimler</h4>
+              <span onclick="markAllRead()" style="font-size: 0.75rem; color: var(--afad-blue); font-weight: 600;">Hepsini Oku</span>
+            </div>
+            <div id="notif-list" style="padding: 5px;">
+              <p style="padding: 20px; text-align: center; color: #64748b; font-size: 0.85rem;">Yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+
         <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-shield"></i> Yetkili Paneli</span>
         <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Gelen Güvenli Çıkış</a>
       </div>
@@ -31,22 +49,31 @@
       <h3 style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 25px;">Operasyon Menüsü</h3>
       <ul>
         <li><a href="/dashboard" class="active"><i class="fas fa-chart-pie" style="width: 25px;"></i> Genel Bakış</a></li>
+        <li><a href="/dashboard/analiz"><i class="fas fa-chart-line" style="width: 25px;"></i> Operasyonel Analiz</a></li>
         <li><a href="/dashboard/atama"><i class="fas fa-people-carry-box" style="width: 25px;"></i> Gönüllü Atama</a></li>
         <li><a href="/requests"><i class="fas fa-list-check" style="width: 25px;"></i> Tüm Talepler</a></li>
         <li><a href="/dashboard/users"><i class="fas fa-users" style="width: 25px;"></i> Kullanıcılar</a></li>
         <li><a href="/dashboard/ayarlar"><i class="fas fa-cog" style="width: 25px;"></i> Sistem Ayarları</a></li>
       </ul>
       
-      <div style="margin-top: auto; padding: 20px; background: rgba(227, 6, 19, 0.05); border-radius: 15px; border: 1px dashed var(--afad-red);">
-        <p style="font-size: 0.85rem; color: var(--afad-red); font-weight: 600; margin: 0;">⚠️ Kritik Uyarı</p>
-        <p id="sidebar-alert-text" style="font-size: 0.75rem; color: #64748b; margin: 5px 0 0 0;">Bekleyen acil yardım talebi kontrol ediliyor...</p>
-      </div>
     </div>
 
     <div class="content" style="padding: 40px;">
+      <!-- Kritik Uyarı Banner (AFAD Kurumsal Renkleri - Kompakt) -->
+      <div id="top-alert-banner" style="display: none; margin-bottom: 20px; background: #ffffff; border: 2px solid var(--afad-red); border-left: 8px solid var(--afad-red); padding: 10px 20px; border-radius: 12px; align-items: center; gap: 15px; animation: pulse-red 2s infinite; box-shadow: 0 4px 15px rgba(227, 6, 19, 0.08);">
+        <div style="background: var(--afad-red); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; box-shadow: 0 3px 8px rgba(227, 6, 19, 0.25);">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 1rem; letter-spacing: 0.3px;">KRİTİK DURUM UYARISI</h4>
+          <p id="top-alert-text" style="margin: 2px 0 0 0; color: #475569; font-weight: 600; font-size: 0.85rem;">Şu an bekleyen X adet acil yardım talebi bulunmaktadır!</p>
+        </div>
+        <button onclick="document.getElementById('otomatikAtamaBtn').click()" class="btn-premium" style="padding: 8px 18px; font-size: 0.75rem; margin-left: auto;">HEMEN MÜDAHALE ET</button>
+      </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
         <h2 style="font-weight: 800; margin: 0;">Sistem <span style="color: var(--afad-red);">Özeti</span></h2>
         <div style="display: flex; gap: 10px;">
+          <button id="otomatikAtamaBtn" class="btn-premium" style="padding: 10px 22px; font-size: 0.9rem; border-radius: 10px;"><i class="fas fa-robot"></i> Otomatik Atama Başlat</button>
           <button class="btn btn-navy" onclick="loadStats()"><i class="fas fa-sync-alt"></i> Verileri Tazele</button>
         </div>
       </div>
@@ -74,74 +101,42 @@
         </div>
       </div>
 
-      <!-- Analitik Grafikler ve Raporlama -->
-      <div class="glass-card" style="margin-top: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
-          <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-chart-line" style="color: var(--afad-blue);"></i> Operasyonel Analiz ve Raporlama
-          </h3>
-          <div style="display: flex; gap: 10px;">
-            <div class="tab-buttons" style="display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px;">
-              <button onclick="updateChartType('daily')" class="chart-tab active" id="tab-daily">Günlük</button>
-              <button onclick="updateChartType('weekly')" class="chart-tab" id="tab-weekly">Haftalık</button>
-              <button onclick="updateChartType('monthly')" class="chart-tab" id="tab-monthly">Aylık</button>
+      <!-- ANA OPERASYON MERKEZİ (HARİTA + YAN PANEL) -->
+      <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 25px; margin-top: 30px; align-items: stretch;">
+        
+        <!-- SOL: CANLI HARİTA (ANA TAKİP ALANI) -->
+        <div class="glass-card" style="padding: 0; overflow: hidden; border: 2px solid #e2e8f0; display: flex; flex-direction: column;">
+          <div style="padding: 15px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+              <i class="fas fa-map-location-dot" style="color: var(--afad-red);"></i> CANLI SAHA KOORDİNASYONU
+            </h3>
+            <div style="display: flex; gap: 15px; font-size: 0.7rem; font-weight: 700;">
+              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#dc2626; font-size:7px;"></i> ACİL</span>
+              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#2563eb; font-size:7px;"></i> ATANDI</span>
+              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#10b981; font-size:7px;"></i> GÖNÜLLÜ</span>
             </div>
-            <a href="/dashboard/api/export-csv" class="btn btn-navy" style="font-size: 0.85rem; padding: 8px 15px;">
-              <i class="fas fa-file-export"></i> VERİYİ CSV İNDİR
+          </div>
+          <div id="adminMap" style="flex: 1; min-height: 600px; background: #f1f5f9;"></div>
+        </div>
+
+        <!-- SAĞ: OPERASYON KONTROL PANELİ (DİKEY) -->
+        <div style="display: flex; flex-direction: column; gap: 25px;">
+          
+
+          <!-- 2. CANLI TALEP AKIŞI -->
+          <div class="glass-card" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
+            <h3 style="margin: 0 0 15px 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+              <i class="fas fa-bell" style="color: var(--afad-red);"></i> Son Talepler
+            </h3>
+            <div id="latestRequests" style="flex: 1; overflow-y: auto; min-height: 200px;">
+              <p style="color: #94a3b8; font-style: italic; text-align: center; padding: 10px;">Yükleniyor...</p>
+            </div>
+            <a href="/requests" style="display: block; text-align: center; margin-top: 10px; color: var(--afad-blue); font-weight: 700; font-size: 0.8rem;">
+              TÜMÜNÜ GÖR <i class="fas fa-chevron-right" style="font-size: 0.6rem;"></i>
             </a>
           </div>
-        </div>
-        <div style="display: flex; gap: 20px; height: 380px;">
-          <!-- Zaman Serisi Grafiği (Sol) -->
-          <div style="flex: 2; position: relative;">
-            <canvas id="analyticsChart"></canvas>
-          </div>
-          <!-- Pasta Grafiği (Sağ) -->
-          <div style="flex: 1; border-left: 1px solid #f1f5f9; padding-left: 20px; display: flex; flex-direction: column;">
-            <h4 style="margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; text-align: center;">Genel Durum Dağılımı</h4>
-            <div style="flex: 1; position: relative;">
-              <canvas id="statusPieChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 40px;">
-        <!-- Sol Kolon: Atama ve Harita -->
-        <div>
-          <div class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-robot" style="color: var(--afad-navy);"></i> Akıllı Atama Merkezi
-              </h3>
-              <button id="otomatikAtamaBtn" class="btn btn-premium" style="padding: 10px 20px; font-size: 0.9rem;">
-                <i class="fas fa-bolt"></i> OTOMATİK ATAMA BAŞLAT
-              </button>
-            </div>
-            <p style="color: #64748b; font-size: 0.9rem;">Bekleyen yardım taleplerini konum ve öncelik skorlarına göre en uygun gönüllülere otomatik olarak atayın.</p>
-          </div>
 
-          <div class="glass-card" style="margin-top: 25px;">
-            <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px;">
-              <i class="fas fa-map-location-dot" style="color: var(--afad-red);"></i> Canlı Koordinasyon Haritası
-            </h3>
-            <div id="adminMap" style="height: 300px; background: #f1f5f9; border-radius: 15px; margin-top: 20px; display: flex; align-items: center; justify-content: center; border: 2px dashed #cbd5e1;">
-              <span style="color: #94a3b8; font-weight: 600;">Harita Modülü Aktif...</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sağ Kolon: Son Gelen Talepler (LİVE) -->
-        <div class="glass-card" style="max-height: 550px; overflow-y: auto;">
-          <h3 style="margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
-            <i class="fas fa-bell" style="color: var(--afad-red);"></i> Son Gelen Talepler
-          </h3>
-          <div id="latestRequests" style="margin-top: 15px;">
-            <p style="color: #94a3b8; font-style: italic; text-align: center; padding: 20px;">Yükleniyor...</p>
-          </div>
-          <a href="/requests" style="display: block; text-align: center; margin-top: 20px; color: var(--afad-blue); font-weight: 600; text-decoration: none; font-size: 0.9rem;">
-            Tüm Talepleri Gör <i class="fas fa-chevron-right"></i>
-          </a>
         </div>
       </div>
 
@@ -168,6 +163,13 @@
 
   <script>
     async function loadStats() {
+      const refreshBtn = document.querySelector('button[onclick="loadStats()"]');
+      const icon = refreshBtn.querySelector('i');
+      
+      // Görsel geri bildirim (döndürme animasyonu)
+      icon.classList.add('fa-spin');
+      refreshBtn.disabled = true;
+
       try {
         const resStats = await fetch('/dashboard/api/stats');
         const stats = await resStats.json();
@@ -177,8 +179,14 @@
         document.getElementById('stat-completed').innerText = stats.completedRequests || 0;
         document.getElementById('stat-volunteers').innerText = stats.activeVolunteers || 0;
 
-        if (document.getElementById('sidebar-alert-text')) {
-          document.getElementById('sidebar-alert-text').innerText = `Bekleyen ${stats.pendingEmergency || 0} acil yardım talebi mevcut.`;
+        const banner = document.getElementById('top-alert-banner');
+        const alertText = document.getElementById('top-alert-text');
+        
+        if (stats.pendingEmergency > 0) {
+          banner.style.display = 'flex';
+          alertText.innerText = `Şu an bekleyen ${stats.pendingEmergency} adet acil yardım talebi bulunmaktadır!`;
+        } else {
+          banner.style.display = 'none';
         }
 
         // Son Talepleri Yükle
@@ -215,8 +223,18 @@
           latestRequests.appendChild(div);
         });
 
+        // Ekstra: Harita ve Analitikleri de tazele
+        if (typeof updateMap === 'function') updateMap();
+        if (typeof initAnalytics === 'function') initAnalytics();
+
       } catch (err) {
         console.error('Veri yükleme hatası:', err);
+      } finally {
+        // Döndürmeyi durdur
+        setTimeout(() => {
+          icon.classList.remove('fa-spin');
+          refreshBtn.disabled = false;
+        }, 800);
       }
     }
 
@@ -345,91 +363,28 @@
       try {
         const res = await fetch('/dashboard/api/analytics');
         analyticsData = await res.json();
-        renderCharts('daily');
+        renderPieChart();
       } catch (err) {
         console.error('Analiz yükleme hatası:', err);
       }
     }
 
-    function renderCharts(type) {
-      renderTimeSeries(type);
-      renderPieChart();
-    }
-
-    function renderTimeSeries(type) {
-      const ctx = document.getElementById('analyticsChart').getContext('2d');
-      const data = analyticsData[type];
-      
-      const labels = data.map(d => d.label);
-      const createdValues = data.map(d => d.created);
-      const completedValues = data.map(d => d.completed);
-
-      if (myChart) myChart.destroy();
-
-      const isLine = type !== 'monthly';
-
-      myChart = new Chart(ctx, {
-        type: isLine ? 'line' : 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Gelen Talepler',
-              data: createdValues,
-              borderColor: '#64748b',
-              backgroundColor: isLine ? 'rgba(148, 163, 184, 0.1)' : '#94a3b8',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.4
-            },
-            {
-              label: 'Tamamlananlar',
-              data: completedValues,
-              borderColor: '#10b981',
-              backgroundColor: isLine ? 'rgba(16, 185, 129, 0.1)' : '#10b981',
-              borderWidth: 3,
-              fill: true,
-              tension: 0.4
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              display: true,
-              position: 'top',
-              labels: { boxWidth: 12, font: { size: 11, weight: '600' } }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: '#f1f5f9' },
-              ticks: { stepSize: 1, font: { size: 10 } }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 10 } }
-            }
-          }
-        }
-      });
-    }
 
     function renderPieChart() {
-      const ctx = document.getElementById('statusPieChart').getContext('2d');
-      const data = analyticsData.statusDist;
+      const canvas = document.getElementById('statusPieChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const data = analyticsData.statusDist || [];
 
       if (myPieChart) myPieChart.destroy();
 
       const colors = {
         'yeni': '#ef4444',
         'onaylandi': '#f59e0b',
+        'atandi': '#3b82f6',
         'yola cikti': '#0ea5e9',
-        'talep alindi': '#f59e0b',
-        'ekipler yolda': '#3b82f6',
+        'talep alindi': '#8b5cf6',
+        'ekipler yolda': '#2563eb',
         'tamamlandi': '#10b981',
         'iptal': '#94a3b8'
       };
@@ -437,37 +392,40 @@
       myPieChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: data.map(d => d.label.toUpperCase()),
+          labels: data.map(d => (d.label || 'Bilinmiyor').toUpperCase()),
           datasets: [{
             data: data.map(d => d.value),
             backgroundColor: data.map(d => colors[d.label] || '#cbd5e1'),
-            borderWidth: 2,
-            hoverOffset: 10
+            borderWidth: 0,
+            hoverOffset: 15
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: '65%',
+          cutout: '70%',
           plugins: {
             legend: {
               position: 'bottom',
               labels: { 
-                boxWidth: 8, 
-                padding: 10,
-                font: { size: 9, weight: '700' } 
+                boxWidth: 10, 
+                padding: 15,
+                font: { size: 10, weight: '600' },
+                usePointStyle: true
               }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 51, 102, 0.9)',
+              titleFont: { size: 13 },
+              bodyFont: { size: 12 },
+              padding: 10,
+              cornerRadius: 8
             }
           }
         }
       });
     }
 
-    function updateChartType(type) {
-      document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById('tab-' + type).classList.add('active');
-      renderTimeSeries(type);
-    }
 
     // CSS for tabs (ad-hoc)
     const chartStyle = document.createElement('style');
@@ -488,13 +446,69 @@
         color: var(--afad-navy);
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
       }
+      @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(190, 18, 60, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(190, 18, 60, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(190, 18, 60, 0); }
+      }
     `;
     document.head.appendChild(chartStyle);
 
     initAnalytics();
 
     // Periyodik güncelleme listesine ekle
-    setInterval(initAnalytics, 60000); // 1 dk bir analiz tazele
+    setInterval(initAnalytics, 60000); 
+
+    // BİLDİRİM SİSTEMİ
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/notifications/list');
+        const data = await res.json();
+        const unread = data.filter(n => !n.is_read).length;
+        const b = document.getElementById('notif-badge');
+        if(b) { b.innerText = unread; b.style.display = unread > 0 ? 'flex' : 'none'; }
+        const l = document.getElementById('notif-list');
+        if(l && data.length > 0) {
+          l.innerHTML = data.map(n => `
+            <div onclick="markRead(${n.id}, '${n.link || ''}')" style="padding:10px; border-bottom:1px solid #eee; cursor:pointer; ${n.is_read ? 'opacity:0.5':''}">
+              <div style="font-weight:700; font-size:0.8rem;">${n.title}</div>
+              <div style="font-size:0.7rem;">${n.message}</div>
+            </div>
+          `).join('');
+        }
+      } catch(e) {}
+    }
+    document.getElementById('notif-icon').onclick = (e) => {
+      e.stopPropagation();
+      const p = document.getElementById('notif-panel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      loadNotifications();
+    };
+    document.addEventListener('click', () => {
+      const p = document.getElementById('notif-panel');
+      if(p) p.style.display = 'none';
+    });
+    const panel = document.getElementById('notif-panel');
+    if(panel) panel.onclick = (e) => e.stopPropagation();
+
+    window.markRead = async (id, link) => {
+      await fetch('/api/notifications/mark-as-read', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({id})
+      });
+      if(link) {
+        window.location.href = link;
+      } else {
+        loadNotifications();
+      }
+    };
+    window.markAllRead = async () => {
+      await fetch('/api/notifications/mark-all-read', {method:'POST'});
+      loadNotifications();
+    };
+    loadNotifications();
+    setInterval(loadNotifications, 30000);
 
   </script>
 </body>

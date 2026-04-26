@@ -20,6 +20,9 @@ router.post('/kayit', async (req, res) => {
   if (!ad || !soyad || !email || !sifre || !rol) {
     return res.status(400).send('Tüm alanları doldurun.');
   }
+  if (rol !== 'gonullu' && rol !== 'yetkili') {
+    return res.status(400).send('Geçersiz rol seçimi.');
+  }
   if (!validator.isEmail(email)) {
     return res.status(400).send('Geçersiz email adresi.');
   }
@@ -51,7 +54,8 @@ router.post('/kayit', async (req, res) => {
 });
 
 router.post('/giris', async (req, res) => {
-  const { email, sifre } = req.body;
+  let { email, sifre } = req.body;
+  email = (email || '').trim().toLowerCase();
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (!rows || rows.length === 0) return res.status(401).send('<script>alert("Email veya şifre yanlış");window.location.href="/giris";</script>');

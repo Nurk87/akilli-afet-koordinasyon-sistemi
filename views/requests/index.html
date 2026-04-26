@@ -65,12 +65,49 @@
   </nav>
 
   <div class="container" style="width: 90%; max-width: 1200px; margin: 50px auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 35px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;">
       <div>
-        <h2 style="font-weight: 800; color: var(--afad-navy); font-size: 2.2rem; margin: 0;">Saha <span style="color: var(--afad-red);">Talepleri</span></h2>
-        <p style="color: #64748b; margin-top: 5px;">Bölgeden gelen güncel yardım ve koordinasyon ihtiyaçları.</p>
+        <h2 style="font-weight: 800; color: var(--afad-navy); font-size: 2.5rem; margin: 0; letter-spacing: -1px;">Saha <span style="color: var(--afad-red);">Talepleri</span></h2>
+        <p style="color: #64748b; margin-top: 8px; font-size: 1.1rem; font-weight: 500;">Bölgeden gelen güncel yardım ve koordinasyon ihtiyaçları.</p>
       </div>
-      <a href="/requests/yeni" class="btn btn-premium"><i class="fas fa-plus-circle"></i> Yeni Kayıt Oluştur</a>
+      <div style="display: flex; gap: 15px;">
+        <a href="/requests/yeni" class="btn btn-navy" style="padding: 12px 25px; font-size: 0.9rem; background: #64748b; border: none; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-plus-circle"></i> YENİ MANUEL KAYIT
+        </a>
+      </div>
+    </div>
+
+    <!-- Akıllı Atama Merkezi (Yeni Yer ve Tasarım) -->
+    <div class="glass-card" style="margin-bottom: 45px; padding: 20px 30px; border: none; border-top: 5px solid var(--afad-navy); background: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.08);">
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <div style="background: #f1f5f9; color: var(--afad-navy); width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div>
+          <h3 style="margin: 0; color: var(--afad-navy); font-size: 1.15rem; font-weight: 800;">Akıllı Atama Modülü</h3>
+          <p id="pending-count-text" style="margin: 2px 0 0 0; color: #64748b; font-size: 0.9rem; font-weight: 600;">
+            Şu an <span style="color: var(--afad-red); font-weight: 800;" id="pending-count-val">...</span> bekleyen talep otomatik atama için hazır.
+          </p>
+        </div>
+      </div>
+      <button id="otomatikAtamaBtn" class="btn-premium" style="padding: 15px 35px; font-size: 1rem; border-radius: 15px; letter-spacing: 0.5px;">
+        <i class="fas fa-bolt" style="color: #fbbf24; margin-right: 8px;"></i> OTOMATİK ATAMAYI BAŞLAT
+      </button>
+    </div>
+
+    <!-- Atama Sonuç Modalı -->
+    <div id="assignmentResultsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 51, 102, 0.4); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
+      <div class="glass-card" style="width: 90%; max-width: 650px; background: white; padding: 40px; border-radius: 30px; border-top: 8px solid var(--afad-red); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <div style="background: rgba(227, 6, 19, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+            <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--afad-red);"></i>
+          </div>
+          <h2 style="color: var(--afad-navy); font-weight: 800; font-size: 1.8rem; margin: 0;">Atama Operasyonu Tamamlandı</h2>
+          <p id="assignmentSummaryText" style="color: #64748b; margin-top: 10px; font-weight: 500;">X adet talep en uygun gönüllülere yönlendirildi.</p>
+        </div>
+        <div id="assignmentDetailList" style="max-height: 250px; overflow-y: auto; margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0;"></div>
+        <button onclick="document.getElementById('assignmentResultsModal').style.display = 'none'; location.reload();" class="btn btn-navy" style="width: 100%; padding: 18px; border-radius: 15px; font-weight: 800; font-size: 1rem;">LİSTEYİ GÜNCELLE</button>
+      </div>
     </div>
 
     <div id="active-requests-wrapper">
@@ -140,6 +177,14 @@
 
         const activeRequests = data.filter(r => r.durum !== 'tamamlandi');
         const pastRequests = data.filter(r => r.durum === 'tamamlandi');
+
+        // Bekleyen (yeni) taleplerin sayısını banner'a yaz
+        const pendingCount = data.filter(r => (r.durum || 'yeni').toLowerCase() === 'yeni').length;
+        const countValEl = document.getElementById('pending-count-val');
+        if (countValEl) {
+          countValEl.innerText = pendingCount;
+          document.getElementById('pending-count-text').style.opacity = pendingCount > 0 ? '1' : '0.5';
+        }
 
         if (activeRequests.length === 0) activeContainer.innerHTML = '<p>Aktif talep bulunmuyor.</p>';
         if (pastRequests.length === 0) pastContainer.innerHTML = '<p>Geçmiş kayıt bulunmuyor.</p>';
@@ -232,6 +277,61 @@
         console.error(err);
       }
     }
+
+    // --- OTOMATİK ATAMA BUTONU MANTIĞI ---
+    document.getElementById('otomatikAtamaBtn').addEventListener('click', async () => {
+      if (!confirm('Bekleyen tüm talepler en uygun gönüllülere otomatik olarak atansın mı?')) return;
+      
+      const btn = document.getElementById('otomatikAtamaBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/atamalar/otomatik', { method: 'POST' });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          const modal = document.getElementById('assignmentResultsModal');
+          const summaryText = document.getElementById('assignmentSummaryText');
+          const detailList = document.getElementById('assignmentDetailList');
+          
+          summaryText.innerText = data.message;
+          detailList.innerHTML = '';
+          
+          if (data.atamalar && data.atamalar.length > 0) {
+            data.atamalar.forEach(atama => {
+              const div = document.createElement('div');
+              div.style.padding = '12px 18px';
+              div.style.borderBottom = '1px solid #e2e8f0';
+              div.style.display = 'flex';
+              div.style.justifyContent = 'space-between';
+              div.style.alignItems = 'center';
+              div.innerHTML = `
+                <div>
+                  <span style="display:block; font-weight:700; color:var(--afad-navy); font-size:0.9rem;">Talep #${atama.talep_id}</span>
+                  <span style="font-size:0.75rem; color:#64748b;"><i class="fas fa-map-pin"></i> ${atama.mesafe_km} KM</span>
+                </div>
+                <div style="text-align:right;">
+                  <span style="display:block; font-weight:600; color:var(--afad-red); font-size:0.85rem;">Gönüllü #${atama.gonullu_id}</span>
+                  <span style="font-size:0.75rem; color:#94a3b8;">Skor: ${atama.oncelik_skoru}</span>
+                </div>
+              `;
+              detailList.appendChild(div);
+            });
+          }
+          modal.style.display = 'flex';
+        } else {
+          alert('Uyarı: ' + (data.message || 'Uygun kayıt bulunamadı.'));
+        }
+      } catch (err) {
+        console.error('Atama hatası:', err);
+        alert('Sunucuyla bağlantı kurulamadı.');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
 
     checkAuth().then(loadRequests);
   </script>

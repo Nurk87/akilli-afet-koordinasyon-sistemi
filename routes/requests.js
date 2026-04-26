@@ -5,6 +5,7 @@ const path = require('path');
 const multer = require('multer');
 const { verifyToken } = require('../middleware/auth');
 const crypto = require('crypto');
+const { sendNotification } = require('../utils/notifications');
 
 // Multer Storage Konfigürasyonu
 const storage = multer.diskStorage({
@@ -43,7 +44,7 @@ router.get('/takip/:kod', (req, res) => {
 
 router.post('/api/create', upload.fields([{ name: 'fotograf', maxCount: 1 }, { name: 'ses_kaydi', maxCount: 1 }]), async (req, res) => {
   try {
-    const { baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, ad_soyad, telefon, acik_adres } = req.body;
+    const { baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, ad_soyad, telefon, acik_adres, yardim_tipi } = req.body;
     const kullanici_id = req.user ? req.user.id : null; 
     
     const fotograf_yolu = req.files['fotograf'] ? '/uploads/' + req.files['fotograf'][0].filename : null;
@@ -52,9 +53,21 @@ router.post('/api/create', upload.fields([{ name: 'fotograf', maxCount: 1 }, { n
     const takip_kodu = crypto.randomBytes(4).toString('hex').toUpperCase();
 
     await pool.query(
-      'INSERT INTO yardim_talepleri (kullanici_id, baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, durum, fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [kullanici_id, baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, 'yeni', fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres]
+      'INSERT INTO yardim_talepleri (kullanici_id, baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, durum, fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres, yardim_tipi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [kullanici_id, baslik, aciklama, il_id, ilce_id, mahalle, oncelik, enlem, boylam, 'yeni', fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres, yardim_tipi]
     );
+
+    // YETKİLİ VE ADMİNLERE BİLDİRİM GÖNDER
+    const [admins] = await pool.query("SELECT id FROM users WHERE rol IN ('yetkili', 'admin')");
+    for (let admin of admins) {
+      await sendNotification(
+        admin.id,
+        'YENİ YARDIM TALEBİ!',
+        `Yeni bir yardım talebi oluşturuldu: ${baslik}. Lütfen inceleyin.`,
+        'warning',
+        '/requests'
+      );
+    }
 
     res.json({ success: true, message: 'Yardım talebi başarıyla oluşturuldu.', takip_kodu });
   } catch (error) {
@@ -66,7 +79,7 @@ router.post('/api/create', upload.fields([{ name: 'fotograf', maxCount: 1 }, { n
 // Form submission handler for /olustur
 router.post('/olustur', upload.fields([{ name: 'fotograf', maxCount: 1 }, { name: 'ses_kaydi', maxCount: 1 }]), async (req, res) => {
   try {
-    const { baslik, aciklama, il_id, ilce_id, oncelik, enlem, boylam, ad_soyad, telefon, acik_adres } = req.body;
+    const { baslik, aciklama, il_id, ilce_id, oncelik, enlem, boylam, ad_soyad, telefon, acik_adres, yardim_tipi } = req.body;
     const kullanici_id = req.user ? req.user.id : null;
     
     const fotograf_yolu = req.files['fotograf'] ? '/uploads/' + req.files['fotograf'][0].filename : null;
@@ -87,7 +100,7 @@ router.post('/olustur', upload.fields([{ name: 'fotograf', maxCount: 1 }, { name
     }
 
     await pool.query(
-      'INSERT INTO yardim_talepleri (kullanici_id, baslik, aciklama, il_id, ilce_id, oncelik, enlem, boylam, durum, fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO yardim_talepleri (kullanici_id, baslik, aciklama, il_id, ilce_id, oncelik, enlem, boylam, durum, fotograf_yolu, ses_kaydi_yolu, ad_soyad, telefon, takip_kodu, acik_adres, yardim_tipi) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         kullanici_id, 
         baslik, 
@@ -103,9 +116,22 @@ router.post('/olustur', upload.fields([{ name: 'fotograf', maxCount: 1 }, { name
         ad_soyad || null,
         telefon || null,
         takip_kodu,
-        acik_adres || null
+        acik_adres || null,
+        yardim_tipi
       ]
     );
+
+    // YETKİLİ VE ADMİNLERE BİLDİRİM GÖNDER
+    const [admins] = await pool.query("SELECT id FROM users WHERE rol IN ('yetkili', 'admin')");
+    for (let admin of admins) {
+      await sendNotification(
+        admin.id,
+        'YENİ YARDIM TALEBİ!',
+        `Yeni bir yardım talebi oluşturuldu: ${baslik}. Lütfen inceleyin.`,
+        'warning',
+        '/requests'
+      );
+    }
 
     res.redirect(`/requests/basarili?kod=${takip_kodu}&baslik=${encodeURIComponent(baslik)}`);
   } catch (error) {
@@ -127,7 +153,9 @@ router.get('/api/track/:kod', async (req, res) => {
         ya.atama_tarihi,
         gv.ad as gonullu_ad, 
         gv.soyad as gonullu_soyad,
-        gv.telefon as gonullu_telefon
+        gv.telefon as gonullu_telefon,
+        gv.enlem as gonullu_enlem,
+        gv.boylam as gonullu_boylam
       FROM yardim_talepleri y
       LEFT JOIN iller i ON y.il_id = i.id
       LEFT JOIN ilceler ilc ON y.ilce_id = ilc.id

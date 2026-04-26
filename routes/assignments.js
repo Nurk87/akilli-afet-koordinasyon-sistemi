@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/database');
 const { assignRequestsGreedy } = require('../utils/algorithm');
+const { sendNotification } = require('../utils/notifications');
 const router = express.Router();
 
 /**
@@ -56,10 +57,13 @@ router.post('/otomatik', async (req, res) => {
           [atama.oncelik_skoru, atama.talep_id]
         );
 
-        // Gönüllünün kapasitesini 1 düşürüyoruz
-        await pool.query(
-          "UPDATE users SET kapasite = kapasite - 1 WHERE id = ?",
-          [atama.gonullu_id]
+        // Bildirim Gönder
+        await sendNotification(
+          atama.gonullu_id, 
+          'Yeni Görev Atandı!', 
+          `Sistem tarafından size yeni bir yardım talebi atandı: ${atama.talep_id}. Lütfen detayları kontrol edin.`,
+          'success',
+          '/dashboard'
         );
 
         yapilanAtamaSayisi++;
@@ -118,6 +122,15 @@ router.post('/api/manual-assign', async (req, res) => {
     await pool.query(
       "UPDATE users SET kapasite = kapasite - 1 WHERE id = ?",
       [gonullu_id]
+    );
+
+    // 4. Bildirim Gönder
+    await sendNotification(
+      gonullu_id,
+      'Yeni Görev Atandı (Manuel)',
+      `Koordinasyon merkezi tarafından size yeni bir görev atandı: ${talep_id}.`,
+      'success',
+      '/dashboard'
     );
 
     res.json({ success: true, message: 'Gönüllü başarıyla atandı!' });

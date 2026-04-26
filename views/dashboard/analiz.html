@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>AFAD | Operasyonel Analiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
+      <div class="logo-afad" style="display: flex; align-items: center; gap: 12px;">
+        <img src="/images/logo.png" alt="AFAD Logo" style="height: 42px; border-radius: 6px;">
+        <span class="logo-text">AFET <span class="logo-accent">YÖNETİM</span></span>
+      </div>
+      <div id="userInfo" style="display: flex; align-items: center; gap: 20px;">
+        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-chart-line"></i> Analiz Merkezi</span>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Gelen Güvenli Çıkış</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dashboard-wrapper">
+    <div class="sidebar" style="width: 280px; padding: 40px 20px;">
+      <h3 style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 25px;">Operasyon Menüsü</h3>
+      <ul>
+        <li><a href="/dashboard"><i class="fas fa-chart-pie" style="width: 25px;"></i> Genel Bakış</a></li>
+        <li><a href="/dashboard/analiz" class="active"><i class="fas fa-chart-line" style="width: 25px;"></i> Operasyonel Analiz</a></li>
+        <li><a href="/dashboard/atama"><i class="fas fa-people-carry-box" style="width: 25px;"></i> Gönüllü Atama</a></li>
+        <li><a href="/requests"><i class="fas fa-list-check" style="width: 25px;"></i> Tüm Talepler</a></li>
+        <li><a href="/dashboard/users"><i class="fas fa-users" style="width: 25px;"></i> Kullanıcılar</a></li>
+        <li><a href="/dashboard/ayarlar"><i class="fas fa-cog" style="width: 25px;"></i> Sistem Ayarları</a></li>
+      </ul>
+    </div>
+
+    <div class="content" style="padding: 40px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
+        <div>
+          <h2 style="font-weight: 800; margin: 0;">Operasyonel <span style="color: var(--afad-red);">Analiz</span></h2>
+          <p style="color: #64748b; margin-top: 5px;">Saha operasyonlarının sayısal ve grafiksel dağılım raporu.</p>
+        </div>
+        <button class="btn btn-navy" onclick="initAnalytics(this)"><i class="fas fa-sync-alt"></i> Verileri Tazele</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+        <!-- 1. Durum Dağılımı -->
+        <div class="glass-card" style="padding: 30px; text-align: center;">
+          <h3 style="margin-bottom: 25px; color: var(--afad-navy); font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class="fas fa-chart-pie" style="color: var(--afad-red);"></i> Güncel Durum Dağılımı
+          </h3>
+          <div style="height: 350px; position: relative;">
+            <canvas id="statusPieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 2. Kategori Dağılımı (YENİ) -->
+        <div class="glass-card" style="padding: 30px; text-align: center;">
+          <h3 style="margin-bottom: 25px; color: var(--afad-navy); font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class="fas fa-chart-bar" style="color: var(--afad-blue);"></i> Kategori Bazlı İhtiyaçlar
+          </h3>
+          <div style="height: 350px; position: relative;">
+            <canvas id="typeBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bilgi Kartları Alanı -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 30px;">
+         <div class="glass-card" style="padding: 25px; text-align: left; border-left: 5px solid #ef4444;">
+           <h4 style="margin:0; font-size: 0.9rem; color: #64748b;">BEKLEYEN YENİ TALEPLER</h4>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+             <span id="val-yeni" style="font-size: 2.2rem; font-weight: 800; color: #dc2626;">0</span>
+             <i class="fas fa-clock-rotate-left fa-2x" style="color: #fee2e2;"></i>
+           </div>
+         </div>
+         <div class="glass-card" style="padding: 25px; text-align: left; border-left: 5px solid #3b82f6;">
+           <h4 style="margin:0; font-size: 0.9rem; color: #64748b;">ATANMIŞ / AKTİF MÜDAHALE</h4>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+             <span id="val-aktif" style="font-size: 2.2rem; font-weight: 800; color: #2563eb;">0</span>
+             <i class="fas fa-truck-moving fa-2x" style="color: #dbeafe;"></i>
+           </div>
+         </div>
+         <div class="glass-card" style="padding: 25px; text-align: left; border-left: 5px solid #10b981;">
+           <h4 style="margin:0; font-size: 0.9rem; color: #64748b;">TAMAMLANAN YARDIMLAR</h4>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+             <span id="val-tamam" style="font-size: 2.2rem; font-weight: 800; color: #059669;">0</span>
+             <i class="fas fa-check-double fa-2x" style="color: #d1fae5;"></i>
+           </div>
+         </div>
+      </div>
+      
+      <div style="text-align: right;">
+        <a href="/dashboard/api/export-csv" class="btn btn-navy" style="padding: 12px 25px; border-radius: 12px; font-weight: 700;">
+          <i class="fas fa-file-export"></i> TÜM VERİLERİ CSV OLARAK İNDİR (EXCEL)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let myPieChart, myBarChart;
+    let analyticsData = { statusDist: [], typeDist: [] };
+
+    async function initAnalytics(el) {
+      const btn = el || document.querySelector('button[onclick^="initAnalytics"]');
+      const icon = btn ? btn.querySelector('i') : null;
+      if (icon) icon.classList.add('fa-spin');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/dashboard/api/analytics');
+        analyticsData = await res.json();
+        renderPieChart();
+        renderBarChart();
+        updateSummaryCards();
+      } catch (err) {
+        console.error('Analiz yükleme hatası:', err);
+      } finally {
+        setTimeout(() => {
+          icon.classList.remove('fa-spin');
+          btn.disabled = false;
+        }, 800);
+      }
+    }
+
+    function updateSummaryCards() {
+      const data = analyticsData.statusDist || [];
+      const getVal = (label) => {
+        const item = data.find(d => d.label.toLowerCase() === label.toLowerCase());
+        return item ? item.value : 0;
+      };
+
+      document.getElementById('val-yeni').innerText = getVal('yeni');
+      document.getElementById('val-aktif').innerText = getVal('atandi') + getVal('yola cikti') + getVal('ekipler yolda') + getVal('talep alindi');
+      document.getElementById('val-tamam').innerText = getVal('tamamlandi');
+    }
+
+    function renderPieChart() {
+      const canvas = document.getElementById('statusPieChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const data = analyticsData.statusDist || [];
+
+      if (myPieChart) myPieChart.destroy();
+
+      const colors = {
+        'yeni': '#ef4444',
+        'onaylandi': '#f59e0b',
+        'atandi': '#3b82f6',
+        'yola cikti': '#0ea5e9',
+        'talep alindi': '#8b5cf6',
+        'ekipler yolda': '#2563eb',
+        'tamamlandi': '#10b981',
+        'iptal': '#94a3b8'
+      };
+
+      myPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: data.map(d => (d.label || 'Bilinmiyor').toUpperCase()),
+          datasets: [{
+            data: data.map(d => d.value),
+            backgroundColor: data.map(d => colors[d.label] || '#cbd5e1'),
+            borderWidth: 0,
+            hoverOffset: 25
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '75%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { 
+                boxWidth: 12, 
+                padding: 15,
+                font: { size: 11, weight: '600' },
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 51, 102, 0.9)',
+              padding: 15,
+              cornerRadius: 12
+            }
+          }
+        }
+      });
+    }
+
+    function renderBarChart() {
+      const canvas = document.getElementById('typeBarChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const data = analyticsData.typeDist || [];
+
+      if (myBarChart) myBarChart.destroy();
+
+      myBarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.label),
+          datasets: [{
+            label: 'Talep Sayısı',
+            data: data.map(d => d.value),
+            backgroundColor: 'rgba(0, 51, 102, 0.7)',
+            borderColor: 'var(--afad-navy)',
+            borderWidth: 0,
+            borderRadius: 10,
+            barThickness: 35
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { display: false },
+              ticks: { font: { weight: '600' } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { weight: '700', size: 11 } }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(227, 6, 19, 0.9)',
+              padding: 12,
+              cornerRadius: 10
+            }
+          }
+        }
+      });
+    }
+
+    initAnalytics();
+    setInterval(initAnalytics, 30000);
+  </script>
+</body>
+</html>

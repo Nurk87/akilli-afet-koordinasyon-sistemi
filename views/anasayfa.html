@@ -236,30 +236,96 @@
       voiceBtn.style.display = 'none';
     }
 
-    // Geçmiş Talepleri Listeleme (LocalStorage)
-    window.addEventListener('DOMContentLoaded', () => {
+    // Geçmiş Talepleri Listeleme (LocalStorage) - Akıllı Durum Kontrollü
+    window.addEventListener('DOMContentLoaded', async () => {
       const talepler = JSON.parse(localStorage.getItem('afad_talepler') || '[]');
-      if (talepler.length > 0) {
-        let historyHtml = `
-          <div id="gecmis-talepler" style="margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-            <h4 style="color: var(--afad-navy); font-size: 0.9rem; margin-bottom: 15px; font-weight: 700;">SON TALEPLERİM (BU CİHAZ)</h4>
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-        `;
+      if (talepler.length === 0) return;
+
+      const container = document.querySelector('#takip-sorgula .glass-card');
+      const historyWrapper = document.createElement('div');
+      historyWrapper.id = 'gecmis-talepler';
+      historyWrapper.style.marginTop = '25px';
+      historyWrapper.style.borderTop = '1px solid #e2e8f0';
+      historyWrapper.style.paddingTop = '20px';
+      historyWrapper.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:0.85rem;"><i class="fas fa-spinner fa-spin"></i> Taleplerinizin güncel durumu kontrol ediliyor...</p>';
+      container.appendChild(historyWrapper);
+
+      try {
+        // Tüm taleplerin güncel durumunu paralel olarak çek
+        const promises = talepler.map(t => 
+          fetch(`/requests/api/track/${t.kod}`).then(res => res.ok ? res.json() : null).catch(() => null)
+        );
         
-        talepler.forEach(t => {
-          historyHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid #edf2f7;">
-              <div>
-                <span style="display: block; font-weight: 700; color: var(--afad-navy); font-size: 0.95rem;">${t.baslik}</span>
-                <span style="font-size: 0.8rem; color: #94a3b8; font-family: monospace;">KOD: ${t.kod} | ${t.tarih}</span>
-              </div>
-              <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px;">TAKİP ET</a>
-            </div>
-          `;
+        const results = await Promise.all(promises);
+        
+        const active = [];
+        const completed = [];
+
+        results.forEach((data, index) => {
+          const original = talepler[index];
+          if (!data) {
+            // Veri bulunamadıysa (silinmiş olabilir) aktif gibi göster ama hata payı bırak
+            active.push({ ...original, durum: 'bilinmiyor' });
+          } else {
+            if (data.durum === 'tamamlandi') {
+              completed.push({ ...original, durum: 'tamamlandi' });
+            } else {
+              active.push({ ...original, durum: data.durum || 'yeni' });
+            }
+          }
         });
-        
-        historyHtml += `</div></div>`;
-        document.querySelector('#takip-sorgula .glass-card').insertAdjacentHTML('beforeend', historyHtml);
+
+        let html = '';
+
+        if (active.length > 0) {
+          html += `<h4 style="color: var(--afad-navy); font-size: 0.9rem; margin-bottom: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-clock" style="color: var(--afad-red);"></i> SON TALEPLERİM (DEVAM EDEN)</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;">`;
+          
+          active.forEach(t => {
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #fffcf0; padding: 12px 18px; border-radius: 12px; border: 1px solid #fef3c7;">
+                <div>
+                  <span style="display: block; font-weight: 700; color: var(--afad-navy); font-size: 0.95rem;">${t.baslik}</span>
+                  <span style="font-size: 0.8rem; color: #94a3b8; font-family: monospace;">KOD: ${t.kod} | ${t.tarih}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                   <span style="font-size: 0.7rem; font-weight: 800; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${t.durum.replace('_', ' ')}</span>
+                   <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px;">TAKİP ET</a>
+                </div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        if (completed.length > 0) {
+          html += `<h4 style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px; font-weight: 700; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-check-double" style="color: #10b981;"></i> TAMAMLANAN TALEPLERİM</h4>
+            <div style="display: flex; flex-direction: column; gap: 10px; opacity: 0.75;">`;
+          
+          completed.forEach(t => {
+            html += `
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid #edf2f7;">
+                <div>
+                  <span style="display: block; font-weight: 600; color: #64748b; font-size: 0.95rem; text-decoration: line-through;">${t.baslik}</span>
+                  <span style="font-size: 0.8rem; color: #94a3b8; font-family: monospace;">KOD: ${t.kod}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                   <span style="font-size: 0.7rem; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 3px 8px; border-radius: 5px;">TAMAMLANDI</span>
+                   <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px; background: #94a3b8 !important; border:none;">DETAY</a>
+                </div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        historyWrapper.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        historyWrapper.innerHTML = '<p style="color:#94a3b8; font-size:0.8rem; text-align:center;">Geçmiş talepler yüklenirken bir hata oluştu.</p>';
       }
     });
   </script>
@@ -376,6 +442,47 @@
     </div>
   </section>
 
+  <section id="equipment" class="info-section" style="background: #ffffff; padding: 40px 0 80px 0;">
+    <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <span class="impact-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 800; display: inline-block; margin-bottom: 15px; padding: 8px 22px; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(3, 105, 161, 0.12);">TEKNOLOJİK GÜÇ</span>
+        <h2 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 2.6rem; letter-spacing: -1px; line-height: 1.2;">Saha Ekipmanlarımız</h2>
+        <p style="font-size: 1.15rem; color: #64748b; max-width: 800px; margin: 15px auto 0 auto; line-height: 1.6;">En zorlu koşullarda dahi görev yapabilen, en yeni nesil donanımlar ile sahadayız.</p>
+      </div>
+      
+      <div class="info-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px;">
+        <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-blue); background: white;">
+          <img src="/images/equip-drone.png" alt="Termal Drone" style="width: 100%; height: 200px; object-fit: cover;">
+          <div style="padding: 25px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Termal Drone</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Gece ve kısıtlı görüş şartlarında canlı tespiti yapan yüksek çözünürlüklü termal kameralar.</p>
+          </div>
+        </div>
+        <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-red); background: white;">
+          <img src="/images/equip-seismic.png" alt="Sismik Dinleme" style="width: 100%; height: 200px; object-fit: cover;">
+          <div style="padding: 25px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Sismik Dinleme</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Enkaz altındaki en ufak ses ve titreşimi algılayan hassas akustik sensör sistemleri.</p>
+          </div>
+        </div>
+        <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-blue); background: white;">
+          <img src="/images/equip-sat.png" alt="Uydu Terminali" style="width: 100%; height: 200px; object-fit: cover;">
+          <div style="padding: 25px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Uydu Terminali</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Bağlantının kesildiği noktalarda anlık veri transferi sağlayan mobil uydu istasyonları.</p>
+          </div>
+        </div>
+        <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-red); background: white;">
+          <img src="/images/equip-wearable.png" alt="Akıllı Kask" style="width: 100%; height: 200px; object-fit: cover;">
+          <div style="padding: 25px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Akıllı Giyilebilir</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Saha personelinin hayati bulgularını ve konumunu anlık takip eden AR destekli kasklar.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer style="background: var(--afad-navy); padding: 60px 0;">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; text-align: center; color: white;">
       <img src="/images/logo-white.png" alt="AFAD Logo White"
@@ -387,8 +494,4 @@
     </div>
   </footer>
 </body>
-
-</html>
-</body>
-
 </html>

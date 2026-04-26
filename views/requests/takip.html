@@ -232,7 +232,7 @@
         }
 
         // Harita Güncelleme
-        if (data.enlem && data.boylam) {
+        if (data.enlem !== undefined && data.boylam !== undefined && (data.enlem !== 0 || data.boylam !== 0)) {
             const victimPos = [data.enlem, data.boylam];
             if (!victimMarker) {
                 victimMarker = L.marker(victimPos, {
@@ -244,8 +244,35 @@
                         popupAnchor: [1, -34],
                         shadowSize: [41, 41]
                     })
-                }).addTo(map).bindPopup('Sizin Konumunuz').openPopup();
-                map.setView(victimPos, 13);
+                }).addTo(map).bindPopup('<b>Sizin Konumunuz</b><br>' + data.baslik).openPopup();
+                map.setView(victimPos, 15);
+            } else {
+                victimMarker.setLatLng(victimPos);
+            }
+        }
+
+        // Gönüllü Konumu (Eğer ekip yoldaysa)
+        if (data.gonullu_enlem && data.gonullu_boylam && (data.gonullu_enlem !== 0 || data.gonullu_boylam !== 0)) {
+            const volPos = [data.gonullu_enlem, data.gonullu_boylam];
+            if (!volunteerMarker) {
+                volunteerMarker = L.marker(volPos, {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    })
+                }).addTo(map).bindPopup('<b>AFAD Ekibi</b><br>' + data.gonullu_ad + ' yolda.').openPopup();
+            } else {
+                volunteerMarker.setLatLng(volPos);
+            }
+            
+            // Eğer her iki marker da varsa haritayı her ikisini de kapsayacak şekilde ayarla
+            if (victimMarker) {
+                var group = new L.featureGroup([victimMarker, volunteerMarker]);
+                map.fitBounds(group.getBounds().pad(0.2));
             }
         }
 
