@@ -43,7 +43,9 @@
           <h2 style="font-weight: 800; margin: 0;">Operasyonel <span style="color: var(--afad-red);">Analiz</span></h2>
           <p style="color: #64748b; margin-top: 5px;">Saha operasyonlarının sayısal ve grafiksel dağılım raporu.</p>
         </div>
-        <button class="btn btn-navy" onclick="initAnalytics(this)"><i class="fas fa-sync-alt"></i> Verileri Tazele</button>
+        <a href="/dashboard/api/export-csv" class="btn btn-navy" style="padding: 12px 25px; border-radius: 12px; font-weight: 700; text-decoration: none;">
+          <i class="fas fa-file-export"></i> CSV İNDİR (EXCEL)
+        </a>
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
@@ -93,11 +95,7 @@
          </div>
       </div>
       
-      <div style="text-align: right;">
-        <a href="/dashboard/api/export-csv" class="btn btn-navy" style="padding: 12px 25px; border-radius: 12px; font-weight: 700;">
-          <i class="fas fa-file-export"></i> TÜM VERİLERİ CSV OLARAK İNDİR (EXCEL)
-        </a>
-      </div>
+      
     </div>
   </div>
 

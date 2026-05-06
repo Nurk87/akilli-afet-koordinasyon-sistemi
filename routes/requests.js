@@ -223,12 +223,11 @@ router.get('/api/list', verifyToken, async (req, res) => {
     let query = `
       SELECT 
         y.*, 
-        COALESCE(u.ad, y.ad_soyad) as ad, 
-        COALESCE(u.soyad, '') as soyad, 
-        COALESCE(y.telefon, u.telefon) as telefon,
+        COALESCE(u.ad, y.ad_soyad) as gosterilecek_ad, 
+        COALESCE(u.soyad, '') as gosterilecek_soyad, 
+        COALESCE(y.telefon, u.telefon) as gosterilecek_telefon,
         i.ad as il_adi, 
         ilc.ad as ilce_adi,
-        ya.gonullu_id,
         ya.gonullu_id as assigned_volunteer_id,
         ya.durum as atama_durumu,
         gv.ad as gonullu_ad, 
@@ -246,7 +245,8 @@ router.get('/api/list', verifyToken, async (req, res) => {
     const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: 'Veri çekilemedi' });
+    console.error('❌ API/LIST HATASI:', error);
+    res.status(500).json({ error: 'Veri çekilemedi', details: error.message });
   }
 });
 

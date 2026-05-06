@@ -7,10 +7,11 @@
   <title>AFAD | Akıllı Afet Koordinasyon Sistemi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+   <link rel="stylesheet" href="/css/style.css">
+   <script src="/js/i18n.js" defer></script>
+ </head>
 
 <body>
   <nav class="navbar">
@@ -20,9 +21,20 @@
         <span class="logo-text">AFET <span class="logo-accent">KOORDİNASYON</span></span>
       </div>
       <div class="nav-links">
-        <a href="/requests/yeni" class="btn btn-premium" style="padding: 0; background: var(--afad-red); color: white; border: none; border-radius: 12px; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4);" title="Hemen Yardım İste">SOS</a>
-        <a href="/giris" class="btn btn-navy" style="padding: 12px 20px; font-size: 0.9rem;">Giriş Yap</a>
-        <a href="/kayit" class="btn btn-premium" style="padding: 12px 20px; font-size: 0.9rem;">Kayıt Ol</a>
+        <!-- Dil Seçici -->
+        <div class="lang-switcher" style="position: relative; margin-right: 15px;">
+          <button class="btn btn-navy" style="padding: 8px 15px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;" onclick="document.getElementById('lang-dropdown').classList.toggle('show')">
+            <i class="fas fa-globe"></i> <span id="current-lang-text">TR</span>
+          </button>
+          <div id="lang-dropdown" class="glass-card" style="display: none; position: absolute; top: 50px; right: 0; min-width: 120px; padding: 10px; z-index: 1000; flex-direction: column; gap: 5px;">
+            <a href="javascript:void(0)" onclick="setLanguage('tr')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇹🇷 Türkçe</a>
+            <a href="javascript:void(0)" onclick="setLanguage('en')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇺🇸 English</a>
+            <a href="javascript:void(0)" onclick="setLanguage('ar')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇸🇦 العربية</a>
+          </div>
+        </div>
+        <a href="/requests/yeni" class="btn btn-premium" style="padding: 0; background: var(--afad-red); color: white; border: none; border-radius: 12px; width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 900; box-shadow: 0 5px 15px rgba(227, 6, 19, 0.4);" title="Hemen Yardım İste" data-i18n="nav_sos">SOS</a>
+        <a href="/giris" class="btn btn-navy" style="padding: 12px 20px; font-size: 0.9rem;" data-i18n="nav_login">Giriş Yap</a>
+        <a href="/kayit" class="btn btn-premium" style="padding: 12px 20px; font-size: 0.9rem;" data-i18n="nav_register">Kayıt Ol</a>
       </div>
     </div>
   </nav>
@@ -31,16 +43,16 @@
     style="background-image: linear-gradient(rgba(0, 51, 102, 0.85), rgba(0, 51, 102, 0.6)), url('/images/afad_hero.png');">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
       <div class="hero-content">
-        <div class="hero-text">
-          <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;">Gelecek Nesil Afet
+        <div class="hero-text" style="text-align: center;">
+          <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;" data-i18n="hero_badge">Gelecek Nesil Afet
             Yönetimi</span>
-          <h1>Akıllı Afet <span style="color: var(--afad-red);">Koordinasyon</span> ve Kaynak <span
+          <h1 data-i18n="hero_title">Akıllı Afet <span style="color: var(--afad-red);">Koordinasyon</span> ve Kaynak <span
               style="color: var(--afad-red);">Optimizasyon</span> Sistemi</h1>
-          <p>Yapay zeka ve gerçek zamanlı konum verileriyle afet anında doğru kaynakları, doğru ihtiyaç sahiplerine en
+          <p style="margin-left: auto; margin-right: auto;" data-i18n="hero_desc">Yapay zeka ve gerçek zamanlı konum verileriyle afet anında doğru kaynakları, doğru ihtiyaç sahiplerine en
             hızlı şekilde ulaştırıyoruz.</p>
           <div class="hero-buttons">
-            <a href="/requests/yeni" class="btn btn-premium btn-lg" style="background: var(--afad-red); border-color: var(--afad-red); box-shadow: 0 10px 20px rgba(227, 6, 19, 0.3);">Hemen Yardım İste</a>
-            <a href="#takip-sorgula" class="btn btn-navy btn-lg" style="border: 2px solid var(--afad-navy);"><i class="fas fa-search-location"></i> Talebi Takip Et</a>
+            <a href="/requests/yeni" class="btn btn-premium btn-lg" style="background: var(--afad-red); border-color: var(--afad-red); box-shadow: 0 10px 20px rgba(227, 6, 19, 0.3);" data-i18n="hero_btn_sos">Hemen Yardım İste</a>
+            <a href="#takip-sorgula" class="btn btn-navy btn-lg" style="border: 2px solid var(--afad-navy);" data-i18n="hero_btn_track"><i class="fas fa-search-location"></i> Talebi Takip Et</a>
           </div>
         </div>
       </div>
@@ -48,21 +60,21 @@
   </header>
   
   <!-- Takip Sorgulama Bölümü -->
-  <section id="takip-sorgula" style="margin-top: -50px; position: relative; z-index: 10; scroll-margin-top: 100px;">
+  <section id="takip-sorgula" style="margin-top: -80px; position: relative; z-index: 10; scroll-margin-top: 100px; background-image: url('/images/tracking-bg.png'); background-size: cover; background-position: center; background-attachment: fixed; padding: 100px 0; border-top: 2px solid rgba(227, 6, 19, 0.1);">
     <div class="container" style="width: 90%; max-width: 800px; margin: 0 auto;">
       <div class="glass-card" style="padding: 30px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-top: 5px solid var(--afad-red);">
         <div style="display: flex; flex-direction: column; gap: 15px;">
-          <h3 style="color: var(--afad-navy); margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+          <h3 style="color: var(--afad-navy); margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px;" data-i18n="track_title">
             <i class="fas fa-search-location" style="color: var(--afad-red);"></i> Yardım Talebinizi Takip Edin
           </h3>
-          <p style="color: #64748b; margin: 0; font-size: 0.95rem;">Size verilen 8 haneli takip kodunu girerek yardım ekibinin durumunu anlık olarak izleyebilirsiniz.</p>
+          <p style="color: #64748b; margin: 0; font-size: 0.95rem;" data-i18n="track_desc">Size verilen 8 haneli takip kodunu girerek yardım ekibinin durumunu anlık olarak izleyebilirsiniz.</p>
           <div style="display: flex; gap: 10px; margin-top: 5px;">
-            <input type="text" id="takip-kodu-input" placeholder="Örn: A1B2C3D4" maxlength="8" style="flex: 2; padding: 15px 20px; border-radius: 15px; border: 2px solid #e2e8f0; font-family: monospace; font-weight: 700; font-size: 1.1rem; text-transform: uppercase;">
-            <button onclick="takipSorgula()" class="btn btn-navy" style="flex: 1; border-radius: 15px; font-weight: 700;">
+            <input type="text" id="takip-kodu-input" placeholder="Örn: A1B2C3D4" maxlength="8" style="flex: 2; padding: 15px 20px; border-radius: 15px; border: 2px solid #e2e8f0; font-family: monospace; font-weight: 700; font-size: 1.1rem; text-transform: uppercase;" data-i18n="track_input_placeholder">
+            <button onclick="takipSorgula()" class="btn btn-navy" style="flex: 1; border-radius: 15px; font-weight: 700;" data-i18n="track_btn">
               <i class="fas fa-arrow-right"></i> TAKİP ET
             </button>
           </div>
-          <button onclick="modalAc()" class="btn-text" style="color: #64748b; background: none; border: none; font-size: 0.9rem; text-decoration: underline; cursor: pointer; align-self: flex-start; margin-top: 5px;">
+          <button onclick="modalAc()" class="btn-text" style="color: #64748b; background: none; border: none; font-size: 0.9rem; text-decoration: underline; cursor: pointer; align-self: flex-start; margin-top: 5px;" data-i18n="track_forgot">
             <i class="fas fa-question-circle"></i> Takip kodumu unuttum / Kaybetim
           </button>
         </div>
@@ -75,25 +87,25 @@
     <div class="glass-card" style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; padding: 40px; border-radius: 30px; position: relative; border-top: 8px solid var(--afad-red);">
       <button onclick="modalKapat()" style="position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;"><i class="fas fa-times"></i></button>
       
-      <h2 style="color: var(--afad-navy); margin-bottom: 10px; font-weight: 800;"><i class="fas fa-search"></i> Talebimi Bul</h2>
-      <p style="color: #64748b; margin-bottom: 25px;">Talebinizi oluşturduğunuz <b>İlçeyi</b> seçerek son kayıtlara ulaşın.</p>
+      <h2 style="color: var(--afad-navy); margin-bottom: 10px; font-weight: 800;" data-i18n="rec_modal_title"><i class="fas fa-search"></i> Talebimi Bul</h2>
+      <p style="color: #64748b; margin-bottom: 25px;" data-i18n="rec_modal_desc">Talebinizi oluşturduğunuz <b>İlçeyi</b> seçerek son kayıtlara ulaşın.</p>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
         <div class="form-group" style="margin: 0;">
-          <label style="font-size: 0.85rem;">İl Seçin</label>
+          <label style="font-size: 0.85rem;" data-i18n="label_city">İl Seçin</label>
           <select id="rec-il" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;"></select>
         </div>
         <div class="form-group" style="margin: 0;">
-          <label style="font-size: 0.85rem;">İlçe Seçin</label>
+          <label style="font-size: 0.85rem;" data-i18n="label_district">İlçe Seçin</label>
           <select id="rec-ilce" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;">
-            <option value="">-- Önce İl --</option>
+            <option value="" data-i18n="option_pre_city">-- Önce İl --</option>
           </select>
         </div>
       </div>
 
       <div id="voice-search-section" style="display: none; margin-bottom: 25px;">
         <button id="btn-voice-rec" class="btn-navy" style="width: 100%; background: #f1f5f9; color: var(--afad-navy); border: 2px solid var(--afad-navy); border-radius: 15px; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
-          <i class="fas fa-microphone" id="mic-icon"></i> <span id="mic-text">İsminizi Söyleyerek Filtreleyin</span>
+          <i class="fas fa-microphone" id="mic-icon"></i> <span id="mic-text" data-i18n="voice_search_text">İsminizi Söyleyerek Filtreleyin</span>
         </button>
       </div>
 
@@ -332,26 +344,26 @@
 
   <section id="ozellikler" class="info-section">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
-      <h2 style="font-size: 2.8rem; color: var(--afad-navy); font-weight: 800; text-align: center; margin-bottom: 15px;">Nasıl Çalışıyoruz?</h2>
-      <p style="font-size: 1.2rem; color: #475569; text-align: center; max-width: 800px; margin: 0 auto 60px auto; font-weight: 500;">
+      <h2 style="font-size: 2.8rem; color: var(--afad-navy); font-weight: 800; text-align: center; margin-bottom: 15px;" data-i18n="how_we_work_title">Nasıl Çalışıyoruz?</h2>
+      <p style="font-size: 1.2rem; color: #475569; text-align: center; max-width: 800px; margin: 0 auto 60px auto; font-weight: 500;" data-i18n="how_we_work_desc">
         AFAD standartlarıyla tam uyumlu, yapay zeka destekli ve veri madenciliği tabanlı milli afet koordinatörünüz.
       </p>
       
       <div class="info-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
         <div class="info-card">
           <i class="fas fa-map-marked-alt"></i>
-          <h3>Yapay Zeka Atama</h3>
-          <p>Enkaz altı sinyalleri ve yardım taleplerini konum tabanlı algoritmalarla analiz ederek, saniyeler içinde en doğru personeli olay mahalline yönlendiriyoruz.</p>
+          <h3 data-i18n="feat_ai_title">Yapay Zeka Atama</h3>
+          <p data-i18n="feat_ai_desc">Enkaz altı sinyalleri ve yardım taleplerini konum tabanlı algoritmalarla analiz ederek, saniyeler içinde en doğru personeli olay mahalline yönlendiriyoruz.</p>
         </div>
         <div class="info-card">
           <i class="fas fa-chart-line"></i>
-          <h3>Kaynak Optimizasyonu</h3>
-          <p>T-SQL tabanlı veri işleme motorumuz ile kritik yardım malzemelerini (su, gıda, tıbbi kit) talebin yoğunluğuna göre dinamik ve adil bir şekilde dağıtıyoruz.</p>
+          <h3 data-i18n="feat_opt_title">Kaynak Optimizasyonu</h3>
+          <p data-i18n="feat_opt_desc">T-SQL tabanlı veri işleme motorumuz ile kritik yardım malzemelerini (su, gıda, tıbbi kit) talebin yoğunluğuna göre dinamik ve adil bir şekilde dağıtıyoruz.</p>
         </div>
         <div class="info-card" style="border-bottom: 5px solid var(--afad-red);">
           <i class="fas fa-satellite-dish"></i>
-          <h3>Anlık Saha Takibi</h3>
-          <p>Entegre dashboard panelleri üzerinden tüm saha hareketlerini, lojistik akışları ve ekip durumlarını gerçek zamanlı ısı haritalarıyla 7/24 izliyoruz.</p>
+          <h3 data-i18n="feat_track_title">Anlık Saha Takibi</h3>
+          <p data-i18n="feat_track_desc">Entegre dashboard panelleri üzerinden tüm saha hareketlerini, lojistik akışları ve ekip durumlarını gerçek zamanlı ısı haritalarıyla 7/24 izliyoruz.</p>
         </div>
       </div>
     </div>
@@ -360,123 +372,125 @@
   <section id="impact" class="impact-section">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
       <div style="text-align: center;">
-        <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;">BAŞARI HİKAYELERİMİZ</span>
-        <h2 style="font-size: 2.2rem; color: #ffffff; font-weight: 800; margin-bottom: 15px;">Saha Operasyonlarımız ve Etkimiz</h2>
-        <p style="font-size: 1.1rem; color: #cbd5e1; max-width: 700px; margin: 0 auto;">Teknoloji ve insan gücünü birleştirerek sahada yarattığımız değişimin gerçek hikayeleri.</p>
+        <span class="badge-urgent" style="margin-bottom: 20px; display: inline-block;" data-i18n="impact_badge">BAŞARI HİKAYELERİMİZ</span>
+        <h2 style="font-size: 2.2rem; color: #ffffff; font-weight: 800; margin-bottom: 15px;" data-i18n="impact_title">Saha Operasyonlarımız ve Etkimiz</h2>
+        <p style="font-size: 1.1rem; color: #cbd5e1; max-width: 700px; margin: 0 auto;" data-i18n="impact_desc">Teknoloji ve insan gücünü birleştirerek sahada yarattığımız değişimin gerçek hikayeleri.</p>
       </div>
 
       <div class="impact-grid">
         <div class="impact-item">
           <img src="/images/impact-1.png" alt="Saha Koordinasyonu" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">OPERASYON BAŞARISI</span>
-            <h4>Lojistik ve Hızlı Dağıtım</h4>
-            <p>Büyük Marmara Tatbikatı ve yerel operasyonlarda 5000+ yardım kolisinin, sistemimiz tarafından saptanan öncelikli bölgelere sadece 2 saatte ulaşması sağlandı.</p>
+            <span class="impact-badge" data-i18n="impact_label_1">OPERASYON BAŞARISI</span>
+            <h4 data-i18n="impact_h_1">Lojistik ve Hızlı Dağıtım</h4>
+            <p data-i18n="impact_p_1">Büyük Marmara Tatbikatı ve yerel operasyonlarda 5000+ yardım kolisinin, sistemimiz tarafından saptanan öncelikli bölgelere sadece 2 saatte ulaşması sağlandı.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-2.png" alt="Rescue Team" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">KRİTİK MÜDAHALE</span>
-            <h4>Hızlı Arama-Kurtarma</h4>
-            <p>Konum verileri ve akıllı filtreleme sistemi sayesinde acil yardım talepleri, sahada aktif olan profesyonel kurtarma ekiplerine %40 daha hızlı iletildi.</p>
+            <span class="impact-badge" data-i18n="impact_label_2">KRİTİK MÜDAHALE</span>
+            <h4 data-i18n="impact_h_2">Hızlı Arama-Kurtarma</h4>
+            <p data-i18n="impact_p_2">Konum verileri ve akıllı filtreleme sistemi sayesinde acil yardım talepleri, sahada aktif olan profesyonel kurtarma ekiplerine %40 daha hızlı iletildi.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-3.png" alt="Volunteer Power" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">TOPLUMSAL GÜÇ</span>
-            <h4>Dev Gönüllü Mobilizasyonu</h4>
-            <p>Sistemiz üzerinden 30.000 aktif gönüllü, yetkinliklerine (ilk yardım, lojistik, teknik destek) göre saniyeler içinde doğru görevlere otomatik olarak atandı.</p>
+            <span class="impact-badge" data-i18n="impact_label_3">TOPLUMSAL GÜÇ</span>
+            <h4 data-i18n="impact_h_3">Dev Gönüllü Mobilizasyonu</h4>
+            <p data-i18n="impact_p_3">Sistemiz üzerinden 30.000 aktif gönüllü, yetkinliklerine (ilk yardım, lojistik, teknik destek) göre saniyeler içinde doğru görevlere otomatik olarak atandı.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-4.png" alt="Communication Power" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">TEKNOLOJİ ALTYAPISI</span>
-            <h4>Kesintisiz Haberleşme</h4>
-            <p>Afet anında GSM hatlarının kesilmesi durumunda, sistem entegreli mobil baz istasyonları ve uydu terminalleri ile 81 ilde kesintisiz veri akışı sağlandı.</p>
+            <span class="impact-badge" data-i18n="impact_label_4">TEKNOLOJİ ALTYAPISI</span>
+            <h4 data-i18n="impact_h_4">Kesintisiz Haberleşme</h4>
+            <p data-i18n="impact_p_4">Afet anında GSM hatlarının kesilmesi durumunda, sistem entegreli mobil baz istasyonları ve uydu terminalleri ile 81 ilde kesintisiz veri akışı sağlandı.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-5.png" alt="Shelter Solutions" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">BARINMA YÖNETİMİ</span>
-            <h4>Akıllı Çadır Kent Kurulumu</h4>
-            <p>Deprem sonrası 24 saat içinde 1.000+ tam donanımlı barınma ünitesinin lojistik takibi ve ihtiyaç sahiplerine dijital ataması başarıyla gerçekleştirildi.</p>
+            <span class="impact-badge" data-i18n="impact_label_5">BARINMA YÖNETİMİ</span>
+            <h4 data-i18n="impact_h_5">Akıllı Çadır Kent Kurulumu</h4>
+            <p data-i18n="impact_p_5">Deprem sonrası 24 saat içinde 1.000+ tam donanımlı barınma ünitesinin lojistik takibi ve ihtiyaç sahiplerine dijital ataması başarıyla gerçekleştirildi.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-6.png" alt="Medical Support" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">SAĞLIK KOORDİNASYONU</span>
-            <h4>Mobil Medikal Destek</h4>
-            <p>Mobil sağlık ekipleri ve ambulansların, talebin en yoğun olduğu kritik bölgelere sistem üzerinden en hızlı güzergahlarla sevki saniyeler içinde planlandı.</p>
+            <span class="impact-badge" data-i18n="impact_label_6">SAĞLIK KOORDİNASYONU</span>
+            <h4 data-i18n="impact_h_6">Mobil Medikal Destek</h4>
+            <p data-i18n="impact_p_6">Mobil sağlık ekipleri ve ambulansların, talebin en yoğun olduğu kritik bölgelere sistem üzerinden en hızlı güzergahlarla sevki saniyeler içinde planlandı.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-7.png" alt="Air Operations" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">İLERİ LOJİSTİK</span>
-            <h4>Hava Operasyonları Gücü</h4>
-            <p>Ulaşımın kesildiği sarp arazilere helikopter ve İHA destekli akıllı lojistik sevkiyat ile hayati yardımların en kritik noktalara ulaştırılması sağlandı.</p>
+            <span class="impact-badge" data-i18n="impact_label_7">İLERİ LOJİSTİK</span>
+            <h4 data-i18n="impact_h_7">Hava Operasyonları Gücü</h4>
+            <p data-i18n="impact_p_7">Ulaşımın kesildiği sarp arazilere helikopter ve İHA destekli akıllı lojistik sevkiyat ile hayati yardımların en kritik noktalara ulaştırılması sağlandı.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-8.png" alt="Psychosocial Support" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">TOPLUMSAL İYİLEŞME</span>
-            <h4>Psikososyal Saha Desteği</h4>
-            <p>Afet sonrası toplumsal iyileşme için kurulan mobil psikososyal destek birimlerinin saha koordinasyonu ve anlık vaka takibi sistem üzerinden yönetildi.</p>
+            <span class="impact-badge" data-i18n="impact_label_8">TOPLUMSAL İYİLEŞME</span>
+            <h4 data-i18n="impact_h_8">Psikososyal Saha Desteği</h4>
+            <p data-i18n="impact_p_8">Afet sonrası toplumsal iyileşme için kurulan mobil psikososyal destek birimlerinin saha koordinasyonu ve anlık vaka takibi sistem üzerinden yönetildi.</p>
           </div>
         </div>
         <div class="impact-item">
           <img src="/images/impact-9.png" alt="Disaster Simulation" class="impact-img">
           <div class="impact-content">
-            <span class="impact-badge">EĞİTİM & HAZIRLIK</span>
-            <h4>Dev Simülasyon ve Eğitim</h4>
-            <p>Sistem üzerinden planlanan geniş çaplı afet simülasyonları ve eğitim programları ile 100.000+ vatandaşın afet bilinci ve hazırlığı artırıldı.</p>
+            <span class="impact-badge" data-i18n="impact_label_9">EĞİTİM & HAZIRLIK</span>
+            <h4 data-i18n="impact_h_9">Dev Simülasyon ve Eğitim</h4>
+            <p data-i18n="impact_p_9">Sistem üzerinden planlanan geniş çaplı afet simülasyonları ve eğitim programları ile 100.000+ vatandaşın afet bilinci ve hazırlığı artırıldı.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="equipment" class="info-section" style="background: #ffffff; padding: 40px 0 80px 0;">
+  <section id="equipment" class="info-section" style="background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85)), url('/images/equipment-bg.png'); background-size: cover; background-position: center; background-attachment: fixed; padding: 60px 0 100px 0;">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 40px;">
-        <span class="impact-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 800; display: inline-block; margin-bottom: 15px; padding: 8px 22px; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(3, 105, 161, 0.12);">TEKNOLOJİK GÜÇ</span>
-        <h2 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 2.6rem; letter-spacing: -1px; line-height: 1.2;">Saha Ekipmanlarımız</h2>
-        <p style="font-size: 1.15rem; color: #64748b; max-width: 800px; margin: 15px auto 0 auto; line-height: 1.6;">En zorlu koşullarda dahi görev yapabilen, en yeni nesil donanımlar ile sahadayız.</p>
+        <div style="margin-bottom: 15px;">
+          <span class="impact-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 800; display: inline-block; padding: 8px 22px; border-radius: 50px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(3, 105, 161, 0.12);" data-i18n="equipment_badge">TEKNOLOJİK GÜÇ</span>
+        </div>
+        <h2 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 2.6rem; letter-spacing: -1px; line-height: 1.2;" data-i18n="equipment_title">Saha Ekipmanlarımız</h2>
+        <p style="font-size: 1.15rem; color: #64748b; max-width: 800px; margin: 15px auto 0 auto; line-height: 1.6;" data-i18n="equipment_desc">En zorlu koşullarda dahi görev yapabilen, en yeni nesil donanımlar ile sahadayız.</p>
       </div>
       
       <div class="info-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px;">
         <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-blue); background: white;">
           <img src="/images/equip-drone.png" alt="Termal Drone" style="width: 100%; height: 200px; object-fit: cover;">
           <div style="padding: 25px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Termal Drone</h4>
-            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Gece ve kısıtlı görüş şartlarında canlı tespiti yapan yüksek çözünürlüklü termal kameralar.</p>
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;" data-i18n="equip_drone_title">Termal Drone</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;" data-i18n="equip_drone_desc">Gece ve kısıtlı görüş şartlarında canlı tespiti yapan yüksek çözünürlüklü termal kameralar.</p>
           </div>
         </div>
         <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-red); background: white;">
           <img src="/images/equip-seismic.png" alt="Sismik Dinleme" style="width: 100%; height: 200px; object-fit: cover;">
           <div style="padding: 25px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Sismik Dinleme</h4>
-            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Enkaz altındaki en ufak ses ve titreşimi algılayan hassas akustik sensör sistemleri.</p>
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;" data-i18n="equip_seismic_title">Sismik Dinleme</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;" data-i18n="equip_seismic_desc">Enkaz altındaki en ufak ses ve titreşimi algılayan hassas akustik sensör sistemleri.</p>
           </div>
         </div>
         <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-blue); background: white;">
           <img src="/images/equip-sat.png" alt="Uydu Terminali" style="width: 100%; height: 200px; object-fit: cover;">
           <div style="padding: 25px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Uydu Terminali</h4>
-            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Bağlantının kesildiği noktalarda anlık veri transferi sağlayan mobil uydu istasyonları.</p>
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;" data-i18n="equip_sat_title">Uydu Terminali</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;" data-i18n="equip_sat_desc">Bağlantının kesildiği noktalarda anlık veri transferi sağlayan mobil uydu istasyonları.</p>
           </div>
         </div>
         <div class="info-card" style="padding: 0; overflow: hidden; border-bottom: 5px solid var(--afad-red); background: white;">
           <img src="/images/equip-wearable.png" alt="Akıllı Kask" style="width: 100%; height: 200px; object-fit: cover;">
           <div style="padding: 25px;">
-            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;">Akıllı Giyilebilir</h4>
-            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">Saha personelinin hayati bulgularını ve konumunu anlık takip eden AR destekli kasklar.</p>
+            <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;" data-i18n="equip_wearable_title">Akıllı Giyilebilir</h4>
+            <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;" data-i18n="equip_wearable_desc">Saha personelinin hayati bulgularını ve konumunu anlık takip eden AR destekli kasklar.</p>
           </div>
         </div>
       </div>
@@ -487,8 +501,8 @@
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; text-align: center; color: white;">
       <img src="/images/logo-white.png" alt="AFAD Logo White"
         style="height: 60px; margin-bottom: 30px; opacity: 0.9;">
-      <p style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px; margin-bottom: 8px;">© 2026 Akıllı Afet Koordinasyon Sistemi</p>
-      <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.5;">
+      <p style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px; margin-bottom: 8px;" data-i18n="footer_copy">© 2026 Akıllı Afet Koordinasyon Sistemi</p>
+      <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.5;" data-i18n="footer_desc">
         Afet ve Acil Durum Yönetimi Teknolojileri | Akıllı Şehir Koordinasyon Altyapısı
       </div>
     </div>

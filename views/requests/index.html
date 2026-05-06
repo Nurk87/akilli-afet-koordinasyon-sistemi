@@ -77,23 +77,7 @@
       </div>
     </div>
 
-    <!-- Akıllı Atama Merkezi (Yeni Yer ve Tasarım) -->
-    <div class="glass-card" style="margin-bottom: 45px; padding: 20px 30px; border: none; border-top: 5px solid var(--afad-navy); background: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 15px 35px rgba(0,0,0,0.08);">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <div style="background: #f1f5f9; color: var(--afad-navy); width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div>
-          <h3 style="margin: 0; color: var(--afad-navy); font-size: 1.15rem; font-weight: 800;">Akıllı Atama Modülü</h3>
-          <p id="pending-count-text" style="margin: 2px 0 0 0; color: #64748b; font-size: 0.9rem; font-weight: 600;">
-            Şu an <span style="color: var(--afad-red); font-weight: 800;" id="pending-count-val">...</span> bekleyen talep otomatik atama için hazır.
-          </p>
-        </div>
-      </div>
-      <button id="otomatikAtamaBtn" class="btn-premium" style="padding: 15px 35px; font-size: 1rem; border-radius: 15px; letter-spacing: 0.5px;">
-        <i class="fas fa-bolt" style="color: #fbbf24; margin-right: 8px;"></i> OTOMATİK ATAMAYI BAŞLAT
-      </button>
-    </div>
+
 
     <!-- Atama Sonuç Modalı -->
     <div id="assignmentResultsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 51, 102, 0.4); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;">
@@ -171,25 +155,28 @@
       try {
         const res = await fetch('/requests/api/list');
         const data = await res.json();
+        console.log('Talepler yüklendi:', data);
         
         activeContainer.innerHTML = '';
         pastContainer.innerHTML = '';
 
         const activeRequests = data.filter(r => r.durum !== 'tamamlandi');
         const pastRequests = data.filter(r => r.durum === 'tamamlandi');
+        console.log('Aktif:', activeRequests.length, 'Geçmiş:', pastRequests.length);
 
         // Bekleyen (yeni) taleplerin sayısını banner'a yaz
         const pendingCount = data.filter(r => (r.durum || 'yeni').toLowerCase() === 'yeni').length;
         const countValEl = document.getElementById('pending-count-val');
-        if (countValEl) {
-          countValEl.innerText = pendingCount;
-          document.getElementById('pending-count-text').style.opacity = pendingCount > 0 ? '1' : '0.5';
-        }
+        const countTextEl = document.getElementById('pending-count-text');
+        
+        if (countValEl) countValEl.innerText = pendingCount;
+        if (countTextEl) countTextEl.style.opacity = pendingCount > 0 ? '1' : '0.5';
 
         if (activeRequests.length === 0) activeContainer.innerHTML = '<p>Aktif talep bulunmuyor.</p>';
         if (pastRequests.length === 0) pastContainer.innerHTML = '<p>Geçmiş kayıt bulunmuyor.</p>';
 
         [...activeRequests, ...pastRequests].forEach(req => {
+          try {
           const status = (req.durum || 'yeni').toLowerCase();
           const isCompleted = status === 'tamamlandi';
           const isEnRoute = status === 'ekipler yolda';
@@ -237,8 +224,8 @@
                 </span>
               </div>
               <div class="meta-item"><i class="fas fa-map-marker-alt"></i> <b>Bölge:</b> ${req.il_adi || 'Bilinmiyor'} / ${req.ilce_adi || 'Bilinmiyor'}</div>
-              <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.ad} ${req.soyad || ''}</div>
-              <div class="meta-item"><i class="fas fa-phone-alt"></i> <b>İrtibat:</b> ${req.telefon || 'Girilmemiş'}</div>
+              <div class="meta-item"><i class="fas fa-user-circle"></i> <b>Kişi:</b> ${req.gosterilecek_ad || ''} ${req.gosterilecek_soyad || ''}</div>
+              <div class="meta-item"><i class="fas fa-phone-alt"></i> <b>İrtibat:</b> ${req.gosterilecek_telefon || 'Girilmemiş'}</div>
               ${volunteerInfo}
               ${req.fotograf_yolu ? `
                 <div style="margin-top: 15px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; position: relative; cursor: pointer;" onclick="window.open('${req.fotograf_yolu}', '_blank')">
@@ -272,66 +259,16 @@
           
           if (isCompleted) pastContainer.appendChild(card);
           else activeContainer.appendChild(card);
+          } catch (e) {
+            console.error('Kart oluşturma hatası:', e, req);
+          }
         });
       } catch (err) {
         console.error(err);
       }
     }
 
-    // --- OTOMATİK ATAMA BUTONU MANTIĞI ---
-    document.getElementById('otomatikAtamaBtn').addEventListener('click', async () => {
-      if (!confirm('Bekleyen tüm talepler en uygun gönüllülere otomatik olarak atansın mı?')) return;
-      
-      const btn = document.getElementById('otomatikAtamaBtn');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
-      btn.disabled = true;
 
-      try {
-        const res = await fetch('/atamalar/otomatik', { method: 'POST' });
-        const data = await res.json();
-        
-        if (res.ok && data.success) {
-          const modal = document.getElementById('assignmentResultsModal');
-          const summaryText = document.getElementById('assignmentSummaryText');
-          const detailList = document.getElementById('assignmentDetailList');
-          
-          summaryText.innerText = data.message;
-          detailList.innerHTML = '';
-          
-          if (data.atamalar && data.atamalar.length > 0) {
-            data.atamalar.forEach(atama => {
-              const div = document.createElement('div');
-              div.style.padding = '12px 18px';
-              div.style.borderBottom = '1px solid #e2e8f0';
-              div.style.display = 'flex';
-              div.style.justifyContent = 'space-between';
-              div.style.alignItems = 'center';
-              div.innerHTML = `
-                <div>
-                  <span style="display:block; font-weight:700; color:var(--afad-navy); font-size:0.9rem;">Talep #${atama.talep_id}</span>
-                  <span style="font-size:0.75rem; color:#64748b;"><i class="fas fa-map-pin"></i> ${atama.mesafe_km} KM</span>
-                </div>
-                <div style="text-align:right;">
-                  <span style="display:block; font-weight:600; color:var(--afad-red); font-size:0.85rem;">Gönüllü #${atama.gonullu_id}</span>
-                  <span style="font-size:0.75rem; color:#94a3b8;">Skor: ${atama.oncelik_skoru}</span>
-                </div>
-              `;
-              detailList.appendChild(div);
-            });
-          }
-          modal.style.display = 'flex';
-        } else {
-          alert('Uyarı: ' + (data.message || 'Uygun kayıt bulunamadı.'));
-        }
-      } catch (err) {
-        console.error('Atama hatası:', err);
-        alert('Sunucuyla bağlantı kurulamadı.');
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
-    });
 
     checkAuth().then(loadRequests);
   </script>

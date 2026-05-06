@@ -855,3 +855,31 @@ footer a {
     transform: translateY(0);
   }
 }
+
+/* i18n Styles */
+.lang-switcher {
+  position: relative;
+}
+
+#lang-dropdown.show {
+  display: flex !important;
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lang-ar {
+  font-family: 'Cairo', sans-serif !important;
+}
+
+.lang-ar .nav-links {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.lang-ar .hero-buttons {
+  flex-direction: row-reverse;
+}
