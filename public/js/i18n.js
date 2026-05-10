@@ -18,7 +18,7 @@ function applyTranslations(data, lang) {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (data[key]) {
-            if (el.tagName === 'INPUT' && el.placeholder) {
+            if ((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && el.placeholder) {
                 el.placeholder = data[key];
             } else {
                 el.innerHTML = data[key];

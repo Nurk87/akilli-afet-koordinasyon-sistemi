@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>AFAD | Canlı Saha Haritası</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Isı Haritası Eklentisi -->
+  <script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; }
+    #map { height: 100vh; width: 100%; z-index: 1; }
+    
+    .map-overlay {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .filter-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .status-badge:hover { transform: translateX(5px); }
+    .status-badge.active { border-color: var(--afad-red); background: #fff1f2; }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      font-family: inherit;
+      font-size: 0.9rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .floating-back {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--afad-navy);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .emergency-pulse {
+      animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(227, 6, 19, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- AFAD Sesli Bildirim Sistemi -->
+  <audio id="alertSound" src="/sounds/emergency.mp3" preload="auto"></audio>
+  <audio id="dispatchSound" src="/sounds/dispatch.mp3" preload="auto"></audio>
+
+  <a href="/dashboard" class="floating-back">
+    <i class="fas fa-arrow-left"></i> PANELE DÖN
+  </a>
+
+  <div id="map"></div>
+
+  <div class="map-overlay">
+    <!-- İstatistik Kartı -->
+    <div class="filter-card">
+      <h4 style="margin: 0 0 15px 0; color: var(--afad-navy); font-weight: 800; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-satellite-dish" style="color: var(--afad-red);"></i> CANLI SAHA VERİSİ
+      </h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="status-badge active" style="background: #fee2e2; color: #dc2626;">
+          <i class="fas fa-circle"></i> ACİL: <span id="badge-count-acil">0</span>
+        </div>
+        <div class="status-badge active" style="background: #fef3c7; color: #d97706;">
+          <i class="fas fa-circle"></i> NORMAL: <span id="badge-count-normal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Katman Filtreleri -->
+    <div class="filter-card">
+      <p style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;">Görünüm Katmanları</p>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
+          <input type="checkbox" id="toggle-heat" checked onchange="updateData()"> 
+          <i class="fas fa-fire" style="color: #f97316;"></i> Isı Haritası (Heatmap)
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
+          <input type="checkbox" id="toggle-markers" checked onchange="updateData()"> 
+          <i class="fas fa-map-marker-alt" style="color: #ef4444;"></i> Talep Noktaları
+        </label>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
+          <input type="checkbox" id="toggle-volunteers" checked onchange="updateData()"> 
+          <i class="fas fa-location-arrow" style="color: #2563eb;"></i> Aktif Gönüllüler
+        </label>
+      </div>
+    </div>
+
+    <!-- Son Hareketler -->
+    <div class="filter-card">
+      <p style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;">Son Operasyonel Hareketler</p>
+      <div id="map-log" style="font-size: 0.8rem; color: #475569; display: flex; flex-direction: column; gap: 10px;">
+        <!-- Dinamik Loglar -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let map;
+    let mapMarkers = { acil: [], normal: [], gonullu: [] };
+    let heatLayer = null;
+    let lastMaxId = 0; 
+    let searchTerm = '';
+
+    function initMap() {
+      map = L.map('map', { zoomControl: false }).setView([39.9334, 32.8597], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© AFAD Koordinasyon'
+      }).addTo(map);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      updateData();
+    }
+
+    function playAlert(type = 'emergency') {
+      const sound = document.getElementById(type === 'emergency' ? 'alertSound' : 'dispatchSound');
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Ses engellendi:', e));
+      }
+    }
+
+    async function updateData() {
+      try {
+        const [resReq, resVol] = await Promise.all([
+          fetch('/requests/api/list'),
+          fetch('/dashboard/api/volunteers')
+        ]);
+        
+        const requests = await resReq.json();
+        const volunteers = await resVol.json();
+        
+        renderMap(requests, volunteers);
+      } catch (err) {
+        console.error('Veri yükleme hatası:', err);
+      }
+    }
+
+    function renderMap(requests, volunteers) {
+      // Temizlik
+      Object.keys(mapMarkers).forEach(k => {
+        mapMarkers[k].forEach(m => map.removeLayer(m));
+        mapMarkers[k] = [];
+      });
+      if (heatLayer) map.removeLayer(heatLayer);
+
+      const showHeat = document.getElementById('toggle-heat').checked;
+      const showMarkers = document.getElementById('toggle-markers').checked;
+      const showVolunteers = document.getElementById('toggle-volunteers').checked;
+
+      let counts = { acil: 0, normal: 0 };
+      let heatPoints = [];
+      let currentMaxId = 0;
+      let newUrgentFound = false;
+
+      requests.forEach(r => {
+        const isAcil = r.oncelik === 'acil';
+        if (isAcil) counts.acil++; else counts.normal++;
+
+        // Isı haritası için veri topla
+        heatPoints.push([r.enlem, r.boylam, isAcil ? 0.9 : 0.4]);
+
+        // Yeni acil talep takibi
+        if (r.id > lastMaxId) {
+          currentMaxId = Math.max(currentMaxId, r.id);
+          if (isAcil) newUrgentFound = true;
+        }
+
+        if (showMarkers) {
+          const color = isAcil ? '#ef4444' : '#f59e0b';
+          const marker = L.circleMarker([r.enlem, r.boylam], {
+            radius: isAcil ? 10 : 8,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+          }).addTo(map);
+
+          marker.bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik.toUpperCase()}`);
+          mapMarkers[isAcil ? 'acil' : 'normal'].push(marker);
+        }
+      });
+
+      if (showHeat && heatPoints.length > 0) {
+        heatLayer = L.heatLayer(heatPoints, {
+          radius: 30,
+          blur: 20,
+          maxZoom: 17,
+          gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+        }).addTo(map);
+      }
+
+      if (showVolunteers) {
+        volunteers.forEach(v => {
+          const vIcon = L.divIcon({
+            html: `<i class="fas fa-location-arrow" style="color: #2563eb; font-size: 20px; transform: rotate(45deg);"></i>`,
+            className: 'v-icon',
+            iconSize: [20, 20]
+          });
+          const m = L.marker([v.enlem, v.boylam], { icon: vIcon }).addTo(map);
+          mapMarkers.gonullu.push(m);
+        });
+      }
+
+      // Sesli Bildirim
+      if (lastMaxId > 0 && newUrgentFound) {
+        playAlert('emergency');
+      }
+      if (currentMaxId > lastMaxId) lastMaxId = currentMaxId;
+
+      document.getElementById('badge-count-acil').innerText = counts.acil;
+      document.getElementById('badge-count-normal').innerText = counts.normal;
+      
+      updateLogUI(requests.slice(0, 5));
+    }
+
+    function updateLogUI(logs) {
+      const logBox = document.getElementById('map-log');
+      logBox.innerHTML = logs.map(l => `
+        <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 5px;">
+          <span style="color: ${l.oncelik === 'acil' ? '#dc2626' : '#d97706'}; font-weight: 800;">[${l.oncelik.toUpperCase()}]</span> 
+          ${l.baslik.substring(0, 20)}...
+        </div>
+      `).join('');
+    }
+
+    initMap();
+    setInterval(updateData, 10000);
+  </script>
+</body>
+</html>

@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -29,6 +31,7 @@
       <h3 style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 25px;">Operasyon Menüsü</h3>
       <ul>
         <li><a href="/dashboard"><i class="fas fa-chart-pie" style="width: 25px;"></i> Genel Bakış</a></li>
+        <li><a href="/dashboard/map" style="color: var(--afad-red); font-weight: 800;"><i class="fas fa-map-marked-alt" style="width: 25px;"></i> Canlı Saha Haritası</a></li>
         <li><a href="/dashboard/analiz" class="active"><i class="fas fa-chart-line" style="width: 25px;"></i> Operasyonel Analiz</a></li>
         <li><a href="/dashboard/atama"><i class="fas fa-people-carry-box" style="width: 25px;"></i> Gönüllü Atama</a></li>
         <li><a href="/requests"><i class="fas fa-list-check" style="width: 25px;"></i> Tüm Talepler</a></li>
@@ -93,10 +96,52 @@
              <i class="fas fa-check-double fa-2x" style="color: #d1fae5;"></i>
            </div>
          </div>
+      </div> <!-- Bilgi kartları gridini kapat -->
+      
+      <!-- AI VERİMLİLİK VE KAYNAK OPTİMİZASYONU (YENİ - BİTİRME PROJESİ ÖZEL) -->
+      <div class="glass-card" style="margin-top: 30px; padding: 35px; background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 1px solid #bae6fd; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -20px; right: -20px; font-size: 10rem; color: rgba(3, 105, 161, 0.03); transform: rotate(-15deg);">
+          <i class="fas fa-microchip"></i>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; position: relative; z-index: 1;">
+          <div>
+            <h3 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 12px;">
+              <i class="fas fa-bolt" style="color: #f59e0b;"></i> YAPAY ZEKA KAYNAK OPTİMİZASYONU
+            </h3>
+            <p style="margin: 5px 0 0 0; color: #64748b; font-weight: 600;">Greedy Algoritması ile sağlanan operasyonel verimlilik raporu</p>
+          </div>
+          <div style="background: var(--afad-navy); color: white; padding: 8px 20px; border-radius: 30px; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;">
+            CANLI ANALİZ AKTİF
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative; z-index: 1;">
+          <div style="background: white; padding: 20px; border-radius: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e0f2fe;">
+            <div style="color: #0369a1; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">Toplam Mesafe</div>
+            <div id="eff-dist" style="font-size: 1.6rem; font-weight: 800; color: var(--afad-navy);">0 KM</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Kapsanan toplam saha</div>
+          </div>
+          <div style="background: white; padding: 20px; border-radius: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e0f2fe;">
+            <div style="color: #059669; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">Yakıt Tasarrufu</div>
+            <div id="eff-fuel" style="font-size: 1.6rem; font-weight: 800; color: #059669;">0 L</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Lojistik kazancı (Litre)</div>
+          </div>
+          <div style="background: white; padding: 20px; border-radius: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e0f2fe;">
+            <div style="color: #ea580c; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">Zaman Kazancı</div>
+            <div id="eff-time" style="font-size: 1.6rem; font-weight: 800; color: #ea580c;">0 dk</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">Yardıma daha hızlı ulaşım</div>
+          </div>
+          <div style="background: #003366; padding: 20px; border-radius: 18px; box-shadow: 0 10px 20px rgba(0,51,102,0.15);">
+            <div style="color: #93c5fd; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">Algoritma Başarısı</div>
+            <div id="eff-score" style="font-size: 1.6rem; font-weight: 800; color: white;">%0</div>
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 10px; overflow: hidden;">
+              <div id="eff-progress" style="width: 0%; height: 100%; background: #60a5fa; transition: width 1s ease;"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      
-    </div>
+    </div> <!-- Content divini kapat -->
   </div>
 
   <script>
@@ -135,6 +180,14 @@
       document.getElementById('val-yeni').innerText = getVal('yeni');
       document.getElementById('val-aktif').innerText = getVal('atandi') + getVal('yola cikti') + getVal('ekipler yolda') + getVal('talep alindi');
       document.getElementById('val-tamam').innerText = getVal('tamamlandi');
+
+      // AI Verimlilik İstatistiklerini Güncelle (YENİ)
+      const eff = analyticsData.efficiencyStats || {};
+      document.getElementById('eff-dist').innerText = `${eff.totalDist || 0} KM`;
+      document.getElementById('eff-fuel').innerText = `${eff.totalFuelSaved || 0} L`;
+      document.getElementById('eff-time').innerText = `${eff.totalTimeSaved || 0} dk`;
+      document.getElementById('eff-score').innerText = `%${eff.efficiencyScore || 0}`;
+      document.getElementById('eff-progress').style.width = `%${eff.efficiencyScore || 0}`;
     }
 
     function renderPieChart() {
@@ -240,7 +293,7 @@
     }
 
     initAnalytics();
-    setInterval(initAnalytics, 30000);
+    setInterval(initAnalytics, 10000); // 10 saniyede bir canlı güncelleme
   </script>
 </body>
 </html>

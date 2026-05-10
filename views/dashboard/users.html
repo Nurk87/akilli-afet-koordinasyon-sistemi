@@ -52,6 +52,55 @@
     .role-yetkili { background: #fee2e2; color: #dc2626; }
     .role-gonullu { background: #dcfce7; color: #15803d; }
     .role-kazazede { background: #eff6ff; color: #1d4ed8; }
+
+    /* Navbar Styles */
+    .navbar ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+    }
+
+    .navbar ul li a {
+      text-decoration: none;
+      color: var(--afad-navy);
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .navbar ul li a i {
+      font-size: 1rem;
+      color: #64748b;
+      transition: all 0.3s;
+    }
+
+    .navbar ul li a:hover {
+      background: rgba(227, 6, 19, 0.05);
+      color: var(--afad-red);
+    }
+
+    .navbar ul li a:hover i {
+      color: var(--afad-red);
+      transform: translateY(-2px);
+    }
+
+    .navbar ul li a.active {
+      background: rgba(227, 6, 19, 0.1);
+      color: var(--afad-red);
+      font-weight: 800;
+    }
+
+    .navbar ul li a.active i {
+      color: var(--afad-red);
+    }
   </style>
 </head>
 <body>
@@ -83,9 +132,11 @@
           <tr>
             <th>Ad Soyad</th>
             <th>Email</th>
-            <th>Telefon</th>
             <th>Rol / Yetki</th>
+            <th>Görev / Rank</th>
+            <th>Durum</th>
             <th>Kayıt Tarihi</th>
+            <th>İşlem</th>
           </tr>
         </thead>
         <tbody id="users-tbody">
@@ -108,6 +159,7 @@
         users.forEach(user => {
           const row = document.createElement('tr');
           const date = new Date(user.olusturulma_tarihi).toLocaleDateString('tr-TR');
+          const isPassive = user.durum === 'pasif';
           
           let roleClass = 'role-kazazede';
           let roleText = 'KAZAZEDE';
@@ -119,17 +171,59 @@
             roleText = 'GÖNÜLLÜ';
           }
 
+          let rankInfo = { text: '-', color: '#94a3b8' };
+          if (user.rol === 'gonullu') {
+            const count = user.completed_tasks || 0;
+            if (count >= 10) rankInfo = { text: 'KAHRAMAN', color: '#8b5cf6' };
+            else if (count >= 4) rankInfo = { text: 'TECRÜBELİ', color: '#f59e0b' };
+            else rankInfo = { text: 'YENİ', color: '#64748b' };
+            
+            rankInfo.text = `${rankInfo.text} (${count})`;
+          }
+
           row.innerHTML = `
             <td style="font-weight: 600;">${user.ad} ${user.soyad}</td>
             <td style="color: #64748b;">${user.email}</td>
-            <td>${user.telefon || '-'}</td>
             <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+            <td><span style="font-size: 0.75rem; font-weight: 800; color: ${rankInfo.color};">${rankInfo.text}</span></td>
+            <td>
+              <span class="role-badge" style="background: ${isPassive ? '#f1f5f9' : '#dcfce7'}; color: ${isPassive ? '#64748b' : '#15803d'};">
+                ${(user.durum || 'aktif').toUpperCase()}
+              </span>
+            </td>
             <td style="color: #94a3b8; font-size: 0.85rem;">${date}</td>
+            <td>
+              <button onclick="toggleStatus(${user.id}, '${user.durum || 'aktif'}')" class="btn" style="padding: 5px 12px; font-size: 0.75rem; background: ${isPassive ? '#10b981' : '#ef4444'}; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                <i class="fas ${isPassive ? 'fa-user-check' : 'fa-user-slash'}"></i> ${isPassive ? 'AKTİF YAP' : 'PASİF YAP'}
+              </button>
+            </td>
           `;
           tbody.appendChild(row);
         });
       } catch (err) {
         console.error('Kullanıcılar yüklenemedi:', err);
+      }
+    }
+
+    async function toggleStatus(userId, currentStatus) {
+      const newStatus = currentStatus === 'pasif' ? 'aktif' : 'pasif';
+      if(!confirm(`Kullanıcıyı ${newStatus} duruma getirmek istediğinize emin misiniz?`)) return;
+
+      try {
+        const res = await fetch('/dashboard/api/users/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, status: newStatus })
+        });
+        const result = await res.json();
+        if (result.success) {
+          loadUsers();
+        } else {
+          alert('Hata: ' + result.error);
+        }
+      } catch (err) {
+        console.error('Güncelleme hatası:', err);
+        alert('İşlem başarısız oldu.');
       }
     }
 

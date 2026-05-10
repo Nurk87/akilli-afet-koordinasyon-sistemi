@@ -55,6 +55,54 @@
       box-shadow: 0 0 10px rgba(227, 6, 19, 0.1);
     }
 
+    .navbar ul {
+      display: flex;
+      list-style: none;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+    }
+
+    .navbar ul li a {
+      text-decoration: none;
+      color: var(--afad-navy);
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .navbar ul li a i {
+      font-size: 1rem;
+      color: #64748b;
+      transition: all 0.3s;
+    }
+
+    .navbar ul li a:hover {
+      background: rgba(227, 6, 19, 0.05);
+      color: var(--afad-red);
+    }
+
+    .navbar ul li a:hover i {
+      color: var(--afad-red);
+      transform: translateY(-2px);
+    }
+
+    .navbar ul li a.active {
+      background: rgba(227, 6, 19, 0.1);
+      color: var(--afad-red);
+      font-weight: 800;
+    }
+
+    .navbar ul li a.active i {
+      color: var(--afad-red);
+    }
+
     .sticky-header {
       position: sticky;
       top: 0;

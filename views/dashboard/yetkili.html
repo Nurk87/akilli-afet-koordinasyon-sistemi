@@ -13,6 +13,9 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+  <!-- AFAD Sesli Bildirim Sistemi -->
+  <audio id="alertSound" src="/sounds/emergency.mp3" preload="auto"></audio>
+  <audio id="dispatchSound" src="/sounds/dispatch.mp3" preload="auto"></audio>
   <nav class="navbar">
     <div class="container" style="display: flex; justify-content: space-between; align-items: center; width: 95%; max-width: 1400px; margin: 0 auto;">
       <div class="logo-afad" style="display: flex; align-items: center; gap: 12px;">
@@ -49,6 +52,7 @@
       <h3 style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; color: #94a3b8; margin-bottom: 25px;">Operasyon Menüsü</h3>
       <ul>
         <li><a href="/dashboard" class="active"><i class="fas fa-chart-pie" style="width: 25px;"></i> Genel Bakış</a></li>
+        <li><a href="/dashboard/map"><i class="fas fa-map-marked-alt" style="width: 25px;"></i> Canlı Saha Haritası</a></li>
         <li><a href="/dashboard/analiz"><i class="fas fa-chart-line" style="width: 25px;"></i> Operasyonel Analiz</a></li>
         <li><a href="/dashboard/atama"><i class="fas fa-people-carry-box" style="width: 25px;"></i> Gönüllü Atama</a></li>
         <li><a href="/requests"><i class="fas fa-list-check" style="width: 25px;"></i> Tüm Talepler</a></li>
@@ -70,12 +74,8 @@
         </div>
         <button onclick="document.getElementById('otomatikAtamaBtn').click()" class="btn-premium" style="padding: 8px 18px; font-size: 0.75rem; margin-left: auto;">HEMEN MÜDAHALE ET</button>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="font-weight: 800; margin: 0;">Sistem <span style="color: var(--afad-red);">Özeti</span></h2>
-        <div style="display: flex; gap: 10px;">
-          <button id="otomatikAtamaBtn" class="btn-premium" style="padding: 10px 22px; font-size: 0.9rem; border-radius: 10px;"><i class="fas fa-robot"></i> Otomatik Atama Başlat</button>
-          <button class="btn btn-navy" onclick="loadStats()"><i class="fas fa-sync-alt"></i> Verileri Tazele</button>
-        </div>
       </div>
 
       <div class="cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px;">
@@ -101,42 +101,35 @@
         </div>
       </div>
 
-      <!-- ANA OPERASYON MERKEZİ (HARİTA + YAN PANEL) -->
-      <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 30px; margin-top: 30px; margin-bottom: 40px; align-items: stretch;">
-        
-        <!-- SOL: CANLI HARİTA (ANA TAKİP ALANI) -->
-        <div class="glass-card" style="padding: 0; overflow: hidden; border: 2px solid #e2e8f0; display: flex; flex-direction: column;">
-          <div style="padding: 15px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff;">
-            <h3 style="margin: 0; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
-              <i class="fas fa-map-location-dot" style="color: var(--afad-red);"></i> CANLI SAHA KOORDİNASYONU
-            </h3>
-            <div style="display: flex; gap: 15px; font-size: 0.7rem; font-weight: 700;">
-              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#dc2626; font-size:7px;"></i> ACİL</span>
-              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#2563eb; font-size:7px;"></i> ATANDI</span>
-              <span style="display:flex; align-items:center; gap:5px;"><i class="fas fa-circle" style="color:#10b981; font-size:7px;"></i> GÖNÜLLÜ</span>
+      <!-- AI Operasyon Merkezi - İDEAL BOYUT (BİRAZ BÜYÜTÜLDÜ) -->
+      <div class="glass-card" style="margin-top: 40px; margin-bottom: 25px; background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(227, 6, 19, 0.03) 100%); border: 1px solid rgba(0,51,102,0.12); padding: 18px 30px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 20px;">
+        <div style="display: flex; align-items: center; gap: 22px; flex: 1;">
+          <div style="background: var(--afad-navy); width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.4rem; flex-shrink: 0; box-shadow: 0 5px 15px rgba(0,51,102,0.2);">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; color: var(--afad-navy); font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;">Akıllı Saha <span style="color: var(--afad-red);">Eşleşme Motoru</span></h3>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+               <div class="pulse-red" style="width: 6px; height: 6px; background: var(--afad-red); border-radius: 50%;"></div>
+               <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">Bekleyen talepleri yapay zeka ile optimize et ve ata.</span>
             </div>
           </div>
-          <div id="adminMap" style="flex: 1; min-height: 600px; background: #f1f5f9;"></div>
         </div>
+        <button id="otomatikAtamaBtn" class="btn-premium" style="padding: 14px 35px; font-size: 0.95rem; border-radius: 14px; box-shadow: 0 10px 25px rgba(227, 6, 19, 0.25);">
+          <i class="fas fa-bolt" style="margin-right: 8px;"></i> OTOMATİK ATAMA YAP
+        </button>
+      </div>
 
-        <!-- SAĞ: OPERASYON KONTROL PANELİ (DİKEY) -->
-        <div style="display: flex; flex-direction: column; gap: 25px;">
-          
-
-          <!-- 2. CANLI TALEP AKIŞI -->
-          <div class="glass-card" style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
-            <h3 style="margin: 0 0 15px 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-              <i class="fas fa-bell" style="color: var(--afad-red);"></i> Son Talepler
-            </h3>
-            <div id="latestRequests" style="flex: 1; overflow-y: auto; max-height: 520px; min-height: 200px;">
-              <p style="color: #94a3b8; font-style: italic; text-align: center; padding: 10px;">Yükleniyor...</p>
-            </div>
-            <a href="/requests" style="display: block; text-align: center; margin-top: 10px; color: var(--afad-blue); font-weight: 700; font-size: 0.8rem;">
-              TÜMÜNÜ GÖR <i class="fas fa-chevron-right" style="font-size: 0.6rem;"></i>
-            </a>
-          </div>
-
-
+      <!-- ANA OPERASYON MERKEZİ (SON TALEPLER - TAM GENİŞLİK) -->
+      <div class="glass-card" style="margin-top: 30px; margin-bottom: 40px; padding: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+          <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-bell" style="color: var(--afad-red);"></i> SON YARDIM TALEPLERİ
+          </h3>
+          <a href="/requests" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 20px;">TÜM LİSTEYİ AÇ</a>
+        </div>
+        <div id="latestRequests" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px;">
+          <p style="color: #94a3b8; font-style: italic; text-align: center; padding: 10px;">Yükleniyor...</p>
         </div>
       </div>
 
@@ -150,8 +143,25 @@
             <h2 style="color: var(--afad-navy); font-weight: 800; font-size: 1.8rem; margin: 0;">Atama Operasyonu Tamamlandı</h2>
             <p id="assignmentSummaryText" style="color: #64748b; margin-top: 10px; font-weight: 500;">X adet talep en uygun gönüllülere yönlendirildi.</p>
           </div>
+
+          <!-- AI Verimlilik Raporu (YENİ) -->
+          <div id="efficiencyReport" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; background: #f0f9ff; padding: 20px; border-radius: 20px; border: 1px solid #bae6fd;">
+            <div style="text-align: center;">
+              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Yakıt Tasarrufu</div>
+              <div id="stat-fuel-saved" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">0 L</div>
+            </div>
+            <div style="text-align: center; border-left: 1px solid #bae6fd; border-right: 1px solid #bae6fd;">
+              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Zaman Kazancı</div>
+              <div id="stat-time-saved" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">0 dk</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Başarı Skoru</div>
+              <div id="stat-eff-score" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">%0</div>
+            </div>
+          </div>
           
-          <div id="assignmentDetailList" style="max-height: 250px; overflow-y: auto; margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0;">
+          <div style="margin-bottom: 10px; font-weight: 800; font-size: 0.85rem; color: var(--afad-navy); text-transform: uppercase; letter-spacing: 1px;">Atama Detayları</div>
+          <div id="assignmentDetailList" style="max-height: 200px; overflow-y: auto; margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0;">
             <!-- Detaylı liste buraya gelecek -->
           </div>
           
@@ -160,20 +170,44 @@
       </div>
     </div>
   </div>
-
   <script>
-    async function loadStats() {
-      const refreshBtn = document.querySelector('button[onclick="loadStats()"]');
-      const icon = refreshBtn.querySelector('i');
-      
-      // Görsel geri bildirim (döndürme animasyonu)
-      icon.classList.add('fa-spin');
-      refreshBtn.disabled = true;
+    function timeAgo(date) {
+      if (!date) return 'Bilinmiyor';
+      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + " yıl önce";
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + " ay önce";
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + " gün önce";
+      interval = seconds / 3600;
+      if (interval > 1) return Math.floor(interval) + " saat önce";
+      interval = seconds / 60;
+      if (interval > 1) return Math.floor(interval) + " dk önce";
+      return "Az önce";
+    }
 
+    let lastTotalCount = 0;
+
+    function playAlert(type = 'dispatch') {
+      const sound = document.getElementById(type === 'emergency' ? 'alertSound' : 'dispatchSound');
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Ses engellendi:', e));
+      }
+    }
+
+    async function loadStats() {
       try {
         const resStats = await fetch('/dashboard/api/stats');
         const stats = await resStats.json();
         
+        // Sesli Uyarı Kontrolü (Yeni talep geldiyse çal)
+        if (lastTotalCount > 0 && stats.totalRequests > lastTotalCount) {
+          playAlert(stats.pendingEmergency > 0 ? 'emergency' : 'dispatch');
+        }
+        lastTotalCount = stats.totalRequests;
+
         document.getElementById('stat-total').innerText = stats.totalRequests || 0;
         document.getElementById('stat-emergency').innerText = stats.pendingEmergency || 0;
         document.getElementById('stat-completed').innerText = stats.completedRequests || 0;
@@ -195,108 +229,77 @@
         const latestRequests = document.getElementById('latestRequests');
         
         latestRequests.innerHTML = '';
-        requests.slice(0, 5).forEach(req => {
+        requests.slice(0, 6).forEach(req => {
           const status = (req.durum || 'yeni').toLowerCase();
           const statusColors = {
-            'yeni': { bg: '#fee2e2', text: '#dc2626' },
-            'yola cikti': { bg: '#e0f2fe', text: '#0369a1' },
-            'talep alindi': { bg: '#ffedd5', text: '#9a3412' },
-            'tamamlandi': { bg: '#dcfce7', text: '#15803d' }
+            'yeni': { bg: '#fee2e2', text: '#dc2626', label: 'YENİ' },
+            'atandi': { bg: '#eff6ff', text: '#1d4ed8', label: 'ATANDI' },
+            'yola cikti': { bg: '#e0f2fe', text: '#0369a1', label: 'YOLDA' },
+            'talep alindi': { bg: '#ffedd5', text: '#9a3412', label: 'OLAY YERİ' },
+            'tamamlandi': { bg: '#dcfce7', text: '#15803d', label: 'TAMAMLANDI' }
           };
-          const sColor = statusColors[status] || { bg: '#f1f5f9', text: '#64748b' };
+          const sColor = statusColors[status] || { bg: '#f1f5f9', text: '#64748b', label: status.toUpperCase() };
           
           const div = document.createElement('div');
-          div.style.padding = '12px';
-          div.style.borderBottom = '1px solid #f1f5f9';
-          div.style.background = status === 'yeni' ? 'rgba(227, 6, 19, 0.03)' : 'transparent';
+          div.className = 'mini-request-item';
+          div.style.cssText = `
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+          `;
+          
+          if(status === 'yeni') div.style.borderLeft = '4px solid #ef4444';
+
           div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <strong style="font-size:0.9rem; color:var(--afad-navy);">${req.baslik}</strong>
-              <span style="font-size:0.65rem; padding:2px 8px; border-radius:10px; background:${sColor.bg}; color:${sColor.text}; font-weight:700;">
-                ${status.toUpperCase()}
+              <strong style="font-size:0.9rem; color:var(--afad-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">
+                ${req.baslik}
+              </strong>
+              <span style="font-size:0.6rem; padding:3px 8px; border-radius:6px; background:${sColor.bg}; color:${sColor.text}; font-weight:800; letter-spacing: 0.5px;">
+                ${sColor.label}
               </span>
             </div>
-            <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">
-              <i class="fas fa-map-marker-alt"></i> ${req.ilce_adi || 'Bölge'}
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div style="font-size:0.75rem; color:#94a3b8; display: flex; align-items: center; gap: 5px;">
+                <i class="fas fa-location-dot" style="color: #cbd5e1;"></i> ${req.ilce_adi || 'Bölge'}
+              </div>
+              <div style="font-size: 0.7rem; color: #cbd5e1;">
+                <i class="far fa-clock"></i> ${timeAgo(req.olusturulma_tarihi)}
+              </div>
             </div>
           `;
+          
+          // Hover efekti için JS
+          div.onmouseover = () => {
+            div.style.transform = 'translateY(-3px)';
+            div.style.boxShadow = '0 8px 15px rgba(0,0,0,0.08)';
+            div.style.borderColor = 'rgba(227, 6, 19, 0.2)';
+          };
+          div.onmouseout = () => {
+            div.style.transform = 'translateY(0)';
+            div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
+            div.style.borderColor = '#f1f5f9';
+          };
+
           latestRequests.appendChild(div);
         });
 
-        // Ekstra: Harita ve Analitikleri de tazele
-        if (typeof updateMap === 'function') updateMap();
-        if (typeof initAnalytics === 'function') initAnalytics();
-
       } catch (err) {
         console.error('Veri yükleme hatası:', err);
-      } finally {
-        // Döndürmeyi durdur
-        setTimeout(() => {
-          icon.classList.remove('fa-spin');
-          refreshBtn.disabled = false;
-        }, 800);
       }
     }
 
     // İlk yükleme ve periyodik güncelleme
     loadStats();
     setInterval(loadStats, 10000);
-
-    // --- LEAFLET HARİTA ENTEGRASYONU ---
-    const map = L.map('adminMap').setView([39.0, 35.0], 6); // Türkiye geneli odaklı (Ulusal Demo Senaryosu)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    async function updateMap() {
-      try {
-        const [resReq, resVol] = await Promise.all([
-          fetch('/requests/api/list'),
-          fetch('/atamalar/api/available-volunteers')
-        ]);
-        const requests = await resReq.json();
-        const volunteers = await resVol.json();
-
-        // Temizle
-        map.eachLayer((layer) => {
-          if (layer instanceof L.Marker || layer instanceof L.CircleMarker) map.removeLayer(layer);
-        });
-
-        // Talepleri Ekle (Durum Bazlı Renklendirme)
-        requests.filter(r => r.enlem && r.boylam && r.durum !== 'tamamlandi').forEach(r => {
-          let color = '#dc2626'; // Varsayılan: Yeni (Kırmızı)
-          const status = (r.durum || 'yeni').toLowerCase();
-
-          if (status === 'atandi') color = '#2563eb'; // Atandı (Mavi)
-          if (status === 'yola cikti') color = '#0ea5e9'; // Yolda (Açık Mavi)
-          if (status === 'talep alindi') color = '#f59e0b'; // Varıldı (Turuncu)
-
-          L.circleMarker([r.enlem, r.boylam], {
-            radius: r.oncelik === 'acil' ? 9 : 7,
-            fillColor: color,
-            color: r.oncelik === 'acil' ? '#000' : '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
-          }).addTo(map).bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik}<br>Durum: ${status.toUpperCase()}`);
-        });
-
-        // Gönüllüleri Ekle (Mavi)
-        volunteers.filter(v => v.enlem && v.boylam).forEach(v => {
-          L.circleMarker([v.enlem, v.boylam], {
-            radius: 6,
-            fillColor: '#2563eb',
-            color: '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 1
-          }).addTo(map).bindPopup(`<b>Gönüllü: ${v.ad} ${v.soyad}</b><br>Kapasite: ${v.kapasite}`);
-        });
-
-      } catch (err) { console.error('Harita güncelleme hatası:', err); }
-    }
-    updateMap();
-    setInterval(updateMap, 20000);
 
     // --- OTOMATİK ATAMA BUTONU ---
     document.getElementById('otomatikAtamaBtn').addEventListener('click', async () => {
@@ -319,6 +322,13 @@
           summaryText.innerText = data.message;
           detailList.innerHTML = '';
           
+          // Verimlilik İstatistiklerini Yazdır
+          if (data.stats) {
+            document.getElementById('stat-fuel-saved').innerText = `${data.stats.fuelSaved} L`;
+            document.getElementById('stat-time-saved').innerText = `${data.stats.timeSaved} dk`;
+            document.getElementById('stat-eff-score').innerText = `%${data.stats.efficiencyScore}`;
+          }
+
           if (data.atamalar && data.atamalar.length > 0) {
             data.atamalar.forEach(atama => {
               const div = document.createElement('div');
@@ -343,7 +353,6 @@
           
           modal.style.display = 'flex';
           loadStats();
-          updateMap();
         } else {
           alert('Uyarı: ' + (data.message || 'Atama işlemi için uygun kayıt bulunamadı.'));
         }

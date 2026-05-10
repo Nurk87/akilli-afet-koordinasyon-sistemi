@@ -41,6 +41,26 @@ router.get('/ayarlar', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'ayarlar.html'));
 });
 
+router.get('/map', (req, res) => {
+  if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, '..', 'views', 'dashboard', 'map.html'));
+});
+
+router.get('/api/me', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, ad, soyad, email, rol, puan, rank, kapasite FROM users WHERE id = ?",
+      [req.user.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Kullanıcı bilgisi alınamadı' });
+  }
+});
+
 router.get('/gecmis', (req, res) => {
   if (req.user.rol !== 'gonullu') {
     return res.redirect('/dashboard');
@@ -53,11 +73,61 @@ router.get('/api/users', async (req, res) => {
     if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
       return res.status(403).json({ error: 'Yetkisiz erişim' });
     }
-    const [users] = await pool.query('SELECT id, ad, soyad, email, telefon, rol, olusturulma_tarihi FROM users ORDER BY olusturulma_tarihi DESC');
+    const [users] = await pool.query(`
+      SELECT 
+        u.id, u.ad, u.soyad, u.email, u.telefon, u.rol, u.durum, u.olusturulma_tarihi,
+        (SELECT COUNT(*) FROM yardim_atamalari WHERE gonullu_id = u.id AND durum = 'tamamlandi') as completed_tasks
+      FROM users u
+      ORDER BY u.olusturulma_tarihi DESC
+    `);
     res.json(users);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Kullanıcı listesi alınamadı' });
+  }
+});
+
+router.get('/api/map-data', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+    
+    // Aktif Yardım Talepleri (Tamamlanmamış ve İptal edilmemiş)
+    const [requests] = await pool.query(`
+      SELECT id, baslik, enlem, boylam, durum, oncelik, yardim_tipi 
+      FROM yardim_talepleri 
+      WHERE durum NOT IN ('tamamlandi', 'iptal') AND enlem IS NOT NULL AND boylam IS NOT NULL
+    `);
+
+    // Aktif Gönüllüler (Durumu aktif olanlar)
+    const [volunteers] = await pool.query(`
+      SELECT id, ad, soyad, enlem, boylam, musaitlik_durumu 
+      FROM users 
+      WHERE rol = 'gonullu' AND durum = 'aktif' AND enlem IS NOT NULL AND boylam IS NOT NULL
+    `);
+
+    res.json({ requests, volunteers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Harita verileri alınamadı' });
+  }
+});
+
+router.post('/api/users/update-status', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+    const { userId, status } = req.body;
+    if (!userId || !status) {
+      return res.status(400).json({ error: 'Geçersiz parametreler' });
+    }
+    await pool.query('UPDATE users SET durum = ? WHERE id = ?', [status, userId]);
+    res.json({ success: true, message: 'Kullanıcı durumu güncellendi' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Kullanıcı durumu güncellenemedi' });
   }
 });
 
@@ -66,7 +136,7 @@ router.get('/api/stats', async (req, res) => {
     const [totalRes] = await pool.query('SELECT COUNT(*) as count FROM yardim_talepleri');
     const [emergencyRes] = await pool.query("SELECT COUNT(*) as count FROM yardim_talepleri WHERE oncelik = 'acil' AND durum != 'tamamlandi'");
     const [completedRes] = await pool.query("SELECT COUNT(*) as count FROM yardim_talepleri WHERE durum = 'tamamlandi'");
-    const [volunteerRes] = await pool.query("SELECT COUNT(*) as count FROM users WHERE rol = 'gonullu'");
+    const [volunteerRes] = await pool.query("SELECT COUNT(*) as count FROM users WHERE rol = 'gonullu' AND durum = 'aktif'");
 
     res.json({
       totalRequests: totalRes[0].count,
@@ -174,7 +244,32 @@ router.get('/api/analytics', async (req, res) => {
       WHERE yardim_tipi IS NOT NULL
       GROUP BY yardim_tipi`);
 
-    res.json({ statusDist, daily, weekly, monthly, typeDist });
+    // 4. Global Verimlilik İstatistikleri (YENİ)
+    const [effResult] = await pool.query(`
+      SELECT 
+        SUM(mesafe_km) as totalDist,
+        COUNT(*) as totalAtama,
+        AVG(oncelik_skoru) as avgScore
+      FROM yardim_atamalari
+      WHERE durum != 'iptal'`);
+    
+    const totalDist = effResult[0]?.totalDist || 0;
+    const totalAtama = effResult[0]?.totalAtama || 0;
+    const avgScore = effResult[0]?.avgScore || 0;
+
+    // Tahmini tasarruf hesaplamaları (Greedy algoritmasının %35-40 verim sağladığı varsayımıyla)
+    const totalFuelSaved = totalDist * 0.12 * 0.4; 
+    const totalTimeSaved = (totalDist / 40) * 60 * 0.4;
+
+    const efficiencyStats = {
+      totalDist: totalDist.toFixed(1),
+      totalAtama,
+      avgScore: avgScore.toFixed(1),
+      totalFuelSaved: totalFuelSaved.toFixed(1),
+      totalTimeSaved: Math.round(totalTimeSaved)
+    };
+
+    res.json({ statusDist, daily, weekly, monthly, typeDist, efficiencyStats });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Analiz verileri alınamadı' });

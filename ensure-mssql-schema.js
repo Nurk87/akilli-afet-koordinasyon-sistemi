@@ -120,7 +120,9 @@ async function sync() {
       { table: 'users', column: 'boylam', type: 'DECIMAL(11, 8) NULL' },
       { table: 'users', column: 'musaitlik_durumu', type: "NVARCHAR(20) DEFAULT 'musait'" },
       { table: 'users', column: 'kapasite', type: 'INT DEFAULT 5' },
-      { table: 'users', column: 'uzmanlik', type: 'NVARCHAR(MAX) NULL' }
+      { table: 'users', column: 'uzmanlik', type: 'NVARCHAR(MAX) NULL' },
+      { table: 'users', column: 'puan', type: 'INT DEFAULT 0' },
+      { table: 'users', column: 'rank', type: "NVARCHAR(50) DEFAULT 'Yeni Gönüllü'" }
     ];
 
     for (const m of migrations) {

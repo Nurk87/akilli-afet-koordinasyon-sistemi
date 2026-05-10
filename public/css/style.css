@@ -35,7 +35,7 @@ a:hover {
   background: white;
   border-bottom: 2px solid var(--afad-red);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  padding: 5px 0;
+  padding: 0;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -45,7 +45,7 @@ a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 .logo-afad {
@@ -55,13 +55,13 @@ a:hover {
 }
 
 .logo-afad img {
-  height: 50px;
+  height: 40px;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .logo-text {
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   color: var(--afad-navy);
   letter-spacing: -0.5px;
 }
@@ -557,11 +557,16 @@ a:hover {
 .dashboard-wrapper {
   display: flex;
   min-height: calc(100vh - 60px);
+  background-color: #ffffff; /* Sol tarafın (sidebar) her zaman beyaz kalmasını sağlar */
 }
 
 .sidebar {
-  background: rgba(255, 255, 255, 0.9);
+  background: #ffffff;
   border-right: 1px solid #e2e8f0;
+  position: sticky;
+  top: 60px; /* Navbar ile tam birleşme sağlar */
+  align-self: flex-start;
+  z-index: 100;
 }
 
 .sidebar h3 {
@@ -603,7 +608,7 @@ a:hover {
 .content {
   flex: 1;
   padding: 40px;
-  background-color: #f9f9f9;
+  background-color: #f8fafc; /* Daha modern ve temiz bir gri-beyaz tonu */
 }
 
 .content h2 {

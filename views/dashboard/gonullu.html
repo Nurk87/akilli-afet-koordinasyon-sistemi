@@ -35,8 +35,18 @@
           </div>
         </div>
 
-        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-tag"></i> Saha Gönüllüsü</span>
-        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Gelen Güvenli Çıkış</a>
+        <div id="puan-badge" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); padding: 5px 12px; border-radius: 20px; border: 1px solid #f59e0b40; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.15);">
+          <i class="fas fa-star" style="color: #f59e0b;"></i>
+          <span id="puan-text" style="font-size: 0.75rem; font-weight: 800; color: #92400e;">0 Puan</span>
+        </div>
+
+        <div id="rank-badge" style="display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 5px 12px; border-radius: 20px; border: 1px solid #e2e8f0;">
+          <i class="fas fa-medal" style="color: #94a3b8;"></i>
+          <span id="rank-text" style="font-size: 0.75rem; font-weight: 800; color: #64748b;">Yükleniyor...</span>
+        </div>
+
+        <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-tag"></i> <span id="user-name-display">Gönüllü</span></span>
+        <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Güvenli Çıkış</a>
       </div>
     </div>
   </nav>
@@ -89,18 +99,38 @@
   </footer>
 
   <script>
+    function timeAgo(date) {
+      if (!date) return 'Bilinmiyor';
+      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + " yıl önce";
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + " ay önce";
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + " gün önce";
+      interval = seconds / 3600;
+      if (interval > 1) return Math.floor(interval) + " saat önce";
+      interval = seconds / 60;
+      if (interval > 1) return Math.floor(interval) + " dk önce";
+      return "Az önce";
+    }
+
     async function loadVolunteerTasks() {
       const activeContainer = document.getElementById('my-tasks-container');
       
       try {
-        const authRes = await fetch('/status');
-        const authData = await authRes.json();
-        const myId = String(authData.id);
+        // Profil ve Puanları Yükle
+        const profRes = await fetch('/dashboard/api/me');
+        const profile = await profRes.json();
+        if (profile) {
+          document.getElementById('user-name-display').innerText = `${profile.ad} ${profile.soyad}`;
+          document.getElementById('puan-text').innerText = `${profile.puan || 0} Puan`;
+          updateStats(profile.puan, profile.rank);
+        }
 
-        const res = await fetch('/requests/api/list');
-        const data = await res.json();
+        const res = await fetch('/atamalar/api/my-tasks');
+        const myTasks = await res.json();
         
-        let myTasks = Array.isArray(data) ? data.filter(r => String(r.assigned_volunteer_id || r.gonullu_id || '') === myId) : [];
         let activeTasks = myTasks.filter(r => r.durum !== 'tamamlandi');
         
         // --- AKILLI SIRALAMA (Öncelik Skoruna Göre) ---
@@ -188,8 +218,13 @@
                 ${task.hesaplanan_oncelik_skoru ? `<span style="font-size: 0.7rem; color: #94a3b8; font-weight: 600;">Skor: ${task.hesaplanan_oncelik_skoru}</span>` : ''}
             </div>
             <h4 style="margin:0; color:var(--afad-navy); font-size:1.2rem; font-weight: 800;">${task.baslik}</h4>
-            <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
-              <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top:5px;">
+              <div style="font-size:0.85rem; color:#64748b; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-map-marker-alt" style="color:var(--afad-red);"></i> ${task.il_adi} / ${task.ilce_adi}
+              </div>
+              <div style="font-size:0.8rem; color:#94a3b8; display: flex; align-items: center; gap: 5px;">
+                <i class="far fa-clock"></i> ${timeAgo(task.olusturulma_tarihi)}
+              </div>
             </div>
           </div>
           <span class="badge" style="background:${isLocked ? '#f1f5f9' : color + '10'}; color:${isLocked ? '#94a3b8' : color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
@@ -215,9 +250,10 @@
               </button>` : ''}
 
             <div style="display:flex; gap:10px;">
-              ${rawStatus !== 'tamamlandi' ? `<a href="${isLocked ? '#' : 'https://www.google.com/maps?q=' + task.enlem + ',' + task.boylam}" target="${isLocked ? '_self' : '_blank'}" class="btn btn-navy" style="font-size:0.85rem; padding:10px; flex:1; background: #f1f5f9 !important; color: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'} !important; border: 1px solid #e2e8f0; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
-                <i class="fas fa-directions"></i> NAVİGASYON
-              </a>` : ''}
+              ${rawStatus !== 'tamamlandi' ? `
+              <button onclick="openNavigation(${task.enlem}, ${task.boylam}, ${isLocked})" class="btn btn-navy" style="font-size:0.85rem; padding:10px; flex:1; background: #f1f5f9 !important; color: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'} !important; border: 1px solid #e2e8f0; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                <i class="fas fa-route"></i> YOL TARİFİ
+              </button>` : ''}
               
               ${rawStatus === 'talep alindi' ? `
               <button onclick="updateMissionStatus(${task.id}, 'tamamlandi', ${isLocked})" class="btn btn-success" style="font-size:0.85rem; padding:10px; flex:1; background: ${isLocked ? '#cbd5e1' : '#10b981'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
@@ -227,6 +263,53 @@
         </div>
       `;
       return card;
+    }
+
+    async function updateStats(puan, rankName) {
+      const badge = document.getElementById('rank-badge');
+      const text = document.getElementById('rank-text');
+      const icon = badge.querySelector('i');
+      
+      let color = "#94a3b8"; // Default Grey
+      let bgColor = "#f1f5f9";
+      let iconClass = "fa-medal";
+
+      if (rankName === 'AFAD Kahramanı') {
+        color = "#8b5cf6"; // Purple
+        bgColor = "#f5f3ff";
+        iconClass = "fa-crown";
+      } else if (rankName === 'Saha Lideri') {
+        color = "#ef4444"; // Red
+        bgColor = "#fef2f2";
+        iconClass = "fa-shield-halved";
+      } else if (rankName === 'Tecrübeli Gönüllü') {
+        color = "#f59e0b"; // Gold
+        bgColor = "#fffbeb";
+        iconClass = "fa-award";
+      }
+      
+      text.innerText = rankName.toUpperCase();
+      text.style.color = color;
+      icon.style.color = color;
+      icon.className = `fas ${iconClass}`;
+      badge.style.backgroundColor = bgColor;
+      badge.style.borderColor = color + "40";
+    }
+
+    async function openNavigation(destLat, destLng, isLocked) {
+      if (isLocked) return;
+      
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          const origin = `${pos.coords.latitude},${pos.coords.longitude}`;
+          const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destLat},${destLng}&travelmode=driving`;
+          window.open(url, '_blank');
+        }, () => {
+          window.open(`https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`, '_blank');
+        });
+      } else {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving`, '_blank');
+      }
     }
 
     async function updateMissionStatus(taskId, newStatus, isLocked) {

@@ -60,6 +60,9 @@ router.post('/giris', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (!rows || rows.length === 0) return res.status(401).send('<script>alert("Email veya şifre yanlış");window.location.href="/giris";</script>');
     const user = rows[0];
+    if (user.durum === 'pasif') {
+      return res.status(403).send('<script>alert("Hesabınız dondurulmuştur. Lütfen sistem yöneticisi ile iletişime geçin.");window.location.href="/giris";</script>');
+    }
     const validPassword = await bcrypt.compare(sifre, user.sifre);
     if (!validPassword) return res.status(401).send('<script>alert("Email veya şifre yanlış");window.location.href="/giris";</script>');
     const token = jwt.sign(

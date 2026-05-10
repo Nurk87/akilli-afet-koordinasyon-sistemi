@@ -3,7 +3,7 @@ const pool = require('../config/database');
 const router = express.Router();
 const path = require('path');
 const multer = require('multer');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, loadUser } = require('../middleware/auth');
 const crypto = require('crypto');
 const { sendNotification } = require('../utils/notifications');
 
@@ -19,12 +19,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.get('/yeni', (req, res) => {
+router.get('/yeni', loadUser, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'requests', 'yeni.html'));
 });
 
 // Alias for Turkish translation
-router.get('/olustur', (req, res) => {
+router.get('/olustur', loadUser, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'requests', 'yeni.html'));
 });
 
@@ -33,7 +33,7 @@ router.get('/', verifyToken, (req, res) => {
 });
 
 // Yeni: Başarı sayfası
-router.get('/basarili', (req, res) => {
+router.get('/basarili', loadUser, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'views', 'requests', 'basarili.html'));
 });
 
@@ -77,7 +77,7 @@ router.post('/api/create', upload.fields([{ name: 'fotograf', maxCount: 1 }, { n
 });
 
 // Form submission handler for /olustur
-router.post('/olustur', upload.fields([{ name: 'fotograf', maxCount: 1 }, { name: 'ses_kaydi', maxCount: 1 }]), async (req, res) => {
+router.post('/olustur', loadUser, upload.fields([{ name: 'fotograf', maxCount: 1 }, { name: 'ses_kaydi', maxCount: 1 }]), async (req, res) => {
   try {
     const { baslik, aciklama, il_id, ilce_id, oncelik, enlem, boylam, ad_soyad, telefon, acik_adres, yardim_tipi } = req.body;
     const kullanici_id = req.user ? req.user.id : null;
@@ -268,10 +268,28 @@ router.post('/api/update-status', verifyToken, async (req, res) => {
         [id]
       );
       if (atamalar.length > 0) {
+        const gonulluId = atamalar[0].gonullu_id;
+        // Puan Hesapla
+        const [talep] = await pool.query("SELECT oncelik FROM yardim_talepleri WHERE id = ?", [id]);
+        const oncelik = (talep[0]?.oncelik || 'orta').toLowerCase();
+        const puanTablosu = { 'acil': 100, 'yuksek': 75, 'orta': 50, 'dusuk': 25 };
+        const kazanilanPuan = puanTablosu[oncelik] || 50;
+
         await pool.query(
-          "UPDATE users SET kapasite = kapasite + 1 WHERE id = ?",
-          [atamalar[0].gonullu_id]
+          "UPDATE users SET kapasite = kapasite + 1, puan = puan + ? WHERE id = ?",
+          [kazanilanPuan, gonulluId]
         );
+
+        // Rank Güncelleme
+        await pool.query(`
+          UPDATE users SET rank = CASE 
+            WHEN puan >= 1500 THEN N'AFAD Kahramanı'
+            WHEN puan >= 1000 THEN N'Saha Lideri'
+            WHEN puan >= 500 THEN N'Tecrübeli Gönüllü'
+            ELSE N'Yeni Gönüllü'
+          END WHERE id = ?
+        `, [gonulluId]);
+
         await pool.query(
           "UPDATE yardim_atamalari SET durum = 'tamamlandi', tamamlanma_tarihi = GETDATE() WHERE talep_id = ? AND durum != 'iptal'",
           [id]
@@ -328,10 +346,27 @@ router.post('/api/update-status-gonullu', verifyToken, async (req, res) => {
     );
 
     if (durum === 'tamamlandi') {
+      // Puan Hesapla
+      const [talep] = await pool.query("SELECT oncelik FROM yardim_talepleri WHERE id = ?", [id]);
+      const oncelik = (talep[0]?.oncelik || 'orta').toLowerCase();
+      const puanTablosu = { 'acil': 100, 'yuksek': 75, 'orta': 50, 'dusuk': 25 };
+      const kazanilanPuan = puanTablosu[oncelik] || 50;
+
       await pool.query(
-        "UPDATE users SET kapasite = kapasite + 1 WHERE id = ?",
-        [req.user.id]
+        "UPDATE users SET kapasite = kapasite + 1, puan = COALESCE(puan, 0) + ? WHERE id = ?",
+        [kazanilanPuan, req.user.id]
       );
+
+      // Rank Güncelleme
+      await pool.query(`
+        UPDATE users SET rank = CASE 
+          WHEN COALESCE(puan, 0) >= 1500 THEN N'AFAD Kahramanı'
+          WHEN COALESCE(puan, 0) >= 1000 THEN N'Saha Lideri'
+          WHEN COALESCE(puan, 0) >= 500 THEN N'Tecrübeli Gönüllü'
+          ELSE N'Yeni Gönüllü'
+        END WHERE id = ?
+      `, [req.user.id]);
+
       await pool.query(
         "UPDATE yardim_atamalari SET durum = 'tamamlandi', tamamlanma_tarihi = GETDATE() WHERE talep_id = ?",
         [id]

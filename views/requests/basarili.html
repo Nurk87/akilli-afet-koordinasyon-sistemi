@@ -150,6 +150,19 @@
         console.error('LocalStorage hatası:', e);
       }
     }
+
+    // Yetkili/Giriş Yapmış Kullanıcı Kontrolü
+    const cookies = document.cookie.split('; ');
+    const hasToken = cookies.find(row => row.startsWith('token='));
+    if (hasToken) {
+      const homeBtn = document.querySelector('.btn-home');
+      if (homeBtn) {
+        homeBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Panele Dön';
+        homeBtn.href = '/dashboard';
+        homeBtn.style.background = '#dbeafe';
+        homeBtn.style.color = '#1e40af';
+      }
+    }
   </script>
 </body>
 </html>

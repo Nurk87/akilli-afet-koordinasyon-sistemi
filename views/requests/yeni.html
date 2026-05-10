@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="/js/i18n.js" defer></script>
   <style>
     #map { height: 350px; width: 100%; margin-bottom: 20px; }
   </style>
@@ -20,8 +21,18 @@
         <span style="font-size: 1.5rem; font-weight: 800; color: #003366;">🚨 AFET KOORDİNASYON</span>
       </div>
       <div style="display: flex; gap: 15px; align-items: center;" id="nav-actions">
-        <span style="color: #486581; font-weight: 600;">Yardım Talebi v1.0</span>
-        <a href="/" class="btn btn-navy" style="text-decoration: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+        <!-- Dil Seçici -->
+        <div class="lang-switcher" style="position: relative;">
+          <button class="btn btn-navy" style="padding: 8px 15px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;" onclick="document.getElementById('lang-dropdown').classList.toggle('show')">
+            <i class="fas fa-globe"></i> <span id="current-lang-text">TR</span>
+          </button>
+          <div id="lang-dropdown" class="glass-card" style="display: none; position: absolute; top: 45px; right: 0; min-width: 120px; padding: 10px; z-index: 1000; flex-direction: column; gap: 5px;">
+            <a href="javascript:void(0)" onclick="setLanguage('tr')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇹🇷 Türkçe</a>
+            <a href="javascript:void(0)" onclick="setLanguage('en')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇺🇸 English</a>
+            <a href="javascript:void(0)" onclick="setLanguage('ar')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇸🇦 العربية</a>
+          </div>
+        </div>
+        <a href="/" class="btn btn-navy" style="text-decoration: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;" data-i18n="reg_back_home">
           <i class="fas fa-home"></i> Ana Sayfaya Dön
         </a>
       </div>
@@ -29,121 +40,121 @@
   </nav>
 
   <div class="container" style="width: 90%; max-width: 800px; margin: 40px auto; padding-bottom: 60px;">
-    <h1 class="page-title">Yeni Yardım Talebi Oluştur</h1>
+    <h1 class="page-title" data-i18n="sos_title">Yeni Yardım Talebi Oluştur</h1>
     
     <div class="glass-card">
       <div style="margin-bottom: 25px; border-bottom: 2px solid rgba(0, 51, 102, 0.1); padding-bottom: 15px;">
-        <p style="color: #627d98; font-size: 1.05rem;">Lütfen afet bölgesindeki ihtiyacınızı detaylı bir şekilde belirtiniz. Konum bilginiz atamanın doğru yapılması için kritik önemdedir.</p>
+        <p style="color: #627d98; font-size: 1.05rem;" data-i18n="sos_desc">Lütfen afet bölgesindeki ihtiyacınızı detaylı bir şekilde belirtiniz. Konum bilginiz atamanın doğru yapılması için kritik önemdedir.</p>
       </div>
 
       <form method="POST" action="/requests/olustur" enctype="multipart/form-data">
         <div id="anonymous-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
           <div class="form-group">
-            <label><i class="fas fa-user" style="margin-right: 8px; color: #ff6600;"></i>Ad Soyad</label>
-            <input type="text" name="ad_soyad" id="ad_soyad" placeholder="Lütfen adınızı ve soyadınızı giriniz" required>
+            <label><i class="fas fa-user" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_name">Ad Soyad</span></label>
+            <input type="text" name="ad_soyad" id="ad_soyad" placeholder="Lütfen adınızı ve soyadınızı giriniz" data-i18n="sos_placeholder_name" required>
           </div>
           <div class="form-group">
-            <label><i class="fas fa-phone" style="margin-right: 8px; color: #ff6600;"></i>Telefon Numarası</label>
-            <input type="tel" name="telefon" id="telefon" placeholder="05XX XXX XX XX" required>
+            <label><i class="fas fa-phone" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_phone">Telefon Numarası</span></label>
+            <input type="tel" name="telefon" id="telefon" placeholder="05XX XXX XX XX" data-i18n="sos_placeholder_phone" required>
           </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
           <div class="form-group">
-            <label><i class="fas fa-city" style="margin-right: 8px; color: #ff6600;"></i>İl</label>
+            <label><i class="fas fa-city" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_city">İl</span></label>
             <select name="il_id" id="il" required></select>
           </div>
           <div class="form-group">
-            <label><i class="fas fa-map-marked-alt" style="margin-right: 8px; color: #ff6600;"></i>İlçe</label>
+            <label><i class="fas fa-map-marked-alt" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_district">İlçe</span></label>
             <select name="ilce_id" id="ilce" required>
-              <option value="">-- Önce İl Seçiniz --</option>
+              <option value="" data-i18n="sos_option_district">-- Önce İl Seçiniz --</option>
             </select>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
           <div class="form-group">
-            <label><i class="fas fa-heading" style="margin-right: 8px; color: #ff6600;"></i>Talep Başlığı</label>
-            <input type="text" name="baslik" placeholder="Örn: Acil Gıda ve Battaniye İhtiyacı" required>
+            <label><i class="fas fa-heading" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_title">Talep Başlığı</span></label>
+            <input type="text" name="baslik" placeholder="Örn: Acil Gıda ve Battaniye İhtiyacı" data-i18n="sos_placeholder_title" required>
           </div>
           <div class="form-group">
-            <label><i class="fas fa-tags" style="margin-right: 8px; color: #ff6600;"></i>Yardım Tipi / Kategori</label>
+            <label><i class="fas fa-tags" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_category">Yardım Tipi / Kategori</span></label>
             <select name="yardim_tipi" required style="border-left: 5px solid #ff6600;">
-              <option value="">-- Kategori Seçiniz --</option>
-              <option value="Gıda">🍎 Gıda / Su</option>
-              <option value="Arama Kurtarma">🔍 Arama Kurtarma</option>
-              <option value="Barınma">🏠 Barınma / Çadır</option>
-              <option value="Sağlık">🚑 Sağlık / İlaç</option>
-              <option value="Lojistik">🚛 Lojistik / Ulaşım</option>
-              <option value="Diğer">❔ Diğer</option>
+              <option value="" data-i18n="sos_option_category">-- Kategori Seçiniz --</option>
+              <option value="Gıda" data-i18n="sos_cat_food">🍎 Gıda / Su</option>
+              <option value="Arama Kurtarma" data-i18n="sos_cat_rescue">🔍 Arama Kurtarma</option>
+              <option value="Barınma" data-i18n="sos_cat_shelter">🏠 Barınma / Çadır</option>
+              <option value="Sağlık" data-i18n="sos_cat_health">🚑 Sağlık / İlaç</option>
+              <option value="Lojistik" data-i18n="sos_cat_logistic">🚛 Lojistik / Ulaşım</option>
+              <option value="Diğer" data-i18n="sos_cat_other">❔ Diğer</option>
             </select>
           </div>
         </div>
 
         <div class="form-group">
           <label style="display: flex; justify-content: space-between; align-items: center;">
-            <span><i class="fas fa-align-left" style="margin-right: 8px; color: #ff6600;"></i>Detaylı Açıklama</span>
-            <button type="button" id="sesli-yaz" class="btn-secondary-premium" style="padding: 6px 15px; font-size: 0.85rem; background: #fff7ed; border: 1px solid #ff6600; color: #ff6600;">
+            <span><i class="fas fa-align-left" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_desc">Detaylı Açıklama</span></span>
+            <button type="button" id="sesli-yaz" class="btn-secondary-premium" style="padding: 6px 15px; font-size: 0.85rem; background: #fff7ed; border: 1px solid #ff6600; color: #ff6600;" data-i18n="sos_btn_voice_write">
               <i class="fas fa-microphone"></i> Sesle Yazdır
             </button>
           </label>
-          <textarea name="aciklama" id="aciklama" placeholder="İhtiyacın detaylarını, kişi sayısını ve varsa bina durumunu belirtiniz..." style="min-height: 120px;"></textarea>
-          <p id="ses-durum" style="display: none; font-size: 0.8rem; color: var(--afad-red); margin-top: 5px; font-weight: 600;">
+          <textarea name="aciklama" id="aciklama" placeholder="İhtiyacın detaylarını, kişi sayısını ve varsa bina durumunu belirtiniz..." style="min-height: 120px;" data-i18n="sos_placeholder_desc"></textarea>
+          <p id="ses-durum" style="display: none; font-size: 0.8rem; color: var(--afad-red); margin-top: 5px; font-weight: 600;" data-i18n="sos_status_listening">
             <i class="fas fa-circle-dot fa-beat"></i> Dinleniyor... Lütfen konuşun.
           </p>
         </div>
 
         <div class="form-group" style="margin-bottom: 30px;">
           <label style="display: flex; justify-content: space-between; align-items: center;">
-            <span><i class="fas fa-map-pin" style="margin-right: 8px; color: #ff6600;"></i>Olay Yeri Konumu</span>
-            <button type="button" id="konumum" class="btn-secondary-premium" style="padding: 6px 15px; font-size: 0.85rem;">
+            <span><i class="fas fa-map-pin" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_map">Olay Yeri Konumu</span></span>
+            <button type="button" id="konumum" class="btn-secondary-premium" style="padding: 6px 15px; font-size: 0.85rem;" data-i18n="sos_btn_get_loc">
               <i class="fas fa-location-arrow"></i> Mevcut Konumu Al
             </button>
           </label>
           <div id="map" style="height: 350px;"></div>
-          <p id="konum-durum" style="display: none; font-size: 0.85rem; color: #dc2626; margin-top: 8px; font-weight: 600;">
+          <p id="konum-durum" style="display: none; font-size: 0.85rem; color: #dc2626; margin-top: 8px; font-weight: 600;" data-i18n="sos_status_no_loc">
             <i class="fas fa-exclamation-circle"></i> Konumunuz tespit edilemedi. Lütfen aşağıdaki alana açık adres giriniz.
           </p>
-          <p style="font-size: 0.85rem; color: #627d98; margin-top: 8px; font-style: italic;">Haritaya tıklayarak nokta atışı konum belirleyebilirsiniz.</p>
+          <p style="font-size: 0.85rem; color: #627d98; margin-top: 8px; font-style: italic;" data-i18n="sos_map_hint">Haritaya tıklayarak nokta atışı konum belirleyebilirsiniz.</p>
           <input type="hidden" name="enlem" id="enlem">
           <input type="hidden" name="boylam" id="boylam">
         </div>
 
         <div class="form-group" id="adres-grubu" style="margin-bottom: 25px;">
-          <label><i class="fas fa-map-location-dot" style="margin-right: 8px; color: #ff6600;"></i>Açık Adres / Bina Bilgisi</label>
-          <textarea name="acik_adres" id="acik_adres" placeholder="Sokak, Bina No, Kat, Daire veya belirgin yer tarifini buraya yazınız..." style="min-height: 80px;"></textarea>
+          <label><i class="fas fa-map-location-dot" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_address">Açık Adres / Bina Bilgisi</span></label>
+          <textarea name="acik_adres" id="acik_adres" placeholder="Sokak, Bina No, Kat, Daire veya belirgin yer tarifini buraya yazınız..." style="min-height: 80px;" data-i18n="sos_placeholder_address"></textarea>
         </div>
 
         <div class="form-group" style="margin-bottom: 25px;">
           <label style="display: flex; justify-content: space-between; align-items: center;">
-            <span><i class="fas fa-microphone-lines" style="margin-right: 8px; color: #ff6600;"></i>Ses Kaydı (Opsiyonel)</span>
+            <span><i class="fas fa-microphone-lines" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_audio">Ses Kaydı (Opsiyonel)</span></span>
             <span id="kayit-sure" style="display: none; color: var(--afad-red); font-weight: 700; font-family: monospace;">00:00</span>
           </label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button type="button" id="kayit-baslat" class="btn-secondary-premium" style="flex: 1; border: 1px solid #cbd5e1;"><i class="fas fa-play"></i> Kaydı Başlat</button>
-            <button type="button" id="kayit-durdur" class="btn-secondary-premium" style="flex: 1; display: none; background: #fee2e2; border: 1px solid var(--afad-red); color: var(--afad-red);"><i class="fas fa-stop"></i> Durdur</button>
+            <button type="button" id="kayit-baslat" class="btn-secondary-premium" style="flex: 1; border: 1px solid #cbd5e1;" data-i18n="sos_btn_record_start"><i class="fas fa-play"></i> Kaydı Başlat</button>
+            <button type="button" id="kayit-durdur" class="btn-secondary-premium" style="flex: 1; display: none; background: #fee2e2; border: 1px solid var(--afad-red); color: var(--afad-red);" data-i18n="sos_btn_record_stop"><i class="fas fa-stop"></i> Durdur</button>
           </div>
           <audio id="ses-onizleme" controls style="display: none; width: 100%; margin-top: 10px; height: 40px; border-radius: 10px;"></audio>
-          <p style="font-size: 0.8rem; color: #627d98; margin-top: 5px;">Yazacak durumda değilseniz veya daha fazla detay iletmek isterseniz sesli mesaj bırakabilirsiniz.</p>
+          <p style="font-size: 0.8rem; color: #627d98; margin-top: 5px;" data-i18n="sos_helper_audio">Yazacak durumda değilseniz veya daha fazla detay iletmek isterseniz sesli mesaj bırakabilirsiniz.</p>
         </div>
 
         <div class="form-group" style="margin-bottom: 25px;">
-          <label><i class="fas fa-camera" style="margin-right: 8px; color: #ff6600;"></i>Olay Yeri Fotoğrafı (Opsiyonel)</label>
+          <label><i class="fas fa-camera" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_photo">Olay Yeri Fotoğrafı (Opsiyonel)</span></label>
           <input type="file" name="fotograf" accept="image/*" style="padding: 10px; border: 2px dashed #cbd5e1; border-radius: 12px; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.4);" onchange="this.style.borderColor='#ff6600'; this.style.background='#fff7ed';">
         </div>
 
         <div class="form-group" style="margin-bottom: 35px;">
-          <label><i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #ff6600;"></i>Aciliyet Durumu</label>
+          <label><i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #ff6600;"></i><span data-i18n="sos_label_priority">Aciliyet Durumu</span></label>
           <select name="oncelik" required style="border-left: 5px solid #ff6600;">
-            <option value="dusuk">🟢 Düşük Öncelik (Bilgilendirme Amaçlı)</option>
-            <option value="orta" selected>🟡 Orta Öncelik (Standart İhtiyaç)</option>
-            <option value="yuksek">🟠 Yüksek Öncelik (Hızlı Müdahale Gerektirir)</option>
-            <option value="acil">🔴 ACİL (Hayati Tehlike Mevcut)</option>
+            <option value="dusuk" data-i18n="sos_prio_low">🟢 Düşük Öncelik (Bilgilendirme Amaçlı)</option>
+            <option value="orta" selected data-i18n="sos_prio_medium">🟡 Orta Öncelik (Standart İhtiyaç)</option>
+            <option value="yuksek" data-i18n="sos_prio_high">🟠 Yüksek Öncelik (Hızlı Müdahale Gerektirir)</option>
+            <option value="acil" data-i18n="sos_prio_urgent">🔴 ACİL (Hayati Tehlike Mevcut)</option>
           </select>
         </div>
 
         <div style="display: flex; gap: 15px;">
-          <a href="/" class="btn-secondary-premium" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none;">Vazgeç</a>
-          <button type="submit" class="btn-premium" style="flex: 2;">Talebi Yayınla ve Yardım İste</button>
+          <a href="/" class="btn-secondary-premium" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none;" data-i18n="sos_btn_cancel">Vazgeç</a>
+          <button type="submit" class="btn-premium" style="flex: 2;" data-i18n="sos_btn_submit">Talebi Yayınla ve Yardım İste</button>
         </div>
       </form>
     </div>
@@ -151,8 +162,8 @@
 
   <footer style="margin-top: 60px;">
     <div class="container">
-      <p style="opacity: 0.8;">&copy; 2026 Akıllı Afet Koordinasyon ve Kaynak Optimizasyon Sistemi</p>
-      <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.6;">
+      <p style="opacity: 0.8;" data-i18n="footer_copy">&copy; 2026 Akıllı Afet Koordinasyon ve Kaynak Optimizasyon Sistemi</p>
+      <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.6;" data-i18n="footer_desc">
         Akademik Bitirme Projesi | T-SQL & Node.js Implementation
       </div>
     </div>
@@ -230,7 +241,7 @@
         } else {
           var opt = document.createElement('option');
           opt.value = '';
-          opt.text = '-- Önce İl Seçiniz --';
+          opt.text = (translations[localStorage.getItem('preferred_lang') || 'tr'] || {}).sos_option_district || '-- Önce İl Seçiniz --';
           ilceSelect.add(opt);
         }
       };
@@ -269,8 +280,10 @@
         recognition.onend = () => stopRecognition();
 
         function stopRecognition() {
+          const currentLang = localStorage.getItem('preferred_lang') || 'tr';
+          const btnText = (translations[currentLang] || {}).sos_btn_voice_write || 'Sesle Yazdır';
           speechBtn.style.background = '#fff7ed';
-          speechBtn.innerHTML = '<i class="fas fa-microphone"></i> Sesle Yazdır';
+          speechBtn.innerHTML = `<i class="fas fa-microphone"></i> ${btnText}`;
           statusP.style.display = 'none';
         }
       } else {
@@ -317,10 +330,12 @@
       };
 
       kayitDurdurBtn.onclick = () => {
+        const currentLang = localStorage.getItem('preferred_lang') || 'tr';
+        const redoText = (translations[currentLang] || {}).sos_btn_record_redo || 'Yeniden Kaydet';
         mediaRecorder.stop();
         clearInterval(timerInterval);
         kayitBaslatBtn.style.display = 'block';
-        kayitBaslatBtn.innerHTML = '<i class="fas fa-redo"></i> Yeniden Kaydet';
+        kayitBaslatBtn.innerHTML = `<i class="fas fa-redo"></i> ${redoText}`;
         kayitDurdurBtn.style.display = 'none';
       };
 
@@ -328,9 +343,11 @@
       const form = document.querySelector('form');
       form.onsubmit = async (e) => {
         e.preventDefault();
+        const currentLang = localStorage.getItem('preferred_lang') || 'tr';
+        const sendingText = (translations[currentLang] || {}).sos_status_sending || 'Gönderiliyor...';
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
+        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${sendingText}`;
 
         const formData = new FormData(form);
         if (recordedBlob) {
@@ -350,9 +367,11 @@
             document.body.innerHTML = result; // Hata veya başka bir yanıt gelirse göster
           }
         } catch (err) {
+          const currentLang = localStorage.getItem('preferred_lang') || 'tr';
+          const submitText = (translations[currentLang] || {}).sos_btn_submit || 'Talebi Yayınla ve Yardım İste';
           alert('Gönderim sırasında bir hata oluştu: ' + err.message);
           submitBtn.disabled = false;
-          submitBtn.innerHTML = 'Talebi Yayınla ve Yardım İste';
+          submitBtn.innerHTML = submitText;
         }
       };
     };

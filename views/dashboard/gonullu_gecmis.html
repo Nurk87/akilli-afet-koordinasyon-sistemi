@@ -35,7 +35,7 @@
         const res = await fetch('/requests/api/list');
         const data = await res.json();
         
-        const history = data.filter(r => r.gonullu_id == myId && r.durum === 'tamamlandi');
+        const history = data.filter(r => String(r.assigned_volunteer_id || r.gonullu_id || '') === String(myId) && r.durum === 'tamamlandi');
         
         container.innerHTML = history.length === 0 ? '<p style="text-align: center; color: #94a3b8; padding: 50px; border: 2px dashed #e2e8f0; border-radius: 15px;">Henüz tamamlanmış bir göreviniz bulunmuyor.</p>' : '';
         

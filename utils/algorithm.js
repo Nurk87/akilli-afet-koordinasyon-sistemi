@@ -83,13 +83,14 @@ function calculatePriorityScore(oncelik_enum, distance_km, createdAt) {
  */
 function assignRequestsGreedy(talepler, gonulluler) {
   let assignments = [];
+  let totalDistance = 0;
+  let totalBaselineDistance = 0; // Rastgele atama yapılsaydı oluşacak tahmini mesafe
   
   let availableVolunteers = gonulluler
     .filter(g => g.kapasite && g.kapasite > 0)
     .map(g => ({ ...g }));
     
-  // Önce talepleri bir ön skorlamadan geçirelim (Mesafe bağımsız, sadece aciliyet ve bekleme süresi)
-  // Bu, en kritik vakaların ilk işlenmesini sağlar.
+  // Önce talepleri bir ön skorlamadan geçirelim
   const sortedTalepler = [...talepler].sort((a, b) => {
     const rawScoreA = calculatePriorityScore(a.oncelik, 0, a.olusturulma_tarihi);
     const rawScoreB = calculatePriorityScore(b.oncelik, 0, b.olusturulma_tarihi);
@@ -103,6 +104,13 @@ function assignRequestsGreedy(talepler, gonulluler) {
     let bestScore = -1;
     let bestDistance = Infinity;
     let selectedIndex = -1;
+    
+    // Verimlilik ölçümü için bu talep için ortalama mesafeyi hesapla (Baseline)
+    let currentTalepTotalDist = 0;
+    availableVolunteers.forEach(v => {
+      currentTalepTotalDist += calculateHaversineDistance(talep.enlem, talep.boylam, v.enlem, v.boylam);
+    });
+    totalBaselineDistance += (currentTalepTotalDist / availableVolunteers.length);
     
     for (let i = 0; i < availableVolunteers.length; i++) {
         const v = availableVolunteers[i];
@@ -118,6 +126,7 @@ function assignRequestsGreedy(talepler, gonulluler) {
     }
     
     if (bestMatch) {
+      totalDistance += bestDistance;
       assignments.push({
         talep_id: talep.id,
         gonullu_id: bestMatch.id,
@@ -132,7 +141,22 @@ function assignRequestsGreedy(talepler, gonulluler) {
     }
   }
   
-  return assignments;
+  // --- VERİMLİLİK İSTATİSTİKLERİ ---
+  const distanceSaved = Math.max(0, totalBaselineDistance - totalDistance);
+  const fuelSaved = distanceSaved * 0.12; // Litre (Ortalama araç)
+  const timeSaved = (distanceSaved / 40) * 60; // Dakika (Şehir içi 40km/s)
+  const efficiencyScore = totalBaselineDistance > 0 ? ((distanceSaved / totalBaselineDistance) * 100).toFixed(1) : 100;
+
+  return {
+    assignments,
+    stats: {
+      totalDistance: totalDistance.toFixed(2),
+      distanceSaved: distanceSaved.toFixed(2),
+      fuelSaved: fuelSaved.toFixed(2),
+      timeSaved: Math.round(timeSaved),
+      efficiencyScore: efficiencyScore
+    }
+  };
 }
 
 module.exports = {
