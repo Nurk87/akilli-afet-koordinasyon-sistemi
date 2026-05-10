@@ -2,145 +2,233 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>AFAD | Canlı Saha Haritası</title>
+  <title>AFAD | Saha Operasyon Merkezi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Isı Haritası Eklentisi -->
   <script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; }
+    :root {
+      --afad-navy: #003366;
+      --afad-red: #e30613;
+      --glass-panel: rgba(0, 31, 63, 0.85);
+    }
+
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Outfit', sans-serif; background: #001021; }
     #map { height: 100vh; width: 100%; z-index: 1; }
     
+    /* Gelişmiş Glassmorphism Sidebar */
     .map-overlay {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 25px;
+      right: 25px;
       z-index: 1000;
-      width: 320px;
+      width: 360px;
       display: flex;
       flex-direction: column;
       gap: 15px;
+      pointer-events: none;
     }
 
-    .filter-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 20px;
+    .glass-card {
+      background: var(--glass-panel);
+      backdrop-filter: blur(20px);
+      padding: 22px;
+      border-radius: 28px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      pointer-events: auto;
+      color: white;
+      transition: all 0.3s;
+      animation: fadeInRight 0.6s ease-out;
+    }
+
+    @keyframes fadeInRight {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .mini-stat {
+      background: rgba(255,255,255,0.06);
+      padding: 15px;
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      border: 1px solid rgba(255,255,255,0.5);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .status-badge {
+    .mini-stat.urgent { border-bottom: 3px solid var(--afad-red); }
+    .mini-stat.normal { border-bottom: 3px solid #f59e0b; }
+
+    .val { font-size: 1.8rem; font-weight: 800; display: block; color: #fff; }
+    .label { font-size: 0.65rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+    .control-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 1px solid transparent;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
 
-    .status-badge:hover { transform: translateX(5px); }
-    .status-badge.active { border-color: var(--afad-red); background: #fff1f2; }
+    .control-item:last-child { border: none; }
 
-    .search-box {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      font-family: inherit;
-      font-size: 0.9rem;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    /* Premium Toggle */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
     }
 
-    .floating-back {
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
       position: absolute;
-      top: 20px;
-      left: 20px;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1e293b;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: var(--afad-red); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .btn-back {
+      position: absolute;
+      top: 25px;
+      left: 25px;
       z-index: 1000;
-      background: var(--afad-navy);
+      background: var(--afad-red);
       color: white;
-      padding: 12px 25px;
-      border-radius: 12px;
+      padding: 14px 28px;
+      border-radius: 20px;
       text-decoration: none;
-      font-weight: 700;
-      box-shadow: 0 4px 15px rgba(0,51,102,0.3);
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(227, 6, 19, 0.4);
       display: flex;
       align-items: center;
       gap: 10px;
+      transition: 0.3s;
     }
 
-    .emergency-pulse {
-      animation: pulse-red 2s infinite;
+    .btn-back:hover { transform: scale(1.05); box-shadow: 0 15px 25px rgba(227, 6, 19, 0.5); }
+
+    .log-scroll {
+      max-height: 160px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 5px;
     }
 
-    @keyframes pulse-red {
-      0% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0.4); }
-      70% { box-shadow: 0 0 0 15px rgba(227, 6, 19, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(227, 6, 19, 0); }
+    .log-scroll::-webkit-scrollbar { width: 4px; }
+    .log-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+    .log-card {
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      border-radius: 15px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      border-left: 3px solid #334155;
+    }
+    .log-card.urgent { border-left-color: var(--afad-red); }
+
+    .pulse-marker { animation: marker-pulse 2s infinite; }
+    @keyframes marker-pulse {
+      0% { r: 10; fill-opacity: 0.8; }
+      70% { r: 20; fill-opacity: 0; }
+      100% { r: 10; fill-opacity: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- AFAD Sesli Bildirim Sistemi -->
   <audio id="alertSound" src="/sounds/emergency.mp3" preload="auto"></audio>
   <audio id="dispatchSound" src="/sounds/dispatch.mp3" preload="auto"></audio>
 
-  <a href="/dashboard" class="floating-back">
+  <a href="/dashboard" class="btn-back">
     <i class="fas fa-arrow-left"></i> PANELE DÖN
   </a>
 
   <div id="map"></div>
 
   <div class="map-overlay">
-    <!-- İstatistik Kartı -->
-    <div class="filter-card">
-      <h4 style="margin: 0 0 15px 0; color: var(--afad-navy); font-weight: 800; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-satellite-dish" style="color: var(--afad-red);"></i> CANLI SAHA VERİSİ
-      </h4>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div class="status-badge active" style="background: #fee2e2; color: #dc2626;">
-          <i class="fas fa-circle"></i> ACİL: <span id="badge-count-acil">0</span>
+    <!-- ANA VERİ PANELİ -->
+    <div class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; font-weight: 800; font-size: 1.2rem; color: #fff;">
+          <i class="fas fa-satellite" style="color: var(--afad-red); margin-right: 12px;"></i> CANLI RADAR
+        </h3>
+        <span style="font-size: 0.6rem; background: #10b981; padding: 4px 8px; border-radius: 8px; font-weight: 900;">AKTİF</span>
+      </div>
+
+      <div class="stat-row">
+        <div class="mini-stat urgent">
+          <span class="val" id="badge-count-acil">0</span>
+          <span class="label">Acil Vaka</span>
         </div>
-        <div class="status-badge active" style="background: #fef3c7; color: #d97706;">
-          <i class="fas fa-circle"></i> NORMAL: <span id="badge-count-normal">0</span>
+        <div class="mini-stat normal">
+          <span class="val" id="badge-count-normal">0</span>
+          <span class="label">Normal</span>
         </div>
       </div>
     </div>
 
-    <!-- Katman Filtreleri -->
-    <div class="filter-card">
-      <p style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;">Görünüm Katmanları</p>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
-          <input type="checkbox" id="toggle-heat" checked onchange="updateData()"> 
-          <i class="fas fa-fire" style="color: #f97316;"></i> Isı Haritası (Heatmap)
+    <!-- KATMAN AYARLARI -->
+    <div class="glass-card">
+      <h4 style="margin: 0 0 15px 0; font-size: 0.75rem; color: #94a3b8; font-weight: 800; letter-spacing: 1.5px;">KATMAN YÖNETİMİ</h4>
+      
+      <div class="control-item">
+        <span><i class="fas fa-fire-alt" style="color: #f97316; margin-right: 12px;"></i> Isı Haritası</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-heat" checked onchange="updateData()">
+          <span class="slider"></span>
         </label>
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
-          <input type="checkbox" id="toggle-markers" checked onchange="updateData()"> 
-          <i class="fas fa-map-marker-alt" style="color: #ef4444;"></i> Talep Noktaları
+      </div>
+
+      <div class="control-item">
+        <span><i class="fas fa-bullseye" style="color: var(--afad-red); margin-right: 12px;"></i> Talep Noktaları</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-markers" checked onchange="updateData()">
+          <span class="slider"></span>
         </label>
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--afad-navy);">
-          <input type="checkbox" id="toggle-volunteers" checked onchange="updateData()"> 
-          <i class="fas fa-location-arrow" style="color: #2563eb;"></i> Aktif Gönüllüler
+      </div>
+
+      <div class="control-item">
+        <span><i class="fas fa-users" style="color: #3b82f6; margin-right: 12px;"></i> Aktif Gönüllüler</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-volunteers" checked onchange="updateData()">
+          <span class="slider"></span>
         </label>
       </div>
     </div>
 
-    <!-- Son Hareketler -->
-    <div class="filter-card">
-      <p style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px;">Son Operasyonel Hareketler</p>
-      <div id="map-log" style="font-size: 0.8rem; color: #475569; display: flex; flex-direction: column; gap: 10px;">
-        <!-- Dinamik Loglar -->
+    <!-- LOG PANELİ -->
+    <div class="glass-card">
+      <h4 style="margin: 0 0 10px 0; font-size: 0.75rem; color: #94a3b8; font-weight: 800; letter-spacing: 1.5px;">OPERASYONEL GÜNCE</h4>
+      <div id="map-log" class="log-scroll">
+        <div style="text-align: center; color: #64748b; padding: 20px; font-size: 0.8rem;">Veriler taranıyor...</div>
       </div>
     </div>
   </div>
@@ -149,14 +237,16 @@
     let map;
     let mapMarkers = { acil: [], normal: [], gonullu: [] };
     let heatLayer = null;
-    let lastMaxId = 0; 
-    let searchTerm = '';
+    let lastMaxId = 0;
 
     function initMap() {
-      map = L.map('map', { zoomControl: false }).setView([39.9334, 32.8597], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Premium Koyu Harita Stili
+      map = L.map('map', { zoomControl: false }).setView([39.9334, 32.8597], 6);
+      
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© AFAD Koordinasyon'
       }).addTo(map);
+
       L.control.zoom({ position: 'bottomright' }).addTo(map);
       updateData();
     }
@@ -165,7 +255,7 @@
       const sound = document.getElementById(type === 'emergency' ? 'alertSound' : 'dispatchSound');
       if (sound) {
         sound.currentTime = 0;
-        sound.play().catch(e => console.log('Ses engellendi:', e));
+        sound.play().catch(e => console.log('Ses engellendi.'));
       }
     }
 
@@ -181,7 +271,7 @@
         
         renderMap(requests, volunteers);
       } catch (err) {
-        console.error('Veri yükleme hatası:', err);
+        console.error('Veri Hatası:', err);
       }
     }
 
@@ -201,75 +291,82 @@
       let heatPoints = [];
       let currentMaxId = 0;
       let newUrgentFound = false;
+      const bounds = L.latLngBounds();
 
       requests.forEach(r => {
+        if (!r.enlem || !r.boylam) return;
+        
         const isAcil = r.oncelik === 'acil';
         if (isAcil) counts.acil++; else counts.normal++;
 
-        // Isı haritası için veri topla
-        heatPoints.push([r.enlem, r.boylam, isAcil ? 0.9 : 0.4]);
+        const pos = [parseFloat(r.enlem), parseFloat(r.boylam)];
+        heatPoints.push([...pos, isAcil ? 1.0 : 0.5]);
+        bounds.extend(pos);
 
-        // Yeni acil talep takibi
         if (r.id > lastMaxId) {
           currentMaxId = Math.max(currentMaxId, r.id);
           if (isAcil) newUrgentFound = true;
         }
 
         if (showMarkers) {
-          const color = isAcil ? '#ef4444' : '#f59e0b';
-          const marker = L.circleMarker([r.enlem, r.boylam], {
-            radius: isAcil ? 10 : 8,
-            fillColor: color,
-            color: '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
+          const color = isAcil ? '#e30613' : '#f59e0b';
+          const marker = L.circleMarker(pos, {
+            radius: isAcil ? 12 : 8,
+            fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8
           }).addTo(map);
-
-          marker.bindPopup(`<b>${r.baslik}</b><br>Öncelik: ${r.oncelik.toUpperCase()}`);
+          
+          marker.bindPopup(`<b>${r.baslik}</b><br>${r.oncelik.toUpperCase()}`);
           mapMarkers[isAcil ? 'acil' : 'normal'].push(marker);
         }
       });
 
       if (showHeat && heatPoints.length > 0) {
         heatLayer = L.heatLayer(heatPoints, {
-          radius: 30,
-          blur: 20,
-          maxZoom: 17,
-          gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
+          radius: 35, blur: 15, maxZoom: 17,
+          gradient: { 0.4: '#3b82f6', 0.65: '#10b981', 1: '#e30613' }
         }).addTo(map);
       }
 
       if (showVolunteers) {
         volunteers.forEach(v => {
+          if (!v.enlem || !v.boylam) return;
+          const vPos = [parseFloat(v.enlem), parseFloat(v.boylam)];
           const vIcon = L.divIcon({
-            html: `<i class="fas fa-location-arrow" style="color: #2563eb; font-size: 20px; transform: rotate(45deg);"></i>`,
-            className: 'v-icon',
-            iconSize: [20, 20]
+            html: `<i class="fas fa-location-arrow" style="color: #3b82f6; font-size: 20px; transform: rotate(45deg);"></i>`,
+            className: 'v-icon', iconSize: [20, 20]
           });
-          const m = L.marker([v.enlem, v.boylam], { icon: vIcon }).addTo(map);
+          const m = L.marker(vPos, { icon: vIcon }).addTo(map);
           mapMarkers.gonullu.push(m);
         });
       }
 
-      // Sesli Bildirim
-      if (lastMaxId > 0 && newUrgentFound) {
-        playAlert('emergency');
+      // Otomatik Zoom (Eğer veri varsa ve ilk kez yükleniyorsa)
+      if (bounds.isValid() && (lastMaxId === 0 || newUrgentFound)) {
+        map.fitBounds(bounds, { padding: [50, 50] });
       }
+
+      if (lastMaxId > 0 && newUrgentFound) playAlert('emergency');
       if (currentMaxId > lastMaxId) lastMaxId = currentMaxId;
 
       document.getElementById('badge-count-acil').innerText = counts.acil;
       document.getElementById('badge-count-normal').innerText = counts.normal;
       
-      updateLogUI(requests.slice(0, 5));
+      updateLogUI(requests.slice(0, 8));
     }
 
     function updateLogUI(logs) {
       const logBox = document.getElementById('map-log');
+      if (logs.length === 0) {
+        logBox.innerHTML = '<div style="text-align: center; color: #64748b; padding: 20px;">Henüz vaka yok.</div>';
+        return;
+      }
       logBox.innerHTML = logs.map(l => `
-        <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 5px;">
-          <span style="color: ${l.oncelik === 'acil' ? '#dc2626' : '#d97706'}; font-weight: 800;">[${l.oncelik.toUpperCase()}]</span> 
-          ${l.baslik.substring(0, 20)}...
+        <div class="log-card ${l.oncelik === 'acil' ? 'urgent' : ''}">
+          <div style="display:flex; justify-content:space-between">
+            <strong style="color:white">${l.baslik.substring(0, 20)}</strong>
+            <span style="color:${l.oncelik === 'acil' ? '#ef4444':'#f59e0b'}">${l.oncelik.toUpperCase()}</span>
+          </div>
+          <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px">${l.ilce_adi || 'Bölge'} / ${l.il_adi || 'Merkez'}</div>
         </div>
       `).join('');
     }
