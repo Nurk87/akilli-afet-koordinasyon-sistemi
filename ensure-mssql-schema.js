@@ -101,6 +101,37 @@ async function sync() {
       )
     `);
 
+    // Güvenli Alanlar (Toplanma Alanları)
+    await pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'guvenli_alanlar')
+      CREATE TABLE guvenli_alanlar (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        ad NVARCHAR(255) NOT NULL,
+        tip NVARCHAR(100) NOT NULL, -- Çadır Kent, Aşevi, Toplanma Alanı, Sahra Hastanesi
+        enlem DECIMAL(10, 8) NOT NULL,
+        boylam DECIMAL(11, 8) NOT NULL,
+        kapasite INT NULL,
+        aciklama NVARCHAR(MAX) NULL,
+        aktif BIT DEFAULT 1,
+        created_at DATETIME DEFAULT GETDATE()
+      )
+    `);
+
+    // Notifications
+    await pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'notifications')
+      CREATE TABLE notifications (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        user_id INT NOT NULL,
+        title NVARCHAR(255) NOT NULL,
+        message NVARCHAR(MAX) NOT NULL,
+        type NVARCHAR(50) DEFAULT 'info',
+        link NVARCHAR(500) NULL,
+        is_read BIT DEFAULT 0,
+        created_at DATETIME DEFAULT GETDATE()
+      )
+    `);
+
     // 2. Eksik Sütun Kontrolleri (Migration)
     console.log('📝 Eksik sütunlar kontrol ediliyor...');
     
@@ -111,6 +142,7 @@ async function sync() {
       { table: 'yardim_talepleri', column: 'fotograf_yolu', type: 'NVARCHAR(MAX) NULL' },
       { table: 'yardim_talepleri', column: 'ses_kaydi_yolu', type: 'NVARCHAR(MAX) NULL' },
       { table: 'yardim_talepleri', column: 'acik_adres', type: 'NVARCHAR(MAX) NULL' },
+      { table: 'yardim_talepleri', column: 'yardim_tipi', type: 'NVARCHAR(100) NULL' },
       { table: 'yardim_talepleri', column: 'hesaplanan_oncelik_skoru', type: 'DECIMAL(8, 2) NULL' },
       { table: 'yardim_atamalari', column: 'tamamlanma_tarihi', type: 'DATETIME NULL' },
       { table: 'yardim_atamalari', column: 'atayan_yetkili_id', type: 'INT NULL' },

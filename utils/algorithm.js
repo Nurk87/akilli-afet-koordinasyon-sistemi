@@ -88,7 +88,7 @@ function assignRequestsGreedy(talepler, gonulluler) {
   
   let availableVolunteers = gonulluler
     .filter(g => g.kapasite && g.kapasite > 0)
-    .map(g => ({ ...g }));
+    .map(g => ({ ...g, assignedCount: 0 }));
     
   // Önce talepleri bir ön skorlamadan geçirelim
   const sortedTalepler = [...talepler].sort((a, b) => {
@@ -101,7 +101,7 @@ function assignRequestsGreedy(talepler, gonulluler) {
     if (availableVolunteers.length === 0) break;
     
     let bestMatch = null;
-    let bestScore = -1;
+    let bestScore = -Infinity;
     let bestDistance = Infinity;
     let selectedIndex = -1;
     
@@ -115,7 +115,13 @@ function assignRequestsGreedy(talepler, gonulluler) {
     for (let i = 0; i < availableVolunteers.length; i++) {
         const v = availableVolunteers[i];
         const distance = calculateHaversineDistance(talep.enlem, talep.boylam, v.enlem, v.boylam);
-        const score = calculatePriorityScore(talep.oncelik, distance, talep.olusturulma_tarihi);
+        let score = calculatePriorityScore(talep.oncelik, distance, talep.olusturulma_tarihi);
+        
+        // YÜK DAĞITIM CEZASI (Load Balancing)
+        // Aynı gönüllüye üst üste görev yığılmasını engellemek için aldığı her görevde skorunu düşürürüz
+        if (v.assignedCount > 0) {
+            score -= (v.assignedCount * 50);
+        }
         
         if (score > bestScore) {
             bestScore = score;
@@ -134,6 +140,7 @@ function assignRequestsGreedy(talepler, gonulluler) {
         oncelik_skoru: bestScore
       });
       
+      availableVolunteers[selectedIndex].assignedCount += 1;
       availableVolunteers[selectedIndex].kapasite -= 1;
       if (availableVolunteers[selectedIndex].kapasite <= 0) {
         availableVolunteers.splice(selectedIndex, 1);

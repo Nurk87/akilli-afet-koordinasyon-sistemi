@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toplanma Alanları | AFAD Koordinasyon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; font-family: 'Poppins', sans-serif; }
+    #map { height: 100vh; width: 100vw; z-index: 1; }
+    
+    .map-overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      width: 350px;
+      max-width: 90%;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 30px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      padding: 15px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      font-size: 0.85rem;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    .back-btn {
+      background: var(--afad-navy);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
+    }
+
+    .info-box {
+      background: white;
+      margin-top: 15px;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      border-top: 5px solid #10b981;
+    }
+
+    .leaflet-popup-content-wrapper { border-radius: 15px; padding: 5px; }
+    .btn-direction {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <div class="map-overlay">
+    <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Ana Sayfaya Dön</a>
+    <div class="info-box">
+      <h3 style="margin: 0; color: var(--afad-navy); font-size: 1.1rem;">Güvenli Alanlar</h3>
+      <p style="color: #64748b; font-size: 0.85rem; margin: 10px 0;">Vatandaşlar için en yakın toplanma, barınma ve gıda dağıtım noktaları.</p>
+      <button onclick="findMyLocation()" style="width: 100%; padding: 12px; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px; color: var(--afad-navy); font-weight: 700; cursor: pointer; transition: 0.3s;">
+        <i class="fas fa-location-crosshairs"></i> Konumumu Bul
+      </button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">İkon Renkleri</h4>
+    <div class="legend-item"><div class="dot" style="background: #10b981;"></div> <span>Toplanma Alanı</span></div>
+    <div class="legend-item"><div class="dot" style="background: #f59e0b;"></div> <span>Aşevi / Gıda</span></div>
+    <div class="legend-item"><div class="dot" style="background: #3b82f6;"></div> <span>Çadır Kent</span></div>
+    <div class="legend-item"><div class="dot" style="background: #ef4444;"></div> <span>Sahra Hastanesi</span></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([41.0082, 28.9784], 11); // İstanbul Merkez
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    let myLocationMarker;
+
+    async function loadPlaces() {
+      try {
+        const response = await fetch('/api/guvenli-alanlar');
+        const places = await response.json();
+        
+        places.forEach(p => {
+          let color = '#10b981'; // Default Green (Toplanma)
+          if (p.tip === 'Aşevi') color = '#f59e0b';
+          if (p.tip === 'Çadır Kent') color = '#3b82f6';
+          if (p.tip === 'Sahra Hastanesi') color = '#ef4444';
+
+          const markerHtml = `
+            <div style="background: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>
+          `;
+          
+          const icon = L.divIcon({
+            html: markerHtml,
+            className: '',
+            iconSize: [24, 24]
+          });
+
+          L.marker([p.enlem, p.boylam], { icon }).addTo(map)
+            .bindPopup(`
+              <div style="min-width: 150px;">
+                <h4 style="margin: 0 0 5px 0; color: var(--afad-navy);">${p.ad}</h4>
+                <p style="margin: 0; font-size: 0.8rem; font-weight: 700; color: ${color};">${p.tip}</p>
+                <p style="margin: 5px 0; font-size: 0.75rem; color: #64748b;">${p.aciklama || ''}</p>
+                ${p.kapasite ? `<p style="margin: 5px 0; font-size: 0.75rem; font-weight: 600;">Kapasite: ${p.kapasite} Kişi</p>` : ''}
+                <a href="https://www.google.com/maps?q=${p.enlem},${p.boylam}" target="_blank" class="btn-direction">
+                  <i class="fas fa-route"></i> Yol Tarifi Al
+                </a>
+              </div>
+            `);
+        });
+      } catch (e) {
+        console.error('Veri yükleme hatası:', e);
+      }
+    }
+
+    function findMyLocation() {
+      if (!navigator.geolocation) {
+        alert('Tarayıcınız konum bilgisini desteklemiyor.');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 14);
+
+        if (myLocationMarker) map.removeLayer(myLocationMarker);
+        
+        myLocationMarker = L.circleMarker([latitude, longitude], {
+          radius: 10,
+          fillColor: "#000000",
+          color: "#fff",
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(map).bindPopup("<b>Buradasınız</b>").openPopup();
+
+      }, err => {
+        alert('Konum alınamadı. Lütfen izin verdiğinizden emin olun.');
+      });
+    }
+
+    loadPlaces();
+  </script>
+</body>
+</html>

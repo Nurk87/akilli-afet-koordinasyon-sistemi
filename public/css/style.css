@@ -172,6 +172,26 @@ a:hover {
   box-shadow: 0 10px 22px rgba(227, 6, 19, 0.4);
 }
 
+.btn-secondary-premium {
+  background: white;
+  color: var(--afad-navy);
+  border-radius: 14px;
+  padding: 16px 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid #cbd5e1;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(0, 51, 102, 0.05);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary-premium:hover {
+  transform: translateY(-3px);
+  border-color: var(--afad-navy);
+  box-shadow: 0 10px 22px rgba(0, 51, 102, 0.15);
+}
+
 .btn-navy {
   background: linear-gradient(135deg, var(--afad-navy) 0%, #002244 100%);
   color: white;

@@ -133,7 +133,11 @@ router.post('/olustur', loadUser, upload.fields([{ name: 'fotograf', maxCount: 1
       );
     }
 
-    res.redirect(`/requests/basarili?kod=${takip_kodu}&baslik=${encodeURIComponent(baslik)}`);
+    if (req.user && (req.user.rol === 'yetkili' || req.user.rol === 'admin' || req.user.rol === 'gonullu')) {
+      res.redirect('/requests');
+    } else {
+      res.redirect(`/requests/basarili?kod=${takip_kodu}&baslik=${encodeURIComponent(baslik)}`);
+    }
   } catch (error) {
     console.error('❌ Kayıt Hatası DETAY:', error);
     res.status(500).send(`Yardım talebi oluşturulurken hata oluştu: ${error.message}`);

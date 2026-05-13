@@ -32,7 +32,7 @@
             <a href="javascript:void(0)" onclick="setLanguage('ar')" style="padding: 8px; color: var(--afad-navy); font-weight: 600; display: block; border-radius: 8px;">🇸🇦 العربية</a>
           </div>
         </div>
-        <a href="/" class="btn btn-navy" style="text-decoration: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;" data-i18n="reg_back_home">
+        <a href="/" id="home-btn" class="btn btn-navy" style="text-decoration: none; padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;" data-i18n="reg_back_home">
           <i class="fas fa-home"></i> Ana Sayfaya Dön
         </a>
       </div>
@@ -153,7 +153,7 @@
         </div>
 
         <div style="display: flex; gap: 15px;">
-          <a href="/" class="btn-secondary-premium" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none;" data-i18n="sos_btn_cancel">Vazgeç</a>
+          <button type="button" id="cancel-btn" class="btn-secondary-premium" style="flex: 1;" onclick="window.location.href = document.referrer ? document.referrer : '/';" data-i18n="sos_btn_cancel">Vazgeç</button>
           <button type="submit" class="btn-premium" style="flex: 2;" data-i18n="sos_btn_submit">Talebi Yayınla ve Yardım İste</button>
         </div>
       </form>
@@ -211,14 +211,24 @@
 
     // İl/ilçe doldurma
     window.onload = function() {
-      // Oturum kontrolü
-      const cookies = document.cookie.split('; ');
-      const token = cookies.find(row => row.startsWith('token='));
-      if (token) {
-        // Giriş yapmışsa ad/soyad zorunlu olmaktan çıkabilir (arka planda user.id kullanılacak)
-        document.getElementById('ad_soyad').required = false;
-        document.getElementById('telefon').required = false;
-      }
+      // Oturum kontrolü (HttpOnly cookie nedeniyle /status API kullanılarak)
+      fetch('/status', { headers: { 'Accept': 'application/json' } })
+        .then(res => {
+          if (res.ok) {
+            // Giriş yapmışsa ad/soyad zorunlu olmaktan çıkabilir
+            document.getElementById('ad_soyad').required = false;
+            document.getElementById('telefon').required = false;
+            
+            // Giriş yapmış kullanıcıyı dashboard'a yönlendir
+            if (document.getElementById('cancel-btn')) {
+              document.getElementById('cancel-btn').onclick = function() { window.location.href = '/requests'; };
+            }
+            if (document.getElementById('home-btn')) {
+              document.getElementById('home-btn').href = '/dashboard';
+            }
+          }
+        })
+        .catch(err => console.log('Oturum durumu kontrol edilemedi:', err));
 
       var ilSelect = document.getElementById('il');
       var ilceSelect = document.getElementById('ilce');

@@ -45,6 +45,11 @@
           <span id="rank-text" style="font-size: 0.75rem; font-weight: 800; color: #64748b;">Yükleniyor...</span>
         </div>
 
+        <div id="availability-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: #10b98120; padding: 5px 12px; border-radius: 20px; border: 1px solid #10b981;" onclick="toggleAvailability()">
+          <div id="avail-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+          <span id="avail-text" style="font-size: 0.75rem; font-weight: 800; color: #047857;">MÜSAİT</span>
+        </div>
+
         <span style="font-weight: 600; color: var(--afad-navy);"><i class="fas fa-user-tag"></i> <span id="user-name-display">Gönüllü</span></span>
         <a href="/cikis" class="btn btn-danger" style="padding: 8px 20px; border-radius: 10px;">Güvenli Çıkış</a>
       </div>
@@ -57,12 +62,12 @@
       <p style="color: #64748b; font-size: 1.1rem;">Size atanan görevleri takip edin ve yeni yardım talepleri oluşturun.</p>
     </div>
 
-    <div class="cards" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+    <div class="cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
       <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid var(--afad-blue); padding: 25px;">
         <div>
           <i class="fas fa-plus-circle fa-lg" style="color: var(--afad-blue); margin-bottom: 12px;"></i>
           <h3 style="color: var(--afad-navy); font-size: 1.1rem; margin-bottom: 8px;">Yeni Talep Bildir</h3>
-          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Sahada tespit ettiğiniz yeni ihtiyaçları hızla merkeze raporlayın.</p>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Sahada tespit ettiğiniz yeni ihtiyaçları raporlayın.</p>
         </div>
         <a href="/requests/yeni" class="btn btn-navy" style="text-align: center; margin-top: 15px; text-decoration: none; padding: 10px; font-size: 0.8rem;">TALEP OLUŞTUR</a>
       </div>
@@ -71,9 +76,31 @@
         <div>
           <i class="fas fa-list-check fa-lg" style="color: var(--afad-red); margin-bottom: 12px;"></i>
           <h3 style="color: var(--afad-navy); font-size: 1.1rem; margin-bottom: 8px;">Tüm Talepleri Gör</h3>
-          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Bölgeden gelen tüm yardım çağrılarını ve güncel durumlarını inceleyin.</p>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Yardım çağrılarını ve güncel durumlarını inceleyin.</p>
         </div>
         <a href="/requests" class="btn btn-premium" style="text-align: center; margin-top: 15px; text-decoration: none; padding: 10px; font-size: 0.8rem;">SAHA LİSTESİ</a>
+      </div>
+
+      <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #10b981; padding: 25px;">
+        <div>
+          <i class="fas fa-map-marker-alt fa-lg" style="color: #10b981; margin-bottom: 12px;"></i>
+          <h3 style="color: var(--afad-navy); font-size: 1.1rem; margin-bottom: 8px;">Konumumu Güncelle</h3>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">Size uygun görevler için konumunuzu iletin.</p>
+        </div>
+        <button id="update-location-btn" onclick="updateMyLocation()" class="btn btn-success" style="text-align: center; margin-top: 15px; border:none; padding: 10px; font-size: 0.8rem; background: #10b981; font-weight: 700; cursor: pointer; border-radius: 14px; color: white;">
+          <i class="fas fa-crosshairs"></i> KONUMUMU AL
+        </button>
+      </div>
+
+      <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid #8b5cf6; padding: 25px;">
+        <div>
+          <i class="fas fa-satellite-dish fa-lg" style="color: #8b5cf6; margin-bottom: 12px;"></i>
+          <h3 style="color: var(--afad-navy); font-size: 1.1rem; margin-bottom: 8px;">Saha Radarı</h3>
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0;">(50 km çaplı) diğer gönüllü ekipleri görün.</p>
+        </div>
+        <button onclick="openRadarModal()" class="btn btn-success" style="text-align: center; margin-top: 15px; border:none; padding: 10px; font-size: 0.8rem; background: #8b5cf6; font-weight: 700; cursor: pointer; border-radius: 14px; color: white;">
+          <i class="fas fa-users"></i> EKiPLER
+        </button>
       </div>
     </div>
 
@@ -88,6 +115,18 @@
       </div>
       <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
         <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="radar-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,34,68,0.8); z-index:9999; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; padding: 30px;">
+      <button onclick="closeRadarModal()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 1.5rem; color: #64748b; cursor: pointer;"><i class="fas fa-times"></i></button>
+      <h2 style="color: var(--afad-navy); margin-top: 0; margin-bottom: 5px;"><i class="fas fa-satellite-dish" style="color: #8b5cf6;"></i> Yakınımdaki Ekipler (Radar)</h2>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 25px;">50 km çapındaki müsait ve aktif saha gönüllüleri</p>
+      
+      <div id="radar-list" style="display: flex; flex-direction: column; gap: 15px;">
+        <p style="text-align: center; color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Radar taranıyor...</p>
       </div>
     </div>
   </div>
@@ -126,6 +165,9 @@
           document.getElementById('user-name-display').innerText = `${profile.ad} ${profile.soyad}`;
           document.getElementById('puan-text').innerText = `${profile.puan || 0} Puan`;
           updateStats(profile.puan, profile.rank);
+          
+          window.currentAvailability = profile.musaitlik_durumu || 'musait';
+          renderAvailabilityToggle();
         }
 
         const res = await fetch('/atamalar/api/my-tasks');
@@ -401,6 +443,149 @@
       await fetch('/api/notifications/mark-all-read', {method:'POST'});
       loadNotifications();
     };
+
+    async function updateMyLocation() {
+      const btn = document.getElementById('update-location-btn');
+      if (!navigator.geolocation) {
+        alert('Tarayıcınız konum servisini desteklemiyor.');
+        return;
+      }
+      
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> KONUM ALINIYOR...';
+      btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        try {
+          const response = await fetch('/dashboard/api/users/update-location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lng })
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            alert('Harika! Konumunuz merkeze başarıyla iletildi. Size en uygun görevler atanacaktır.');
+          } else {
+            alert('Hata: ' + result.error);
+          }
+        } catch (err) {
+          alert('Konum güncellenirken bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }, (error) => {
+        console.error('Konum hatası:', error);
+        alert('Konum alınamadı. Lütfen tarayıcınızın konum izni verdiğinden emin olun.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, { enableHighAccuracy: true });
+    }
+
+    // --- MÜSAİTLİK DURUMU ---
+    window.currentAvailability = 'musait';
+    function renderAvailabilityToggle() {
+      const toggle = document.getElementById('availability-toggle');
+      const dot = document.getElementById('avail-dot');
+      const text = document.getElementById('avail-text');
+      
+      if (window.currentAvailability === 'musait') {
+        toggle.style.background = '#10b98120';
+        toggle.style.borderColor = '#10b981';
+        dot.style.background = '#10b981';
+        dot.style.boxShadow = '0 0 8px #10b981';
+        text.innerText = 'MÜSAİT';
+        text.style.color = '#047857';
+      } else {
+        toggle.style.background = '#ef444420';
+        toggle.style.borderColor = '#ef4444';
+        dot.style.background = '#ef4444';
+        dot.style.boxShadow = '0 0 8px #ef4444';
+        text.innerText = 'DİNLENİYOR';
+        text.style.color = '#b91c1c';
+      }
+    }
+
+    async function toggleAvailability() {
+      const newStatus = window.currentAvailability === 'musait' ? 'mesgul' : 'musait';
+      try {
+        const res = await fetch('/dashboard/api/users/toggle-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.currentAvailability = newStatus;
+          renderAvailabilityToggle();
+          if (newStatus === 'mesgul') {
+            alert('Durumunuz "Dinleniyor" yapıldı. Yeni otomatik atamalar geçici olarak durduruldu.');
+          } else {
+            alert('Durumunuz "Müsait" yapıldı. Saha görevleri almaya hazırsınız!');
+          }
+        } else {
+          alert('Hata: ' + data.error);
+        }
+      } catch(e) {
+        alert('Bağlantı hatası.');
+      }
+    }
+
+    // --- SAHA RADARI ---
+    function openRadarModal() {
+      document.getElementById('radar-modal').style.display = 'flex';
+      loadNearbyTeams();
+    }
+    function closeRadarModal() {
+      document.getElementById('radar-modal').style.display = 'none';
+    }
+
+    async function loadNearbyTeams() {
+      const list = document.getElementById('radar-list');
+      list.innerHTML = '<p style="text-align: center; color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Radar taranıyor...</p>';
+      
+      try {
+        const res = await fetch('/dashboard/api/users/nearby');
+        const data = await res.json();
+        
+        if (res.status !== 200) {
+          list.innerHTML = `<p style="text-align:center; color:#ef4444;">${data.error || 'Bir hata oluştu.'}</p>`;
+          return;
+        }
+
+        if (data.length === 0) {
+          list.innerHTML = `
+            <div style="text-align:center; padding: 30px; border: 2px dashed #e2e8f0; border-radius: 15px;">
+              <i class="fas fa-satellite fa-3x" style="color: #cbd5e1; margin-bottom:15px;"></i>
+              <p style="color: #64748b;">50 KM çapında başka aktif gönüllü bulunamadı.</p>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = data.map(v => `
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #8b5cf6; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="margin: 0; color: var(--afad-navy); font-size: 1.05rem;">${v.ad} ${v.soyad}</h4>
+              <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem;"><i class="fas fa-tools"></i> ${v.uzmanlik || 'Genel Destek'}</p>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 800; color: #8b5cf6; font-size: 1.1rem;">${v.distance.toFixed(1)} km</div>
+              <a href="tel:${v.telefon || ''}" class="btn" style="background: #e0e7ff; color: #4338ca; padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; text-decoration: none; display: inline-block; margin-top: 5px;">
+                <i class="fas fa-phone"></i> ARA
+              </a>
+            </div>
+          </div>
+        `).join('');
+
+      } catch(e) {
+        list.innerHTML = '<p style="text-align:center; color:#ef4444;">Radara bağlanılamadı.</p>';
+      }
+    }
 
     loadNotifications();
     setInterval(loadNotifications, 30000);

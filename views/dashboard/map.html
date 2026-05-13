@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://leaflet.github.io/Leaflet.heat/dist/leaflet-heat.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     :root {
@@ -222,6 +224,33 @@
           <span class="slider"></span>
         </label>
       </div>
+
+      <div class="control-item">
+        <span><i class="fas fa-road" style="color: #ef4444; margin-right: 12px;"></i> Yol Kapanmaları</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-closures" checked onchange="toggleClosures()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ROTA PANELİ (Dinamik) -->
+    <div class="glass-card" id="route-panel" style="display: none;">
+      <h4 style="margin: 0 0 15px 0; font-size: 0.75rem; color: #94a3b8; font-weight: 800; letter-spacing: 1.5px;">ROTA DETAYLARI</h4>
+      <div id="route-info">
+        <div style="font-size: 0.9rem; margin-bottom: 10px;">
+          <i class="fas fa-map-marker-alt" style="color: #3b82f6;"></i> <span id="route-dist">0 km</span>
+          <span style="margin: 0 10px; opacity: 0.3;">|</span>
+          <i class="fas fa-clock" style="color: #10b981;"></i> <span id="route-time">0 dk</span>
+        </div>
+        <div id="route-alert" style="display: none; background: rgba(239, 68, 68, 0.2); padding: 8px 12px; border-radius: 12px; font-size: 0.75rem; color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
+          <i class="fas fa-exclamation-triangle"></i> Yol kapalı! Alternatif rota oluşturuldu.
+        </div>
+        <button onclick="clearRoute()" style="width: 100%; margin-top: 15px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px; border-radius: 10px; cursor: pointer; font-size: 0.75rem; font-weight: 700;">
+          ROTAYI TEMİZLE
+        </button>
+      </div>
+    </div>
     </div>
 
     <!-- LOG PANELİ -->
@@ -238,17 +267,53 @@
     let mapMarkers = { acil: [], normal: [], gonullu: [] };
     let heatLayer = null;
     let lastMaxId = 0;
+    let routingControl = null;
+    let closureLayers = [];
+    let currentVolunteers = [];
+    let currentRequests = [];
+
+    // SİMÜLE EDİLEN KAPALI YOLLAR / ENKAZ BÖLGELERİ
+    const BLOCKED_ZONES = [
+      { name: "Enkaz Bölgesi - Sultanahmet", center: [41.0085, 28.9784], radius: 400 },
+      { name: "Yol Çökmesi - Beşiktaş", center: [41.0422, 29.0067], radius: 350 },
+      { name: "Barikat/Kapalı Yol - Kadıköy", center: [40.9910, 29.0270], radius: 300 }
+    ];
 
     function initMap() {
       // Premium Koyu Harita Stili
-      map = L.map('map', { zoomControl: false }).setView([39.9334, 32.8597], 6);
+      map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 12);
       
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© AFAD Koordinasyon'
       }).addTo(map);
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
+      
+      // Kapalı yolları çiz
+      toggleClosures();
       updateData();
+    }
+
+    function toggleClosures() {
+      const show = document.getElementById('toggle-closures').checked;
+      
+      // Temizle
+      closureLayers.forEach(l => map.removeLayer(l));
+      closureLayers = [];
+
+      if (show) {
+        BLOCKED_ZONES.forEach(zone => {
+          const circle = L.circle(zone.center, {
+            color: '#ef4444',
+            fillColor: '#ef4444',
+            fillOpacity: 0.4,
+            radius: zone.radius,
+            dashArray: '5, 10'
+          }).addTo(map);
+          circle.bindPopup(`<b>DİKKAT: ${zone.name}</b><br>Bu bölgeden geçiş yapılamaz.`);
+          closureLayers.push(circle);
+        });
+      }
     }
 
     function playAlert(type = 'emergency') {
@@ -261,15 +326,13 @@
 
     async function updateData() {
       try {
-        const [resReq, resVol] = await Promise.all([
-          fetch('/requests/api/list'),
-          fetch('/dashboard/api/volunteers')
-        ]);
+        const response = await fetch('/dashboard/api/map-data');
+        const data = await response.json();
         
-        const requests = await resReq.json();
-        const volunteers = await resVol.json();
+        currentRequests = data.requests;
+        currentVolunteers = data.volunteers;
         
-        renderMap(requests, volunteers);
+        renderMap(currentRequests, currentVolunteers);
       } catch (err) {
         console.error('Veri Hatası:', err);
       }
@@ -315,7 +378,17 @@
             fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8
           }).addTo(map);
           
-          marker.bindPopup(`<b>${r.baslik}</b><br>${r.oncelik.toUpperCase()}`);
+          const popupContent = `
+            <div style="font-family:'Outfit'; min-width: 200px;">
+              <strong style="color:var(--afad-navy)">${r.baslik}</strong><br>
+              <span style="font-size:0.7rem; color:#666">${r.oncelik.toUpperCase()}</span>
+              <hr style="opacity:0.1; margin:8px 0">
+              <button onclick="smartRouteTo(${r.enlem}, ${r.boylam})" style="background:var(--afad-red); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; width:100%; font-weight:700">
+                <i class="fas fa-route"></i> ROTA ÇİZ
+              </button>
+            </div>
+          `;
+          marker.bindPopup(popupContent);
           mapMarkers[isAcil ? 'acil' : 'normal'].push(marker);
         }
       });
@@ -369,6 +442,88 @@
           <div style="font-size:0.7rem; color:#94a3b8; margin-top:4px">${l.ilce_adi || 'Bölge'} / ${l.il_adi || 'Merkez'}</div>
         </div>
       `).join('');
+    }
+
+    // AKILLI ROTA ALGORİTMASI (SIMÜLASYON)
+    function smartRouteTo(lat, lng) {
+      if (routingControl) clearRoute();
+      
+      // 1. En yakın gönüllüyü bul
+      let closestVol = null;
+      let minDistance = Infinity;
+
+      currentVolunteers.forEach(v => {
+        const d = map.distance([lat, lng], [v.enlem, v.boylam]);
+        if (d < minDistance) {
+          minDistance = d;
+          closestVol = v;
+        }
+      });
+
+      if (!closestVol) {
+        alert("Bölgede aktif gönüllü bulunamadı!");
+        return;
+      }
+
+      const start = [closestVol.enlem, closestVol.boylam];
+      const end = [lat, lng];
+
+      // 2. Kapalı bölgelerden geçiyor mu kontrol et
+      let isBlocked = false;
+      let detourPoint = null;
+
+      BLOCKED_ZONES.forEach(zone => {
+        // Basit çizgi-daire kesişim simülasyonu: 
+        // Eğer start veya end bir bölgeye çok yakınsa veya orta nokta bölgedeyse kapalı sayalım
+        const midPoint = [(start[0]+end[0])/2, (start[1]+end[1])/2];
+        const dMid = map.distance(midPoint, zone.center);
+        
+        if (dMid < zone.radius) {
+          isBlocked = true;
+          // Detour point: Bölgenin dışından bir nokta uyduralım
+          detourPoint = [zone.center[0] + 0.01, zone.center[1] + 0.01]; 
+        }
+      });
+
+      const waypoints = [L.latLng(start[0], start[1])];
+      if (isBlocked && detourPoint) {
+        waypoints.push(L.latLng(detourPoint[0], detourPoint[1]));
+        document.getElementById('route-alert').style.display = 'block';
+      } else {
+        document.getElementById('route-alert').style.display = 'none';
+      }
+      waypoints.push(L.latLng(end[0], end[1]));
+
+      // 3. Rotayı çiz
+      routingControl = L.Routing.control({
+        waypoints: waypoints,
+        lineOptions: { styles: [{ color: '#3b82f6', weight: 6, opacity: 0.8 }] },
+        createMarker: function() { return null; }, // Kendi markerlarımızı kullanıyoruz
+        addWaypoints: false,
+        draggableWaypoints: false,
+        show: false // Panel gizli kalsın, biz kendi UI'mızı güncelleyeceğiz
+      }).addTo(map);
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        const summary = routes[0].summary;
+        
+        document.getElementById('route-dist').innerText = (summary.totalDistance / 1000).toFixed(1) + ' km';
+        document.getElementById('route-time').innerText = Math.round(summary.totalTime / 60) + ' dk';
+        document.getElementById('route-panel').style.display = 'block';
+        
+        playAlert('dispatch');
+      });
+
+      map.closePopup();
+    }
+
+    function clearRoute() {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+      document.getElementById('route-panel').style.display = 'none';
     }
 
     initMap();

@@ -51,7 +51,7 @@ router.get('/map', (req, res) => {
 router.get('/api/me', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id, ad, soyad, email, rol, puan, rank, kapasite FROM users WHERE id = ?",
+      "SELECT id, ad, soyad, email, rol, puan, rank, kapasite, musaitlik_durumu, enlem, boylam FROM users WHERE id = ?",
       [req.user.id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
@@ -128,6 +128,70 @@ router.post('/api/users/update-status', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Kullanıcı durumu güncellenemedi' });
+  }
+});
+
+router.post('/api/users/update-location', async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Geçersiz koordinatlar' });
+    }
+    
+    // Yalnızca giriş yapmış kullanıcı kendi konumunu güncelleyebilir
+    const userId = req.user.id;
+    await pool.query('UPDATE users SET enlem = ?, boylam = ? WHERE id = ?', [lat, lng, userId]);
+    
+    res.json({ success: true, message: 'Konumunuz başarıyla güncellendi' });
+  } catch (error) {
+    console.error('Konum güncelleme hatası:', error);
+    res.status(500).json({ error: 'Konum güncellenemedi' });
+  }
+});
+
+router.post('/api/users/toggle-availability', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { status } = req.body; // 'musait' or 'mesgul'
+    if (status !== 'musait' && status !== 'mesgul') {
+      return res.status(400).json({ error: 'Geçersiz durum' });
+    }
+    await pool.query("UPDATE users SET musaitlik_durumu = ? WHERE id = ?", [status, userId]);
+    res.json({ success: true, message: 'Durum güncellendi' });
+  } catch (error) {
+    console.error('Durum güncelleme hatası:', error);
+    res.status(500).json({ error: 'Durum güncellenemedi' });
+  }
+});
+
+router.get('/api/users/nearby', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [meRows] = await pool.query("SELECT enlem, boylam FROM users WHERE id = ?", [userId]);
+    if (meRows.length === 0 || !meRows[0].enlem || !meRows[0].boylam) {
+      return res.status(400).json({ error: 'Lütfen önce konumunuzu güncelleyin' });
+    }
+    const myLat = meRows[0].enlem;
+    const myLng = meRows[0].boylam;
+
+    const [volunteers] = await pool.query(
+      "SELECT id, ad, soyad, telefon, uzmanlik, enlem, boylam FROM users WHERE rol = 'gonullu' AND durum = 'aktif' AND id != ? AND enlem IS NOT NULL",
+      [userId]
+    );
+
+    const { calculateHaversineDistance } = require('../utils/algorithm');
+    
+    // 50 km çapındaki gönüllüleri bul
+    const nearby = volunteers.map(v => {
+      const distance = calculateHaversineDistance(myLat, myLng, v.enlem, v.boylam);
+      return { ...v, distance: distance };
+    }).filter(v => v.distance <= 50)
+      .sort((a, b) => a.distance - b.distance);
+
+    res.json(nearby);
+  } catch (error) {
+    console.error('Yakındaki ekipleri alma hatası:', error);
+    res.status(500).json({ error: 'Ekipler alınamadı' });
   }
 });
 

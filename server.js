@@ -38,6 +38,20 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'anasayfa.html'));
 });
 
+app.get('/guvenli-alanlar', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'guvenli_alanlar.html'));
+});
+
+app.get('/api/guvenli-alanlar', async (req, res) => {
+  const pool = require('./config/database');
+  try {
+    const [rows] = await pool.query("SELECT * FROM guvenli_alanlar WHERE aktif = 1");
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Veriler çekilemedi.' });
+  }
+});
+
 app.get('/dashboard/analiz', verifyToken, (req, res) => {
   if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
     return res.redirect('/dashboard');
