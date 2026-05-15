@@ -272,16 +272,18 @@
     let currentVolunteers = [];
     let currentRequests = [];
 
-    // SİMÜLE EDİLEN KAPALI YOLLAR / ENKAZ BÖLGELERİ
+    // TÜRKİYE GENELİ SİMÜLE EDİLEN KAPALI YOLLAR / ENKAZ BÖLGELERİ
     const BLOCKED_ZONES = [
-      { name: "Enkaz Bölgesi - Sultanahmet", center: [41.0085, 28.9784], radius: 400 },
-      { name: "Yol Çökmesi - Beşiktaş", center: [41.0422, 29.0067], radius: 350 },
-      { name: "Barikat/Kapalı Yol - Kadıköy", center: [40.9910, 29.0270], radius: 300 }
+      { name: "Enkaz Bölgesi - İstanbul/Beşiktaş", center: [41.0422, 29.0067], radius: 400 },
+      { name: "Yol Çökmesi - Ankara/Kızılay", center: [39.9208, 32.8541], radius: 350 },
+      { name: "Lojistik Engel - Hatay/Merkez", center: [36.2023, 36.1606], radius: 500 },
+      { name: "Enkaz Bölgesi - Kahramanmaraş", center: [37.5858, 36.9371], radius: 600 },
+      { name: "Kapalı Yol - İzmir/Bayraklı", center: [38.4622, 27.1658], radius: 300 }
     ];
 
     function initMap() {
-      // Premium Koyu Harita Stili
-      map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 12);
+      // Türkiye Merkezli Görünüm (Zoom 6-7 tüm Türkiye'yi gösterir)
+      map = L.map('map', { zoomControl: false }).setView([38.9637, 35.2433], 6);
       
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '© AFAD Koordinasyon'
@@ -326,8 +328,11 @@
 
     async function updateData() {
       try {
-        const response = await fetch('/dashboard/api/map-data');
-        const data = await response.json();
+        const res = await fetch('/dashboard/api/map-data', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const data = await res.json();
         
         currentRequests = data.requests;
         currentVolunteers = data.volunteers;

@@ -62,14 +62,14 @@ function calculatePriorityScore(oncelik_enum, distance_km, createdAt) {
   
   // 3. Bekleme Süresi (Aging) Skoru (%20)
   let beklemeSkoru = 0;
-  if (createdAt) {
-    const start = new Date(createdAt);
+    const start = createdAt ? new Date(createdAt) : new Date();
     const now = new Date();
-    const gecenDakika = Math.max(0, (now - start) / (1000 * 60));
+    // Tarih geçerli değilse bugünü kullan
+    const validStart = isNaN(start.getTime()) ? now : start;
+    const gecenDakika = Math.max(0, (now - validStart) / (1000 * 60));
     
     // Her saat için +10 puan, 10 saatte max 100 puana ulaşır.
     beklemeSkoru = Math.min(100, (gecenDakika / 60) * 10);
-  }
   
   const toplamSkor = (aciliyetSkoru * 0.5) + (mesafeSkoru * 0.3) + (beklemeSkoru * 0.2);
   return parseFloat(toplamSkor.toFixed(2));

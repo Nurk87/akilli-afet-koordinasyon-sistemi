@@ -169,65 +169,104 @@
     let selectedVolunteerId = null;
 
     async function loadData() {
-      // Get ID from URL
       const urlParams = new URLSearchParams(window.location.search);
       const targetId = urlParams.get('id');
-
-      // Load Requests
-      const reqRes = await fetch('/requests/api/list');
-      const reqData = await reqRes.json();
-      const approvedRequests = reqData.filter(r => r.durum === 'onaylandi' || r.durum === 'yeni');
-
       const requestsList = document.getElementById('requests-list');
-      requestsList.innerHTML = approvedRequests.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Atama bekleyen talep yok.</p>' : '';
-
-      approvedRequests.forEach(req => {
-        const div = document.createElement('div');
-        div.className = 'selectable-item';
-        if (targetId && req.id == targetId) div.classList.add('selected'), selectedRequestId = req.id;
-
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between;">
-            <strong style="color:var(--afad-navy);">${req.baslik}</strong>
-            <span style="font-size:0.7rem; background:${req.oncelik === 'acil' ? '#fee2e2' : '#f1f5f9'}; color:${req.oncelik === 'acil' ? '#dc2626' : '#64748b'}; padding:2px 8px; border-radius:10px;">${req.oncelik.toUpperCase()}</span>
-          </div>
-          <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
-            <i class="fas fa-map-marker-alt"></i> ${req.il_adi} / ${req.ilce_adi}
-          </div>
-        `;
-        div.onclick = () => {
-          document.querySelectorAll('#requests-list .selectable-item').forEach(el => el.classList.remove('selected'));
-          div.classList.add('selected');
-          selectedRequestId = req.id;
-          checkSelection();
-        };
-        requestsList.appendChild(div);
-      });
-
-      // ... Volunteers ...
-      const volRes = await fetch('/atamalar/api/available-volunteers');
-      const volData = await volRes.json();
-
       const volunteersList = document.getElementById('volunteers-list');
-      volunteersList.innerHTML = volData.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Müsait gönüllü bulunamadı.</p>' : '';
 
-      volData.forEach(vol => {
-        const div = document.createElement('div');
-        div.className = 'selectable-item';
-        div.innerHTML = `
-          <strong style="color:var(--afad-navy);">${vol.ad} ${vol.soyad}</strong>
-          <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
-            <i class="fas fa-id-card"></i> Kapasite: ${vol.kapasite} | <i class="fas fa-phone"></i> ${vol.telefon}
-          </div>
-        `;
-        div.onclick = () => {
-          document.querySelectorAll('#volunteers-list .selectable-item').forEach(el => el.classList.remove('selected'));
-          div.classList.add('selected');
-          selectedVolunteerId = vol.id;
-          checkSelection();
-        };
-        volunteersList.appendChild(div);
-      });
+      // 1. Talepleri Yükle
+      try {
+        requestsList.innerHTML = '<p style="color:#94a3b8; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Talepler yükleniyor...</p>';
+        const reqRes = await fetch('/requests/api/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        
+        if (reqRes.status === 401) {
+          window.location.href = '/giris';
+          return;
+        }
+
+        const reqData = await reqRes.json();
+        if (!Array.isArray(reqData)) throw new Error('Hatalı veri formatı');
+        const approvedRequests = reqData.filter(r => r.durum === 'onaylandi' || r.durum === 'yeni');
+
+        requestsList.innerHTML = approvedRequests.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Atama bekleyen talep yok.</p>' : '';
+
+        approvedRequests.forEach(req => {
+          const div = document.createElement('div');
+          div.className = 'selectable-item';
+          if (targetId && req.id == targetId) {
+            div.classList.add('selected');
+            selectedRequestId = req.id;
+          }
+
+          div.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+              <strong style="color:var(--afad-navy);">${req.baslik}</strong>
+              <span style="font-size:0.7rem; background:${req.oncelik === 'acil' ? '#fee2e2' : '#f1f5f9'}; color:${req.oncelik === 'acil' ? '#dc2626' : '#64748b'}; padding:2px 8px; border-radius:10px;">${req.oncelik.toUpperCase()}</span>
+            </div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
+              <i class="fas fa-map-marker-alt"></i> ${req.il_adi} / ${req.ilce_adi}
+            </div>
+          `;
+          div.onclick = () => {
+            document.querySelectorAll('#requests-list .selectable-item').forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
+            selectedRequestId = req.id;
+            checkSelection();
+          };
+          requestsList.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Talep Yükleme Hatası:', err);
+        requestsList.innerHTML = '<p style="color:red; padding:20px;">Talepler alınamadı.</p>';
+      }
+
+      // 2. Gönüllüleri Yükle
+      try {
+        volunteersList.innerHTML = '<p style="color:#94a3b8; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Gönüllüler aranıyor...</p>';
+        const volRes = await fetch('/atamalar/api/available-volunteers', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+
+        if (volRes.status === 401) {
+          window.location.href = '/giris';
+          return;
+        }
+
+        const volData = await volRes.json();
+        console.log('Gönüllü verisi alındı:', volData);
+        if (!Array.isArray(volData)) {
+           console.error('Hatalı gönüllü verisi:', volData);
+           throw new Error('Hatalı veri formatı (gönüllü)');
+        }
+
+        volunteersList.innerHTML = volData.length === 0 ? '<p style="color:#94a3b8; padding:20px;">Müsait gönüllü bulunamadı.</p>' : '';
+        console.log('Gönüllü sayısı:', volData.length);
+
+        volData.forEach(vol => {
+          const div = document.createElement('div');
+          div.className = 'selectable-item';
+          div.innerHTML = `
+            <strong style="color:var(--afad-navy);">${vol.ad} ${vol.soyad}</strong>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:5px;">
+              <i class="fas fa-id-card"></i> Kapasite: ${vol.kapasite} | <i class="fas fa-phone"></i> ${vol.telefon}
+            </div>
+          `;
+          div.onclick = () => {
+            document.querySelectorAll('#volunteers-list .selectable-item').forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
+            selectedVolunteerId = vol.id;
+            checkSelection();
+          };
+          volunteersList.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Gönüllü Yükleme Hatası:', err);
+        volunteersList.innerHTML = '<p style="color:red; padding:20px;">Gönüllü listesi alınamadı.</p>';
+      }
 
       checkSelection();
     }
@@ -241,7 +280,11 @@
 
       const res = await fetch('/atamalar/api/manual-assign', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({ talep_id: selectedRequestId, gonullu_id: selectedVolunteerId })
       });
 

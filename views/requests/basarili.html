@@ -98,6 +98,63 @@
       text-decoration: none;
       font-weight: 600;
     }
+    /* Dijital Kart Modalı */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 10000;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .ticket-card {
+      background: white;
+      width: 100%;
+      max-width: 450px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .ticket-header {
+      background: var(--afad-red);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .ticket-body {
+      padding: 30px;
+      text-align: center;
+    }
+    .ticket-qr {
+      width: 150px;
+      height: 150px;
+      margin: 20px auto;
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+    .ticket-footer {
+      background: #f8fafc;
+      padding: 15px;
+      border-top: 2px dashed #e2e8f0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .btn-download-official {
+      background: var(--afad-navy);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      display: inline-flex;
+      align-items: center; gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -108,13 +165,25 @@
       </div>
       <h1 style="color: var(--afad-navy); font-size: 2rem; margin-bottom: 15px;">Talebiniz Başarıyla Alındı!</h1>
       <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6;">
-        Yardım talebiniz sisteme iletildi. Ekiplerimiz en kısa sürede bölgeye yönlendirilecektir. 
-        Aşağıdaki kod ile talebinizin durumunu canlı olarak takip edebilirsiniz.
+        Yardım talebiniz sisteme iletildi. Aşağıdaki kod ile talebinizin durumunu canlı olarak takip edebilirsiniz.
       </p>
 
       <div class="takip-box">
         <span style="color: #94a3b8; font-weight: 600; text-transform: uppercase; font-size: 0.85rem;">Takip Kodunuz</span>
         <span class="kod-text" id="kod">X-X-X-X</span>
+      </div>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 18px; margin-bottom: 30px; text-align: left; display: flex; align-items: center; gap: 15px;">
+        <div style="font-size: 2rem; color: var(--afad-navy);">
+          <i class="fas fa-file-invoice"></i>
+        </div>
+        <div>
+          <p style="color: var(--afad-navy); font-size: 0.9rem; font-weight: 800; margin: 0;">RESMİ KAYIT BELGESİ</p>
+          <p style="color: #1e40af; font-size: 0.75rem; margin-top: 2px; line-height: 1.4;">Talebiniz resmi kayıtlara geçmiştir. Lütfen dijital belgenizi cihazınıza kaydediniz.</p>
+          <button onclick="showTicket()" style="margin-top: 10px; background: var(--afad-navy); color: white; border: none; padding: 8px 18px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-id-card"></i> Dijital Belgeyi Görüntüle / İndir
+          </button>
+        </div>
       </div>
 
       <div class="btn-group">
@@ -124,10 +193,84 @@
     </div>
   </div>
 
+  <!-- Dijital Bilet Modalı -->
+  <div id="ticket-modal" class="modal">
+    <div class="ticket-card" id="printable-ticket">
+      <div class="ticket-header">
+        <div style="font-weight: 800; font-size: 1.2rem; letter-spacing: 1px;">🚨 AFET KOORDİNASYON</div>
+        <div style="font-size: 0.7rem; opacity: 0.9; margin-top: 4px; font-weight: 600; text-transform: uppercase;">Resmi Yardım Talebi Kayıt Belgesi</div>
+      </div>
+      <div class="ticket-body">
+        <div style="color: #94a3b8; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Takip Kodunuz</div>
+        <div id="modal-kod" style="font-size: 2.2rem; font-weight: 800; color: var(--afad-navy); letter-spacing: 3px; margin: 5px 0;">....</div>
+        
+        <div id="modal-qr" class="ticket-qr">
+          <img src="" id="qr-img" style="width: 100%; height: 100%;">
+        </div>
+
+        <div style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 12px; margin-top: 10px;">
+          <div style="margin-bottom: 8px;">
+            <label style="display: block; font-size: 0.65rem; color: #94a3b8; font-weight: 700;">TALEP BAŞLIĞI</label>
+            <span id="modal-baslik" style="font-size: 0.85rem; color: var(--afad-navy); font-weight: 700;">...</span>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.65rem; color: #94a3b8; font-weight: 700;">KAYIT TARİHİ</label>
+            <span id="modal-tarih" style="font-size: 0.85rem; color: var(--afad-navy); font-weight: 700;">...</span>
+          </div>
+        </div>
+
+        <button onclick="window.print()" class="btn-download-official" id="print-btn">
+          <i class="fas fa-print"></i> Yazdır veya PDF Kaydet
+        </button>
+        <p style="margin-top: 15px; color: #ef4444; font-size: 0.7rem; font-weight: 700; cursor: pointer;" onclick="closeTicket()">[ Pencereyi Kapat ]</p>
+      </div>
+      <div class="ticket-footer">
+        Bu belge dijital olarak oluşturulmuştur. <br> QR kod yardımıyla doğrulanabilir.
+      </div>
+    </div>
+  </div>
+
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const kod = urlParams.get('kod');
     const baslik = urlParams.get('baslik') || 'Yardım Talebi';
+
+    function showTicket() {
+      document.getElementById('modal-kod').textContent = kod;
+      document.getElementById('modal-baslik').textContent = baslik;
+      document.getElementById('modal-tarih').textContent = new Date().toLocaleString('tr-TR');
+      
+      const qrImg = document.getElementById('qr-img');
+      const qrContainer = document.getElementById('modal-qr');
+      
+      // Yükleme durumu göster
+      qrContainer.style.background = '#f1f5f9';
+      qrContainer.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%; font-size:0.7rem; color:#94a3b8;">Yükleniyor...</div>';
+
+      // Gerçek hayatta telefonların doğrudan linki tanıması için sadece URL kullanıyoruz
+      const trackingUrl = `${window.location.origin}/requests/takip/${kod}`;
+      
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(trackingUrl)}&bgcolor=ffffff`;
+      
+      const newImg = new Image();
+      newImg.onload = () => {
+        qrContainer.innerHTML = '';
+        newImg.style.width = '100%';
+        newImg.style.height = '100%';
+        newImg.style.display = 'block';
+        qrContainer.appendChild(newImg);
+      };
+      newImg.onerror = () => {
+        qrContainer.innerHTML = '<div style="color:#ef4444; font-size:0.6rem; padding: 20px;">QR Oluşturulamadı. Lütfen internet bağlantınızı kontrol edin.</div>';
+      };
+      newImg.src = qrUrl;
+      
+      document.getElementById('ticket-modal').style.display = 'flex';
+    }
+
+    function closeTicket() {
+      document.getElementById('ticket-modal').style.display = 'none';
+    }
 
     if (kod) {
       document.getElementById('kod').textContent = kod;

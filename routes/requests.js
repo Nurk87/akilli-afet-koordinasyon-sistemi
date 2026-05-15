@@ -183,34 +183,36 @@ router.get('/api/recover-list', async (req, res) => {
       return res.status(400).json({ error: 'İl ve İlçe seçimi zorunludur.' });
     }
 
-    // Önce ilce_ad'dan ilce_id bul
+    // Önce ilce_ad'dan ilce_id bul (Daha esnek arama: boşluk ve harf duyarlılığı için)
     const [ilceRows] = await pool.query(
-      "SELECT id FROM ilceler WHERE il_id = ? AND ad = ?",
+      "SELECT id FROM ilceler WHERE il_id = ? AND LOWER(TRIM(ad)) = LOWER(TRIM(?))",
       [parseInt(il_id), ilce_ad]
     );
 
     if (ilceRows.length === 0) {
-      return res.json([]); // İlçe bulunamadıysa boş dön
+      return res.json([]);
     }
 
     const actualIlceId = ilceRows[0].id;
+    // Zaman filtresini 30 güne çıkarıyoruz (Kullanıcı verilerini bulabilsin diye)
     const isSqlite = pool.getDbType() === 'sqlite';
-    const timeFilter = isSqlite ? "datetime('now', '-2 days')" : "DATEADD(day, -2, GETDATE())";
-
+    const timeFilter = isSqlite ? "datetime('now', '-30 days')" : "DATEADD(day, -30, GETDATE())";
+    
     const query = `
-      SELECT 
-        ad_soyad, baslik, takip_kodu, durum, olusturulma_tarihi 
-      FROM yardim_talepleri 
-      WHERE il_id = ? AND ilce_id = ? AND ad_soyad IS NOT NULL
+      SELECT TOP 50
+        ad_soyad, baslik, takip_kodu, durum, olusturulma_tarihi, mahalle, telefon, 
+        COALESCE(yardim_tipi, N'Genel') as yardim_tipi
+      FROM yardim_talepleri WITH (NOLOCK)
+      WHERE il_id = ? AND ilce_id = ? 
+      AND ad_soyad IS NOT NULL
       AND olusturulma_tarihi >= ${timeFilter}
       ORDER BY olusturulma_tarihi DESC
     `;
-
     const [rows] = await pool.query(query, [il_id, actualIlceId]);
-    res.json(rows.slice(0, 30));
+    res.json(rows);
   } catch (error) {
-    console.error('Kurtarma Listesi Hatası:', error);
-    res.status(500).json({ error: 'Liste alınamadı' });
+    console.error('❌ Kurtarma Listesi Hatası:', error);
+    res.status(500).json({ error: 'Liste alınamadı', details: error.message });
   }
 });
 
@@ -220,12 +222,14 @@ router.get('/api/list', verifyToken, async (req, res) => {
     let params = [];
 
     if (req.user.rol === 'kazazede') {
-      whereClause = "WHERE y.kullanici_id = ?";
+      whereClause = "WHERE y.kullanici_id = ? AND y.baslik NOT LIKE '%Simülasyon%' AND y.aciklama NOT LIKE '%Simülasyon%'";
       params.push(req.user.id);
+    } else {
+      whereClause = "WHERE y.baslik NOT LIKE '%Simülasyon%' AND y.aciklama NOT LIKE '%Simülasyon%'";
     }
 
     let query = `
-      SELECT 
+      SELECT TOP 100
         y.*, 
         COALESCE(u.ad, y.ad_soyad) as gosterilecek_ad, 
         COALESCE(u.soyad, '') as gosterilecek_soyad, 
@@ -324,24 +328,24 @@ router.post('/api/update-status-gonullu', verifyToken, async (req, res) => {
       return res.status(403).json({ error: 'Bu görevi güncelleme yetkiniz yok.' });
     }
 
-    // --- SIRALI GÖREV DİSİPLİNİ KONTROLÜ ---
-    // Gönüllünün üzerine atanmış daha yüksek öncelik skorlu ve henüz tamamlanmamış görev var mı?
+    // --- SIRALI GÖREV DİSİPLİNİ (ESNEK - BLOKLAMA KALDIRILDI) ---
+    // Simülasyon görevlerini öncelik kontrolünden tamamen çıkarıyoruz.
     const [higherPriority] = await pool.query(`
-      SELECT TOP 1 y.baslik, y.hesaplanan_oncelik_skoru
+      SELECT TOP 1 y.baslik
       FROM yardim_talepleri y
       JOIN yardim_atamalari ya ON y.id = ya.talep_id
       WHERE ya.gonullu_id = ? 
       AND ya.durum IN ('atandi', 'yola cikti', 'talep alindi')
       AND y.id != ?
+      AND y.baslik NOT LIKE '%Simülasyon%' AND y.aciklama NOT LIKE '%Simülasyon%'
       AND y.hesaplanan_oncelik_skoru > (SELECT hesaplanan_oncelik_skoru FROM yardim_talepleri WHERE id = ?)
       ORDER BY y.hesaplanan_oncelik_skoru DESC
     `, [req.user.id, id, id]);
 
     if (higherPriority.length > 0) {
-      return res.status(403).json({ 
-        error: `Sıralı Görev Kuralı: Lütfen önce en yüksek öncelikli ' ${higherPriority[0].baslik} ' görevini tamamlayın.` 
-      });
+       console.log(`⚠️ BİLGİ: Gönüllü (${req.user.id}), yüksek öncelikli (${higherPriority[0].baslik}) görevi varken başka bir göreve geçiş yaptı.`);
     }
+    // ---------------------------------------------------------
     // --------------------------------------
 
     await pool.query(

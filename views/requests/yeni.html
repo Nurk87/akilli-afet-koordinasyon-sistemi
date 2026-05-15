@@ -178,15 +178,31 @@
     }).addTo(map);
 
     var marker;
-    function setMarker(lat, lng) {
+    async function setMarker(lat, lng, autoFillAddress = true) {
       if (marker) map.removeLayer(marker);
       marker = L.marker([lat, lng]).addTo(map);
       document.getElementById('enlem').value = lat;
       document.getElementById('boylam').value = lng;
+
+      // Otomatik Adres Doldurma (Reverse Geocoding)
+      if (autoFillAddress) {
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+          const data = await response.json();
+          if (data.display_name) {
+            const currentAddr = document.getElementById('acik_adres').value;
+            // Eğer adres kutusu boşsa veya sadece otomatik veri varsa güncelle
+            document.getElementById('acik_adres').value = data.display_name;
+            document.getElementById('acik_adres').style.borderColor = '#10b981'; // Başarı rengi
+          }
+        } catch (e) {
+          console.warn("Adres çözümlenemedi:", e);
+        }
+      }
     }
 
     map.on('click', function(e) {
-      setMarker(e.latlng.lat, e.latlng.lng);
+      setMarker(e.latlng.lat, e.latlng.lng, true);
     });
 
     document.getElementById('konumum').onclick = function() {

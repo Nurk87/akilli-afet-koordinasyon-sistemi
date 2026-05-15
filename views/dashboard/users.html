@@ -149,7 +149,10 @@
   <script>
     async function loadUsers() {
       try {
-        const res = await fetch('/dashboard/api/users');
+        const res = await fetch('/dashboard/api/users', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
         const users = await res.json();
         
         const tbody = document.getElementById('users-tbody');
@@ -202,6 +205,7 @@
         });
       } catch (err) {
         console.error('Kullanıcılar yüklenemedi:', err);
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center; color:red; padding:30px;">Veri yükleme hatası! Lütfen oturumunuzu kontrol edin.</td></tr>';
       }
     }
 

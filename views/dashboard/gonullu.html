@@ -159,7 +159,11 @@
       
       try {
         // Profil ve Puanları Yükle
-        const profRes = await fetch('/dashboard/api/me');
+        const profRes = await fetch('/dashboard/api/me', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (!profRes.ok) throw new Error(`Profil bilgisi alınamadı (HTTP ${profRes.status})`);
         const profile = await profRes.json();
         if (profile) {
           document.getElementById('user-name-display').innerText = `${profile.ad} ${profile.soyad}`;
@@ -170,7 +174,11 @@
           renderAvailabilityToggle();
         }
 
-        const res = await fetch('/atamalar/api/my-tasks');
+        const res = await fetch('/atamalar/api/my-tasks', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error(`Görev listesi alınamadı (HTTP ${res.status})`);
         const myTasks = await res.json();
         
         let activeTasks = myTasks.filter(r => r.durum !== 'tamamlandi');
@@ -207,47 +215,38 @@
         });
 
       } catch (err) {
-        console.error(err);
-        activeContainer.innerHTML = '<p style="color: #ef4444; text-align:center;">Hata oluştu.</p>';
+        console.error('Görev Yükleme Hatası:', err);
+        activeContainer.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #ef4444;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+            <p style="font-weight: 700; margin: 0;">Bağlantı Hatası!</p>
+            <p style="font-size: 0.8rem; opacity: 0.8;">Detay: ${err.message || 'Sunucu yanıt vermiyor'}</p>
+          </div>`;
       }
     }
 
     function createTaskCard(task, color, statusLabel, rawStatus, isRecommended) {
       const card = document.createElement('div');
-      const isLocked = !isRecommended && rawStatus !== 'tamamlandi';
       
       card.style.background = 'white';
       card.style.padding = '25px';
       card.style.borderRadius = '20px';
       card.style.boxShadow = isRecommended ? '0 10px 30px rgba(227, 6, 19, 0.1)' : '0 4px 12px rgba(0,0,0,0.03)';
-      card.style.borderLeft = `8px solid ${isLocked ? '#cbd5e1' : color}`;
+      card.style.borderLeft = `8px solid ${isRecommended ? 'var(--afad-red)' : color}`;
       card.style.position = 'relative';
-      card.style.opacity = isLocked ? '0.7' : '1';
       
       if (isRecommended) {
         card.style.border = '2px solid rgba(227, 6, 19, 0.2)';
         card.style.borderLeft = '8px solid var(--afad-red)';
       }
 
-      // Öncelik Renkleri
-      const pColors = {
-        'acil': '#e30613',
-        'yuksek': '#f97316',
-        'orta': '#eab308',
-        'dusuk': '#10b981'
-      };
+      const pColors = { 'acil': '#e30613', 'yuksek': '#f97316', 'orta': '#eab308', 'dusuk': '#10b981' };
       const pColor = pColors[task.oncelik?.toLowerCase()] || '#64748b';
 
       card.innerHTML = `
         ${isRecommended ? `
           <div style="position: absolute; top: -12px; left: 20px; background: var(--afad-red); color: white; padding: 4px 15px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 10px rgba(227, 6, 19, 0.3);">
             <i class="fas fa-star"></i> SİSTEMİN ÖNERDİĞİ İLK GÖREV
-          </div>
-        ` : ''}
-
-        ${isLocked ? `
-          <div style="position: absolute; top: 10px; right: 10px; color: #94a3b8; font-size: 0.8rem; font-weight: 600;">
-             <i class="fas fa-lock"></i> SIRALI GÖREV KİLİDİ
           </div>
         ` : ''}
         
@@ -269,36 +268,36 @@
               </div>
             </div>
           </div>
-          <span class="badge" style="background:${isLocked ? '#f1f5f9' : color + '10'}; color:${isLocked ? '#94a3b8' : color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
+          <span class="badge" style="background:${color + '10'}; color:${color}; font-weight:800; border:1px solid currentColor;">${statusLabel}</span>
         </div>
         
         <p style="font-size:0.95rem; color:#475569; margin:15px 0; line-height: 1.5;">${task.aciklama || 'Açıklama yok'}</p>
 
         ${task.fotograf_yolu ? `
         <div style="margin-bottom:15px; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; height:180px; position: relative; cursor: zoom-in;" onclick="window.open(this.src)">
-          <img src="${task.fotograf_yolu}" style="width:100%; height:100%; object-fit:cover; filter: ${isLocked ? 'grayscale(100%) opacity(0.5)' : 'none'};">
+          <img src="${task.fotograf_yolu}" style="width:100%; height:100%; object-fit:cover;">
         </div>
         ` : ''}
         
         <div id="actions-${task.id}" style="display: flex; flex-direction: column; gap: 10px;">
             ${rawStatus === 'atandi' || rawStatus === 'onaylandi' ? `
-              <button onclick="updateMissionStatus(${task.id}, 'yola cikti', ${isLocked})" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+              <button onclick="updateMissionStatus(${task.id}, 'yola cikti', ${!isRecommended})" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: var(--afad-navy); border: none; cursor: pointer;">
                 <i class="fas fa-truck-moving"></i> GÖREVİ BAŞLAT / YOLA ÇIK
               </button>` : ''}
               
             ${rawStatus === 'yola cikti' || rawStatus === 'ekipler yolda' ? `
-              <button onclick="updateMissionStatus(${task.id}, 'talep alindi', ${isLocked})" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: ${isLocked ? '#cbd5e1' : '#f59e0b'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+              <button onclick="updateMissionStatus(${task.id}, 'talep alindi', false)" class="btn btn-premium" style="font-size:0.9rem; padding:12px; width:100%; background: #f59e0b; border: none; cursor: pointer;">
                 <i class="fas fa-location-dot"></i> OLAY YERİNE VARILDI
               </button>` : ''}
 
             <div style="display:flex; gap:10px;">
               ${rawStatus !== 'tamamlandi' ? `
-              <button onclick="openNavigation(${task.enlem}, ${task.boylam}, ${isLocked})" class="btn btn-navy" style="font-size:0.85rem; padding:10px; flex:1; background: #f1f5f9 !important; color: ${isLocked ? '#cbd5e1' : 'var(--afad-navy)'} !important; border: 1px solid #e2e8f0; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+              <button onclick="openNavigation(${task.enlem}, ${task.boylam})" class="btn btn-navy" style="font-size:0.85rem; padding:10px; flex:1; background: #f1f5f9 !important; color: var(--afad-navy) !important; border: 1px solid #e2e8f0; cursor: pointer;">
                 <i class="fas fa-route"></i> YOL TARİFİ
               </button>` : ''}
               
               ${rawStatus === 'talep alindi' ? `
-              <button onclick="updateMissionStatus(${task.id}, 'tamamlandi', ${isLocked})" class="btn btn-success" style="font-size:0.85rem; padding:10px; flex:1; background: ${isLocked ? '#cbd5e1' : '#10b981'}; border: none; cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+              <button onclick="updateMissionStatus(${task.id}, 'tamamlandi', false)" class="btn btn-success" style="font-size:0.85rem; padding:10px; flex:1; background: #10b981; border: none; cursor: pointer;">
                 <i class="fas fa-check-double"></i> GÖREV TAMAM
               </button>` : ''}
             </div>
@@ -330,6 +329,7 @@
         iconClass = "fa-award";
       }
       
+      rankName = rankName || 'Yeni Gönüllü';
       text.innerText = rankName.toUpperCase();
       text.style.color = color;
       icon.style.color = color;
@@ -355,9 +355,9 @@
     }
 
     async function updateMissionStatus(taskId, newStatus, isLocked) {
-      if (isLocked) {
-        alert("⚠️ SIRALI GÖREV KURALI: Lütfen önce listenin en üstündeki yüksek öncelikli görevinizi tamamlayın.");
-        return;
+      if (isLocked && (newStatus === 'yola cikti' || newStatus === 'ekipler yolda')) {
+        const proceed = confirm("⚠️ DİKKAT: Henüz tamamlanmamış daha yüksek öncelikli bir göreviniz bulunuyor.\n\nYine de bu göreve öncelik verip başlamak istiyor musunuz?");
+        if (!proceed) return;
       }
       
       const messages = {
@@ -371,7 +371,11 @@
       try {
         const res = await fetch('/requests/api/update-status-gonullu', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
           body: JSON.stringify({ id: taskId, durum: newStatus })
         });
         const data = await res.json();
@@ -392,7 +396,10 @@
     // --- BİLDİRİM SİSTEMİ ---
     async function loadNotifications() {
       try {
-        const res = await fetch('/api/notifications/list');
+        const res = await fetch('/api/notifications/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
         const data = await res.json();
         const unread = data.filter(n => !n.is_read).length;
         const b = document.getElementById('notif-badge');
@@ -429,7 +436,11 @@
     window.markRead = async (id, link) => {
       await fetch('/api/notifications/mark-as-read', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: {
+          'Content-Type':'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({id})
       });
       if(link) {
@@ -440,7 +451,11 @@
     };
 
     window.markAllRead = async () => {
-      await fetch('/api/notifications/mark-all-read', {method:'POST'});
+      await fetch('/api/notifications/mark-all-read', {
+        method:'POST',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
       loadNotifications();
     };
 
@@ -462,7 +477,11 @@
         try {
           const response = await fetch('/dashboard/api/users/update-location', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            credentials: 'include',
             body: JSON.stringify({ lat, lng })
           });
           
@@ -515,7 +534,11 @@
       try {
         const res = await fetch('/dashboard/api/users/toggle-availability', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
           body: JSON.stringify({ status: newStatus })
         });
         const data = await res.json();
@@ -549,7 +572,10 @@
       list.innerHTML = '<p style="text-align: center; color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Radar taranıyor...</p>';
       
       try {
-        const res = await fetch('/dashboard/api/users/nearby');
+        const res = await fetch('/dashboard/api/users/nearby', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
         const data = await res.json();
         
         if (res.status !== 200) {

@@ -3,7 +3,14 @@ const jwt = require('jsonwebtoken');
 function verifyToken(req, res, next) {
   const token = req.cookies.token;
   if (!token) {
-    const isApiRequest = req.xhr || (req.headers.accept && req.headers.accept.includes('json')) || req.path.includes('/api/');
+    const isApiRequest = 
+      req.xhr || 
+      (req.headers.accept && req.headers.accept.includes('json')) || 
+      req.path.includes('/api/') || 
+      req.path.startsWith('/atamalar/') || 
+      req.path.startsWith('/requests/') ||
+      req.path.includes('/dashboard/api/');
+
     if (isApiRequest) {
       return res.status(401).json({ error: 'Oturum süresi doldu' });
     }
@@ -15,7 +22,14 @@ function verifyToken(req, res, next) {
     next();
   } catch (err) {
     res.clearCookie('token');
-    const isApiRequest = req.xhr || (req.headers.accept && req.headers.accept.includes('json')) || req.path.includes('/api/');
+    const isApiRequest = 
+      req.xhr || 
+      (req.headers.accept && req.headers.accept.includes('json')) || 
+      req.path.includes('/api/') || 
+      req.path.startsWith('/atamalar/') || 
+      req.path.startsWith('/requests/') ||
+      req.path.includes('/dashboard/api/');
+
     if (isApiRequest) {
       return res.status(401).json({ error: 'Geçersiz oturum' });
     }

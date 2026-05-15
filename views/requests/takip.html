@@ -99,16 +99,47 @@
         padding: 15px;
         border-left: 5px solid var(--afad-navy);
     }
+    .btn-home:hover {
+        background: #f8fafc !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+    }
   </style>
 </head>
 <body>
-  <nav class="navbar" style="height: 60px; background: var(--afad-navy);">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-        <span style="color: white; font-weight: 700;">🚨 CANLI TAKİP SİSTEMİ</span>
-        <span id="takip-kodu-display" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Kod: ....</span>
-        <a href="/" style="color: white; text-decoration: none; font-size: 0.9rem;"><i class="fas fa-home"></i> Ana Sayfa</a>
+  <nav class="navbar" style="height: 60px; background: var(--afad-navy); border-bottom: 3px solid var(--afad-red); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px; height: 100%;">
+        <span style="color: white; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px;">
+          <i class="fas fa-satellite-dish" style="color: var(--afad-red);"></i> CANLI TAKİP SİSTEMİ
+        </span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="background: rgba(255,255,255,0.12); padding: 6px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px;">
+            <span style="color: rgba(255,255,255,0.6); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Kod</span>
+            <span id="takip-kodu-display" style="color: #fff; font-family: 'Courier New', Courier, monospace; font-weight: 700; font-size: 0.95rem;">....</span>
+          </div>
+
+          <a href="javascript:window.print()" class="btn-download" style="background: var(--afad-red); color: white; text-decoration: none; font-size: 0.85rem; font-weight: 700; padding: 8px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 10px rgba(227, 6, 19, 0.2);">
+            <i class="fas fa-file-pdf"></i> Bilgi Kartı
+          </a>
+          
+          <a href="/" class="btn-home" style="background: white; color: var(--afad-navy); text-decoration: none; font-size: 0.85rem; font-weight: 700; padding: 8px 16px; border-radius: 10px; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <i class="fas fa-house"></i> Ana Sayfa
+          </a>
+        </div>
     </div>
   </nav>
+
+  <style>
+    @media print {
+      .navbar, #map, .btn-download, .btn-home { display: none !important; }
+      body { background: white; padding: 0; }
+      .tracking-grid { display: block; }
+      .status-panel { width: 100%; border: 2px solid #003366; border-radius: 0; padding: 40px; box-shadow: none; }
+      .timeline { margin-top: 40px; }
+      #victim-info-card { border: 1px solid #ddd; margin-top: 20px; }
+      .status-panel::before { content: 'AFAD AFET KOORDİNASYON - RESMİ TAKİP KARTI'; display: block; text-align: center; font-weight: 800; border-bottom: 2px solid #e30613; padding-bottom: 20px; margin-bottom: 30px; }
+    }
+  </style>
 
   <div class="tracking-grid">
     <div id="map"></div>
@@ -119,19 +150,45 @@
         <span id="label-durum" class="status-badge status-yeni">Durum Bekleniyor</span>
       </div>
 
-      <div id="photo-container" style="display: none; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px;">
-        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-camera"></i> GÖNDERDİĞİNİZ FOTOĞRAF</p>
+      <div id="victim-info-card" style="background: #f8fafc; border-radius: 15px; padding: 15px; border: 1px solid #e2e8f0;">
+        <p style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px;">Talep Bilgileri</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; margin-bottom: 2px;">AÇIKLAMA</label>
+            <p id="talep-aciklama" style="font-size: 0.85rem; color: var(--afad-navy); line-height: 1.4; margin: 0; font-weight: 600;">...</p>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; margin-bottom: 2px;">ADRES / KONUM</label>
+            <p id="talep-adres" style="font-size: 0.8rem; color: #475569; margin: 0; font-weight: 600;">...</p>
+            <p id="talep-konum-ozet" style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">...</p>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; margin-bottom: 2px;">KATEGORİ</label>
+              <span id="talep-kategori" style="font-size: 0.75rem; color: var(--afad-navy); font-weight: 700;">...</span>
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; margin-bottom: 2px;">ÖNCELİK</label>
+              <span id="talep-oncelik" style="font-size: 0.75rem; font-weight: 700;">...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="photo-container" style="display: none; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 5px;">
+        <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-camera"></i> GÖNDERDİĞİNİZ FOTOĞRAF</p>
         <img id="victim-photo" src="" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: zoom-in;" onclick="window.open(this.src)">
       </div>
 
-      <div id="voice-note-container" style="display: none; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px;">
-        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-microphone"></i> GÖNDERDİĞİNİZ SESLİ MESAJ</p>
+      <div id="voice-note-container" style="display: none; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 5px;">
+        <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 8px; font-weight: 700;"><i class="fas fa-microphone"></i> GÖNDERDİĞİNİZ SESLİ MESAJ</p>
         <audio id="voice-player" controls style="width: 100%; height: 35px;">
            <source id="voice-source" src="" type="audio/webm">
         </audio>
       </div>
-
-      <hr style="border: none; border-top: 1px solid #f1f5f9;">
 
       <div class="timeline">
         <div class="timeline-item" id="step-yeni">
@@ -153,10 +210,10 @@
       </div>
 
       <div id="gonullu-card" style="display: none;">
-        <p style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; margin-bottom: 10px;">ATANAN EKİP BİLGİSİ</p>
+        <p style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; margin-bottom: 10px; text-transform: uppercase;">Atanan Ekip Bilgisi</p>
         <div class="assigned-info">
-            <h4 id="gonullu-ad">...</h4>
-            <p id="gonullu-tel" style="font-size: 0.85rem; margin-top: 5px;"><i class="fas fa-phone"></i> ...</p>
+            <h4 id="gonullu-ad" style="margin: 0; color: var(--afad-navy); font-size: 1rem; font-weight: 800;">...</h4>
+            <p id="gonullu-tel" style="font-size: 0.85rem; margin-top: 5px; color: #475569; font-weight: 600;"><i class="fas fa-phone"></i> ...</p>
         </div>
       </div>
 
@@ -189,6 +246,22 @@
 
         // UI Güncelleme
         document.getElementById('talep-baslik').textContent = data.baslik;
+        document.getElementById('talep-aciklama').textContent = data.aciklama || 'Açıklama belirtilmemiş.';
+        document.getElementById('talep-adres').textContent = data.acik_adres || 'Adres bilgisi girilmemiş.';
+        document.getElementById('talep-konum-ozet').textContent = `${data.il_adi} / ${data.ilce_adi} / ${data.mahalle || '-'} Mah.`;
+        document.getElementById('talep-kategori').textContent = data.yardim_tipi || 'Genel';
+        
+        const prioBadge = document.getElementById('talep-oncelik');
+        const prioMap = {
+            'acil': { text: 'ACİL', color: '#e30613' },
+            'yuksek': { text: 'Yüksek', color: '#f97316' },
+            'orta': { text: 'Orta', color: '#eab308' },
+            'dusuk': { text: 'Düşük', color: '#10b981' }
+        };
+        const p = prioMap[data.oncelik] || prioMap['orta'];
+        prioBadge.textContent = p.text;
+        prioBadge.style.color = p.color;
+
         const durBadge = document.getElementById('label-durum');
         durBadge.textContent = data.durum.toUpperCase();
         durBadge.className = 'status-badge status-' + data.durum;
@@ -247,7 +320,11 @@
                 }).addTo(map).bindPopup('<b>Sizin Konumunuz</b><br>' + data.baslik).openPopup();
                 map.setView(victimPos, 15);
             } else {
-                victimMarker.setLatLng(victimPos);
+                const oldLatLng = victimMarker.getLatLng();
+                if (oldLatLng.lat !== data.enlem || oldLatLng.lng !== data.boylam) {
+                    victimMarker.setLatLng(victimPos);
+                    if (oldLatLng.lat === 0) map.setView(victimPos, 15);
+                }
             }
         }
 

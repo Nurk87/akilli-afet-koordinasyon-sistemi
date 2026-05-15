@@ -6,6 +6,7 @@
   "hero_title": "Akıllı Afet <span style='color: var(--afad-red);'>Koordinasyon</span> ve Kaynak <span style='color: var(--afad-red);'>Optimizasyon</span> Sistemi",
   "hero_desc": "Yapay zeka ve gerçek zamanlı konum verileriyle afet anında doğru kaynakları, doğru ihtiyaç sahiplerine en hızlı şekilde ulaştırıyoruz.",
   "hero_btn_sos": "Hemen Yardım İste",
+  "hero_btn_areas": "<i class='fas fa-map-marked-alt'></i> Toplanma Alanları",
   "hero_btn_track": "Talebi Takip Et",
   "track_title": "Yardım Talebinizi Takip Edin",
   "track_desc": "Size verilen 8 haneli takip kodunu girerek yardım ekibinin durumunu anlık olarak izleyebilirsiniz.",

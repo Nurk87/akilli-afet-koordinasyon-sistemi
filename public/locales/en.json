@@ -6,6 +6,7 @@
   "hero_title": "Smart Disaster <span style='color: var(--afad-red);'>Coordination</span> and Resource <span style='color: var(--afad-red);'>Optimization</span> System",
   "hero_desc": "With AI and real-time location data, we deliver the right resources to the right people in need as quickly as possible during a disaster.",
   "hero_btn_sos": "Request Help Now",
+  "hero_btn_areas": "<i class='fas fa-map-marked-alt'></i> Assembly Areas",
   "hero_btn_track": "Track Request",
   "track_title": "Track Your Help Request",
   "track_desc": "By entering the 8-digit tracking code given to you, you can monitor the status of the aid team in real time.",

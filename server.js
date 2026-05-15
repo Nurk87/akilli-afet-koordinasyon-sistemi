@@ -9,11 +9,12 @@ require('dotenv').config();
 const { verifyToken } = require('./middleware/auth');
 const { requireRole } = require('./middleware/role');
 const authRoutes = require('./routes/auth');
+const { fetchAfadToplanmaAlanlari } = require('./utils/afad-api');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'https://seninsiten.com', credentials: true })); // kendi domainini yaz
+app.use(cors({ origin: true, credentials: true })); // Geliştirme aşamasında tüm kökenlere izin ver veya [origin: 'http://localhost:3000'] kullan
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -45,10 +46,33 @@ app.get('/guvenli-alanlar', (req, res) => {
 app.get('/api/guvenli-alanlar', async (req, res) => {
   const pool = require('./config/database');
   try {
+    // Veritabanından mevcut alanları getir
     const [rows] = await pool.query("SELECT * FROM guvenli_alanlar WHERE aktif = 1");
     res.json(rows);
   } catch (error) {
     res.status(500).json({ error: 'Veriler çekilemedi.' });
+  }
+});
+
+// AFAD Sisteminden Verileri Güncelleme (Sync)
+app.post('/api/sync-afad', verifyToken, requireRole('admin'), async (req, res) => {
+  const pool = require('./config/database');
+  try {
+    const afadData = await fetchAfadToplanmaAlanlari();
+    
+    // Basit bir senkronizasyon mantığı:
+    // Mevcut verileri pasife çekip yenileri ekleyebilir veya güncelleyebiliriz.
+    for (const area of afadData) {
+        await pool.query(
+            "IF NOT EXISTS (SELECT 1 FROM guvenli_alanlar WHERE ad = ?) " +
+            "INSERT INTO guvenli_alanlar (ad, tip, enlem, boylam, kapasite, aciklama, aktif) VALUES (?, ?, ?, ?, ?, ?, 1)",
+            [area.ad, area.ad, area.tip, area.enlem, area.boylam, area.kapasite, area.aciklama]
+        );
+    }
+    
+    res.json({ success: true, message: 'AFAD verileri başarıyla senkronize edildi.', count: afadData.length });
+  } catch (error) {
+    res.status(500).json({ error: 'Senkronizasyon başarısız: ' + error.message });
   }
 });
 

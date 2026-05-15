@@ -110,7 +110,10 @@
 
     // Get current user status
     async function checkAuth() {
-      const res = await fetch('/auth/status');
+      const res = await fetch('/auth/status', {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         userRole = data.rol;
@@ -128,7 +131,11 @@
       try {
         const res = await fetch('/requests/api/update-status', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
           body: JSON.stringify({ id: requestId, durum: newStatus })
         });
         
@@ -153,8 +160,18 @@
       pastContainer.innerHTML = '<p>Yükleniyor...</p>';
 
       try {
-        const res = await fetch('/requests/api/list');
+        const res = await fetch('/requests/api/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+
+        if (res.status === 401) {
+          window.location.href = '/giris';
+          return;
+        }
+
         const data = await res.json();
+        if (!Array.isArray(data)) throw new Error('Hatalı veri formatı');
         console.log('Talepler yüklendi:', data);
         
         activeContainer.innerHTML = '';
@@ -264,7 +281,9 @@
           }
         });
       } catch (err) {
-        console.error(err);
+        console.error('Yükleme hatası:', err);
+        activeContainer.innerHTML = `<div style="padding:40px; text-align:center; color:red;"><i class="fas fa-exclamation-triangle fa-2x"></i><br>Talepler yüklenemedi.</div>`;
+        pastContainer.innerHTML = `<div style="padding:40px; text-align:center; color:red;">Veri bağlantı hatası.</div>`;
       }
     }
 

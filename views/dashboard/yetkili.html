@@ -144,21 +144,7 @@
             <p id="assignmentSummaryText" style="color: #64748b; margin-top: 10px; font-weight: 500;">X adet talep en uygun gönüllülere yönlendirildi.</p>
           </div>
 
-          <!-- AI Verimlilik Raporu (YENİ) -->
-          <div id="efficiencyReport" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; background: #f0f9ff; padding: 20px; border-radius: 20px; border: 1px solid #bae6fd;">
-            <div style="text-align: center;">
-              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Yakıt Tasarrufu</div>
-              <div id="stat-fuel-saved" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">0 L</div>
-            </div>
-            <div style="text-align: center; border-left: 1px solid #bae6fd; border-right: 1px solid #bae6fd;">
-              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Zaman Kazancı</div>
-              <div id="stat-time-saved" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">0 dk</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="color: #0369a1; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">Başarı Skoru</div>
-              <div id="stat-eff-score" style="color: #0c4a6e; font-size: 1.2rem; font-weight: 800;">%0</div>
-            </div>
-          </div>
+          <!-- Atama Detayları -->
           
           <div style="margin-bottom: 10px; font-weight: 800; font-size: 0.85rem; color: var(--afad-navy); text-transform: uppercase; letter-spacing: 1px;">Atama Detayları</div>
           <div id="assignmentDetailList" style="max-height: 200px; overflow-y: auto; margin-bottom: 30px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0;">
@@ -199,7 +185,11 @@
 
     async function loadStats() {
       try {
-        const resStats = await fetch('/dashboard/api/stats');
+        const resStats = await fetch('/dashboard/api/stats', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (resStats.status === 401) return window.location.href = '/giris';
         const stats = await resStats.json();
         
         // Sesli Uyarı Kontrolü (Yeni talep geldiyse çal)
@@ -224,7 +214,11 @@
         }
 
         // Son Talepleri Yükle
-        const resReq = await fetch('/requests/api/list');
+        const resReq = await fetch('/requests/api/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (resReq.status === 401) return window.location.href = '/giris';
         const requests = await resReq.json();
         const latestRequests = document.getElementById('latestRequests');
         
@@ -311,7 +305,14 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch('/atamalar/otomatik', { method: 'POST' });
+        const res = await fetch('/atamalar/otomatik', { 
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
         const data = await res.json();
         if (res.ok && data.success) {
           // Başarılı Durum - Detaylı Rapor Göster
@@ -322,13 +323,6 @@
           summaryText.innerText = data.message;
           detailList.innerHTML = '';
           
-          // Verimlilik İstatistiklerini Yazdır
-          if (data.stats) {
-            document.getElementById('stat-fuel-saved').innerText = `${data.stats.fuelSaved} L`;
-            document.getElementById('stat-time-saved').innerText = `${data.stats.timeSaved} dk`;
-            document.getElementById('stat-eff-score').innerText = `%${data.stats.efficiencyScore}`;
-          }
-
           if (data.atamalar && data.atamalar.length > 0) {
             data.atamalar.forEach(atama => {
               const div = document.createElement('div');
@@ -354,7 +348,7 @@
           modal.style.display = 'flex';
           loadStats();
         } else {
-          alert('Uyarı: ' + (data.message || 'Atama işlemi için uygun kayıt bulunamadı.'));
+          alert('Hata: ' + (data.message || 'Atama işlemi yapılamadı.') + '\nDetay: ' + (data.details || 'Bilinmiyor'));
         }
       } catch (err) {
         console.error('Atama hatası:', err);
@@ -370,7 +364,11 @@
 
     async function initAnalytics() {
       try {
-        const res = await fetch('/dashboard/api/analytics');
+        const res = await fetch('/dashboard/api/analytics', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.status === 401) return window.location.href = '/giris';
         analyticsData = await res.json();
         renderPieChart();
       } catch (err) {
@@ -464,14 +462,19 @@
     document.head.appendChild(chartStyle);
 
     initAnalytics();
+    loadStats();
 
     // Periyodik güncelleme listesine ekle
     setInterval(initAnalytics, 60000); 
+    setInterval(loadStats, 10000); 
 
     // BİLDİRİM SİSTEMİ
     async function loadNotifications() {
       try {
-        const res = await fetch('/api/notifications/list');
+        const res = await fetch('/api/notifications/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
         const data = await res.json();
         const unread = data.filter(n => !n.is_read).length;
         const b = document.getElementById('notif-badge');
@@ -503,7 +506,11 @@
     window.markRead = async (id, link) => {
       await fetch('/api/notifications/mark-as-read', {
         method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        headers: {
+          'Content-Type':'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({id})
       });
       if(link) {
@@ -513,7 +520,11 @@
       }
     };
     window.markAllRead = async () => {
-      await fetch('/api/notifications/mark-all-read', {method:'POST'});
+      await fetch('/api/notifications/mark-all-read', {
+        method:'POST',
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
       loadNotifications();
     };
     loadNotifications();

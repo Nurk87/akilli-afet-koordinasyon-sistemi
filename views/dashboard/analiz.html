@@ -149,13 +149,16 @@
     let analyticsData = { statusDist: [], typeDist: [] };
 
     async function initAnalytics(el) {
-      const btn = el || document.querySelector('button[onclick^="initAnalytics"]');
+      const btn = el || null;
       const icon = btn ? btn.querySelector('i') : null;
       if (icon) icon.classList.add('fa-spin');
       if (btn) btn.disabled = true;
 
       try {
-        const res = await fetch('/dashboard/api/analytics');
+        const res = await fetch('/dashboard/api/analytics', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
         analyticsData = await res.json();
         renderPieChart();
         renderBarChart();

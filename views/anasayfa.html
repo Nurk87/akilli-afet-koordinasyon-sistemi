@@ -40,7 +40,7 @@
   </nav>
 
   <header class="afad-hero"
-    style="background-image: linear-gradient(rgba(0, 51, 102, 0.85), rgba(0, 51, 102, 0.6)), url('/images/afad_hero.png');">
+    style="background-image: linear-gradient(rgba(0, 51, 102, 0.85), rgba(0, 51, 102, 0.6)), url('/images/afad_hero.png'); padding-bottom: 220px;">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto;">
       <div class="hero-content">
         <div class="hero-text" style="text-align: center;">
@@ -52,7 +52,7 @@
             hızlı şekilde ulaştırıyoruz.</p>
           <div class="hero-buttons">
             <a href="/requests/yeni" class="btn btn-premium btn-lg" style="background: var(--afad-red); border-color: var(--afad-red); box-shadow: 0 10px 20px rgba(227, 6, 19, 0.3);" data-i18n="hero_btn_sos">Hemen Yardım İste</a>
-            <a href="/guvenli-alanlar" class="btn btn-navy btn-lg" style="background: #10b981; border: none;"><i class="fas fa-map-marked-alt"></i> Toplanma Alanları</a>
+            <a href="/guvenli-alanlar" class="btn btn-navy btn-lg" style="background: #10b981; border: none;" data-i18n="hero_btn_areas"><i class="fas fa-map-marked-alt"></i> Toplanma Alanları</a>
             <a href="#takip-sorgula" class="btn btn-navy btn-lg" style="border: 2px solid var(--afad-navy);" data-i18n="hero_btn_track"><i class="fas fa-search-location"></i> Talebi Takip Et</a>
           </div>
         </div>
@@ -61,7 +61,7 @@
   </header>
   
   <!-- Takip Sorgulama Bölümü -->
-  <section id="takip-sorgula" style="margin-top: -80px; position: relative; z-index: 10; scroll-margin-top: 100px; background-image: url('/images/tracking-bg.png'); background-size: cover; background-position: center; background-attachment: fixed; padding: 100px 0; border-top: 2px solid rgba(227, 6, 19, 0.1);">
+  <section id="takip-sorgula" style="margin-top: -190px; position: relative; z-index: 10; scroll-margin-top: 100px; background-image: url('/images/tracking-bg.png'); background-size: cover; background-position: center; background-attachment: fixed; padding: 60px 0; border-top: none;">
     <div class="container" style="width: 90%; max-width: 800px; margin: 0 auto;">
       <div class="glass-card" style="padding: 30px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-top: 5px solid var(--afad-red);">
         <div style="display: flex; flex-direction: column; gap: 15px;">
@@ -83,41 +83,198 @@
     </div>
   </section>
 
-  <!-- Kod Hatırlatma Modalı -->
-  <div id="recovery-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div class="glass-card" style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; padding: 40px; border-radius: 30px; position: relative; border-top: 8px solid var(--afad-red);">
-      <button onclick="modalKapat()" style="position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;"><i class="fas fa-times"></i></button>
-      
-      <h2 style="color: var(--afad-navy); margin-bottom: 10px; font-weight: 800;" data-i18n="rec_modal_title"><i class="fas fa-search"></i> Talebimi Bul</h2>
-      <p style="color: #64748b; margin-bottom: 25px;" data-i18n="rec_modal_desc">Talebinizi oluşturduğunuz <b>İlçeyi</b> seçerek son kayıtlara ulaşın.</p>
+  <style>
+    .cat-chip {
+      padding: 10px 18px;
+      background: #f8fafc;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid transparent;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cat-chip:hover { background: #f1f5f9; transform: translateY(-2px); }
+    .cat-chip.active {
+      background: #fff;
+      color: var(--afad-red);
+      border-color: var(--afad-red);
+      box-shadow: 0 10px 15px -3px rgba(227, 6, 19, 0.1);
+    }
+    .recovery-content {
+      background: #f8fafc; border-radius: 28px; width: 90%; max-width: 650px;
+      max-height: 85vh; overflow-y: auto; position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: modalSlideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalSlideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .recovery-header {
+      padding: 40px 40px 30px 40px;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .recovery-header h2 {
+      margin: 0; color: var(--afad-navy); font-size: 2rem; font-weight: 800;
+      display: flex; align-items: center; gap: 15px;
+    }
+    .recovery-header h2 i { color: var(--afad-red); }
+    .recovery-header p { color: #64748b; margin: 10px 0 0 0; font-size: 1rem; }
+    
+    .recovery-body { padding: 30px 40px; display: flex; flex-direction: column; gap: 18px; }
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-        <div class="form-group" style="margin: 0;">
-          <label style="font-size: 0.85rem;" data-i18n="label_city">İl Seçin</label>
-          <select id="rec-il" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;"></select>
-        </div>
-        <div class="form-group" style="margin: 0;">
-          <label style="font-size: 0.85rem;" data-i18n="label_district">İlçe Seçin</label>
-          <select id="rec-ilce" style="padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0;">
-            <option value="" data-i18n="option_pre_city">-- Önce İl --</option>
-          </select>
-        </div>
-      </div>
+    .recovery-card {
+      background: white; border-radius: 22px; padding: 24px;
+      border: 1px solid transparent; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .recovery-card:hover {
+      border-color: var(--afad-red);
+      transform: scale(1.02);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+      background: #ffffff;
+    }
+    .close-btn {
+      position: absolute; top: 25px; right: 25px; border: none; background: #f1f5f9;
+      width: 38px; height: 38px; border-radius: 50%; color: #64748b; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: 0.3s;
+      z-index: 100;
+    }
+    .close-btn:hover { background: #e2e8f0; color: var(--afad-red); transform: rotate(90deg); }
+  .card-main { display: flex; align-items: center; gap: 20px; }
+    .card-icon-box {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .card-info h4 { margin: 0; color: var(--afad-navy); font-size: 1.15rem; font-weight: 700; }
+    .card-meta { display: flex; align-items: center; gap: 12px; margin-top: 6px; color: #94a3b8; font-size: 0.85rem; }
+    .status-pill {
+      padding: 6px 14px; border-radius: 10px; font-size: 0.75rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .status-yeni { background: #fee2e2; color: #ef4444; }
+    .status-atandi { background: #e0e7ff; color: #4338ca; }
+    .status-yolda { background: #fef3c7; color: #b45309; }
+    .status-tamamlandi { background: #dcfce7; color: #15803d; }
 
-      <div id="voice-search-section" style="display: none; margin-bottom: 25px;">
-        <button id="btn-voice-rec" class="btn-navy" style="width: 100%; background: #f1f5f9; color: var(--afad-navy); border: 2px solid var(--afad-navy); border-radius: 15px; padding: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
-          <i class="fas fa-microphone" id="mic-icon"></i> <span id="mic-text" data-i18n="voice_search_text">İsminizi Söyleyerek Filtreleyin</span>
-        </button>
-      </div>
-
-      <div id="recovery-results" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-        <!-- Sonuçlar buraya gelecek -->
-      </div>
-    </div>
-  </div>
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.7); z-index: 10000;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); padding: 20px;
+    }
+    .recovery-content {
+      background: #ffffff; border-radius: 30px; width: 95%; max-width: 700px;
+      max-height: 90vh; overflow: hidden; position: relative;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
+      display: flex; flex-direction: column;
+      animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cat-filter {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;
+      padding: 5px 0;
+    }
+    .cat-chip {
+      padding: 8px 16px; background: #f1f5f9; border-radius: 100px;
+      font-size: 0.85rem; font-weight: 600; color: #475569;
+      cursor: pointer; transition: all 0.3s; border: 1.5px solid transparent;
+      display: flex; align-items: center; gap: 8px; white-space: nowrap;
+    }
+    .cat-chip:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .cat-chip.active {
+      background: #fff; color: var(--afad-red); border-color: var(--afad-red);
+      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.15);
+    }
+    .recovery-header {
+      padding: 40px 40px 25px 40px; background: #fff;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .recovery-body { 
+      padding: 30px 40px; flex: 1; overflow-y: auto; 
+      background: #fafafa; display: flex; flex-direction: column; gap: 15px; 
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; }
+    .modal-select {
+      width: 100%; padding: 12px 15px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+      font-weight: 600; color: var(--afad-navy); outline: none; background: white;
+    }
+    .btn-search {
+      background: var(--afad-red); color: white; border: none; padding: 12px 25px;
+      border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s;
+      box-shadow: 0 4px 15px rgba(227, 6, 19, 0.2);
+    }
+    .btn-search:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(227, 6, 19, 0.3); }
+  </style>
 
   <script src="/js/iller-ilceler.js"></script>
   <script>
+    // --- GLOBAL DEĞİŞKENLER ---
+    let currentRecoverData = [];
+    let selectedCategory = 'hepsi';
+    
+    const statusColors = {
+      'yeni': { bg: '#e0f2fe', text: '#0369a1', label: 'YENİ' },
+      'atandi': { bg: '#e0e7ff', text: '#4338ca', label: 'ATANDI' },
+      'yolda': { bg: '#fef3c7', text: '#b45309', label: 'YOLDA' },
+      'tamamlandi': { bg: '#dcfce7', text: '#15803d', label: 'TAMAMLANDI' },
+      'iptal': { bg: '#f1f5f9', text: '#64748b', label: 'İPTAL' }
+    };
+
+    // --- YARDIMCI ARAÇLAR ---
+    function normalizeString(str) {
+      if (!str) return '';
+      let text = str.toString().toLowerCase();
+      const map = { 'ı': 'i', 'İ': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c' };
+      Object.keys(map).forEach(key => text = text.replace(new RegExp(key, 'g'), map[key]));
+      return text.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function maskName(name) {
+      if (!name) return 'Anonim Talep';
+      return name.split(' ').map(p => {
+        if (p.length <= 2) return p;
+        return p.substring(0, 2) + '*'.repeat(p.length - 2);
+      }).join(' ');
+    }
+
+    function maskPhone(phone) {
+      if (!phone || phone.length < 4) return '***';
+      return '******* ' + phone.slice(-2);
+    }
+
+    function getCategoryInfo(t) {
+      const type = normalizeString(t.yardim_tipi || '');
+      const title = normalizeString(t.baslik || '');
+      const desc = normalizeString(t.aciklama || '');
+      const allText = `${type} ${title} ${desc}`;
+
+      const keywords = {
+        'gida': ['gida', 'su', 'ekmek', 'yemek', 'erzak', 'mama', 'mutfak'],
+        'kurtarma': ['kurtarma', 'enkaz', 'ses', 'altinda', 'yardim', 'acil', 'sikisma'],
+        'barinma': ['barinma', 'cadir', 'konaklama', 'battaniye', 'uyku', 'tulum', 'isici'],
+        'saglik': ['saglik', 'ilac', 'ambulans', 'doktor', 'yarali', 'hastane', 'medikal'],
+        'lojistik': ['lojistik', 'ulasim', 'arac', 'kamyon', 'tir', 'tasiyici', 'mazot', 'benzin']
+      };
+
+      if (Object.values(keywords['gida']).some(kw => allText.includes(kw))) return { key: 'gida', icon: 'apple-whole', color: '#ef4444' };
+      if (Object.values(keywords['kurtarma']).some(kw => allText.includes(kw))) return { key: 'kurtarma', icon: 'magnifying-glass', color: '#3b82f6' };
+      if (Object.values(keywords['barinma']).some(kw => allText.includes(kw))) return { key: 'barinma', icon: 'house-chimney', color: '#10b981' };
+      if (Object.values(keywords['saglik']).some(kw => allText.includes(kw))) return { key: 'saglik', icon: 'truck-medical', color: '#f59e0b' };
+      if (Object.values(keywords['lojistik']).some(kw => allText.includes(kw))) return { key: 'lojistik', icon: 'truck-fast', color: '#6366f1' };
+      
+      return { key: 'diger', icon: 'circle-question', color: '#64748b' };
+    }
+
+    // --- ANA TAKİP SORGULAMA ---
     function takipSorgula() {
       const kod = document.getElementById('takip-kodu-input').value.trim();
       if (kod.length === 8) {
@@ -127,126 +284,150 @@
       }
     }
 
-    // Modal Fonksiyonları
-    const modal = document.getElementById('recovery-modal');
+    // --- KURTARMA MODALI KONTROLLERİ ---
     function modalAc() { 
-      modal.style.display = 'flex';
+      document.getElementById('recovery-modal').style.display = 'flex';
       initLocs();
     }
-    function modalKapat() { modal.style.display = 'none'; }
-
-    // Konum Doldurma (Kod Kurtarma Modalı için)
+    function modalKapat() { document.getElementById('recovery-modal').style.display = 'none'; }
+    
     function initLocs() {
       const ilSelect = document.getElementById('rec-il');
       const ilceSelect = document.getElementById('rec-ilce');
+      if (!ilSelect || ilSelect.options.length > 1) return;
       
-      if (ilSelect.options.length > 0) return; // Zaten doluysa tekrar yapma
-
       ilSelect.innerHTML = '<option value="">-- İl Seçin --</option>';
       for (let id in iller) {
         let opt = document.createElement('option');
-        opt.value = id;
-        opt.text = iller[id].ad;
+        opt.value = id; opt.text = iller[id].ad;
         ilSelect.add(opt);
       }
-
       ilSelect.onchange = () => {
         ilceSelect.innerHTML = '<option value="">-- İlçe Seçin --</option>';
         const id = ilSelect.value;
         if (id && iller[id]) {
           iller[id].ilceler.forEach(ad => {
             let opt = document.createElement('option');
-            opt.value = ad;
-            opt.text = ad;
+            opt.value = ad; opt.text = ad;
             ilceSelect.add(opt);
           });
         }
       };
+      ilceSelect.onchange = verileriGetir;
 
-      ilceSelect.onchange = fetchRecoverList;
+      document.getElementById('rec-categories').onclick = (e) => {
+        const chip = e.target.closest('.cat-chip');
+        if (!chip) return;
+        document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedCategory = chip.dataset.type;
+        filterAndRender();
+      };
     }
 
-    async function fetchRecoverList() {
+    // --- KURTARMA MODALI KONTROLLERİ ---
+    function modalAc() { 
+      document.getElementById('recovery-modal').style.display = 'flex';
+      initLocs();
+    }
+    function modalKapat() { 
+      document.getElementById('recovery-modal').style.display = 'none'; 
+    }
+
+    // Modal içindeki SORGULA butonu için
+    async function verileriGetir() {
       const ilId = document.getElementById('rec-il').value;
       const ilceAd = document.getElementById('rec-ilce').value;
-      const resultsDiv = document.getElementById('recovery-results');
-      
-      if (!ilId || !ilceAd) return;
-
-      resultsDiv.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Talepler yükleniyor...</div>';
-      
-      try {
-        const response = await fetch(`/requests/api/recover-list?il_id=${ilId}&ilce_ad=${encodeURIComponent(ilceAd)}`);
-        const data = await response.json();
-        
-        window.currentRecoverData = data; // Sesli filtreleme için sakla
-        renderRecoverResults(data);
-        
-        if (data.length > 0) {
-          document.getElementById('voice-search-section').style.display = 'block';
-        }
-      } catch (e) {
-        resultsDiv.innerHTML = '<p style="color:var(--afad-red);">Hata oluştu. Lütfen tekrar deneyin.</p>';
-      }
-    }
-
-    function renderRecoverResults(data) {
-      const resultsDiv = document.getElementById('recovery-results');
-      if (data.length === 0) {
-        resultsDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding: 20px;">Bu ilçede son 48 saatte oluşturulmuş anonim talep bulunamadı.</p>';
+      if (!ilId || !ilceAd) {
+        alert("Lütfen önce İl ve İlçe seçiniz.");
         return;
       }
 
-      let html = '';
-      data.forEach(t => {
-        html += `
-          <div onclick="window.location.href='/requests/takip/${t.takip_kodu}'" style="background: #f8fafc; border: 2px solid #e2e8f0; padding: 20px; border-radius: 18px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 5px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <span style="font-weight: 800; color: var(--afad-navy); font-size: 1.1rem;">${t.ad_soyad}</span>
-              <span class="badge" style="background: #e2e8f0; font-size: 0.7rem; font-weight: 700;">${t.takip_kodu}</span>
-            </div>
-            <span style="color: #64748b; font-size: 0.9rem;">${t.baslik}</span>
-            <span style="color: #94a3b8; font-size: 0.75rem;"><i class="fas fa-calendar-alt"></i> ${new Date(t.olusturulma_tarihi).toLocaleString('tr-TR')}</span>
-          </div>
-        `;
-      });
-      resultsDiv.innerHTML = html;
+      document.getElementById('recovery-results').innerHTML = '<p style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Talepleriniz getiriliyor...</p>';
+      try {
+        const response = await fetch(`/requests/api/recover-list?il_id=${ilId}&ilce_ad=${encodeURIComponent(ilceAd)}`, {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!response.ok) {
+           throw new Error(data.details || data.error || 'Bilinmeyen hata');
+        }
+
+        currentRecoverData = data;
+        filterAndRender();
+      } catch (e) {
+        document.getElementById('recovery-results').innerHTML = `<p style="color:red; text-align:center; padding: 20px;">
+          <strong>Hata:</strong> ${e.message}<br>
+          <small style="opacity:0.7">Lütfen sistem yöneticisine başvurun veya daha sonra tekrar deneyin.</small>
+        </p>`;
+      }
     }
 
-    // Sesli Arama (Speech to Text)
-    const voiceBtn = document.getElementById('btn-voice-rec');
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'tr-TR';
-      
-      voiceBtn.onclick = () => {
-        try {
-          recognition.start();
-          document.getElementById('mic-icon').className = 'fas fa-circle-dot fa-beat';
-          document.getElementById('mic-icon').style.color = 'var(--afad-red)';
-          document.getElementById('mic-text').innerText = 'Dinliyor... İsminizi söyleyin';
-        } catch(e) { recognition.stop(); }
-      };
+    // Kategori filtreleme için
+    function filterCat(cat, el) {
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      selectedCategory = cat;
+      filterAndRender();
+    }
 
-      recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript.toLowerCase();
-        document.getElementById('mic-text').innerText = 'Filtrelendi: ' + text;
-        const filtered = window.currentRecoverData.filter(t => t.ad_soyad.toLowerCase().includes(text));
-        renderRecoverResults(filtered);
-        stopVoice();
-      };
+    function filterAndRender() {
+      const filtered = currentRecoverData.filter(t => {
+        if (selectedCategory === 'hepsi') return true;
+        const catInfo = getCategoryInfo(t);
+        const sel = normalizeString(selectedCategory);
+        // Chip datalarında 'Gıda', 'Lojistik' vb. yazıyor, normalizasyon ile eşleştir
+        if (sel.includes('gida') && catInfo.key === 'gida') return true;
+        if (sel.includes('arama') && catInfo.key === 'kurtarma') return true;
+        if (sel.includes('barinma') && catInfo.key === 'barinma') return true;
+        if (sel.includes('saglik') && catInfo.key === 'saglik') return true;
+        if (sel.includes('lojistik') && catInfo.key === 'lojistik') return true;
+        if (sel.includes('diger') && catInfo.key === 'diger') return true;
+        return false;
+      });
+      renderResults(filtered);
+    }
 
-      recognition.onend = () => stopVoice();
-      recognition.onerror = () => stopVoice();
-
-      function stopVoice() {
-        document.getElementById('mic-icon').className = 'fas fa-microphone';
-        document.getElementById('mic-icon').style.color = 'var(--afad-navy)';
-        document.getElementById('mic-text').innerText = 'İsminizi Söyleyerek Filtreleyin';
+    function renderResults(data) {
+      const container = document.getElementById('recovery-results');
+      if (!data || data.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 60px 40px; color: #94a3b8;">
+            <i class="fas fa-search" style="font-size: 3.5rem; margin-bottom: 25px; opacity: 0.2;"></i>
+            <p style="font-size: 1.1rem; font-weight: 500;">Sonuç bulunamadı.</p>
+            <p style="font-size: 0.85rem; margin-top: 5px; opacity: 0.7;">Seçilen bölgede aktif talebiniz görünmüyor.</p>
+          </div>`;
+        return;
       }
-    } else {
-      voiceBtn.style.display = 'none';
+
+      container.innerHTML = data.map(t => {
+        const cat = getCategoryInfo(t);
+        const s = statusColors[t.durum] || statusColors['yeni'];
+
+        return `
+          <div onclick="window.location.href='/requests/takip/${t.takip_kodu}'" class="recovery-card" style="margin-bottom: 12px; display: flex; align-items: center; gap: 15px; padding: 18px; background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; cursor: pointer;">
+            <div style="width: 48px; height: 48px; background: ${cat.color}15; color: ${cat.color}; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+              <i class="fas fa-${cat.icon}"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap: 10px;">
+                <strong style="color:var(--afad-navy); font-size:1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${maskName(t.ad_soyad)}</strong>
+                <span style="background:${s.bg}; color:${s.text}; padding:3px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; white-space: nowrap;">${s.label}</span>
+              </div>
+              <div style="font-size:0.85rem; color:#64748b; display: flex; align-items: center; gap: 12px;">
+                <span style="display: flex; align-items: center; gap: 5px;"><i class="fas fa-phone" style="font-size: 0.75rem; color: #94a3b8;"></i> ${maskPhone(t.telefon)}</span>
+                <span style="color: #cbd5e1;">|</span>
+                <span style="display: flex; align-items: center; gap: 5px;"><i class="fas fa-tag" style="font-size: 0.75rem; color: #94a3b8;"></i> ${t.yardim_tipi || 'Genel'}</span>
+              </div>
+            </div>
+            <div style="background: #f8fafc; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #cbd5e1; flex-shrink: 0;">
+               <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     // Geçmiş Talepleri Listeleme (LocalStorage) - Akıllı Durum Kontrollü
@@ -266,7 +447,10 @@
       try {
         // Tüm taleplerin güncel durumunu paralel olarak çek
         const promises = talepler.map(t => 
-          fetch(`/requests/api/track/${t.kod}`).then(res => res.ok ? res.json() : null).catch(() => null)
+          fetch(`/requests/api/track/${t.kod}`, {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'include'
+          }).then(res => res.ok ? res.json() : null).catch(() => null)
         );
         
         const results = await Promise.all(promises);
@@ -493,10 +677,51 @@
             <h4 style="margin: 0 0 12px 0; color: var(--afad-navy); font-weight: 700; font-size: 1.2rem;" data-i18n="equip_wearable_title">Akıllı Giyilebilir</h4>
             <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;" data-i18n="equip_wearable_desc">Saha personelinin hayati bulgularını ve konumunu anlık takip eden AR destekli kasklar.</p>
           </div>
-        </div>
       </div>
     </div>
   </section>
+
+  <!-- Recovery Modal -->
+  <div id="recovery-modal" class="modal-overlay" style="display: none;">
+    <div class="recovery-content">
+      <div class="recovery-header">
+        <button class="close-btn" onclick="modalKapat()"><i class="fas fa-times"></i></button>
+        <div style="width: 40px; height: 4px; background: var(--afad-red); border-radius: 2px; margin-bottom: 15px;"></div>
+        <h2 style="color: var(--afad-navy); margin: 0; font-weight: 800; font-size: 1.8rem;">Taleplerini Yönet</h2>
+        <p style="color: #64748b; margin-top: 5px;">Bölge seçimi yaparak son 48 saatlik tüm taleplerine ulaşabilirsin.</p>
+        
+        <div class="form-row" style="margin-top: 25px;">
+          <div style="flex: 1;">
+            <label style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block;">1. Şehir</label>
+            <select id="rec-il" class="modal-select"></select>
+          </div>
+          <div style="flex: 1;">
+            <label style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block;">2. İlçe</label>
+            <select id="rec-ilce" class="modal-select">
+              <option value="">-- İlçe Seçin --</option>
+            </select>
+          </div>
+          <button onclick="verileriGetir()" class="btn-search">SORGULA</button>
+        </div>
+
+        <div class="cat-filter">
+          <div class="cat-chip active" onclick="filterCat('hepsi', this)"><i class="fas fa-layer-group"></i> Hepsi</div>
+          <div class="cat-chip" onclick="filterCat('Gıda', this)"><i class="fas fa-apple-whole"></i> Gıda</div>
+          <div class="cat-chip" onclick="filterCat('Arama Kurtarma', this)"><i class="fas fa-magnifying-glass"></i> Kurtarma</div>
+          <div class="cat-chip" onclick="filterCat('Barınma', this)"><i class="fas fa-house-chimney"></i> Barınma</div>
+          <div class="cat-chip" onclick="filterCat('Sağlık', this)"><i class="fas fa-truck-medical"></i> Sağlık</div>
+          <div class="cat-chip" onclick="filterCat('Lojistik', this)"><i class="fas fa-truck-fast"></i> Lojistik</div>
+        </div>
+      </div>
+
+      <div id="recovery-results" class="recovery-body">
+        <div style="text-align: center; padding: 60px 40px; color: #94a3b8;">
+          <i class="fas fa-map-location-dot" style="font-size: 3.5rem; margin-bottom: 25px; opacity: 0.2; color: var(--afad-navy);"></i>
+          <p style="font-size: 1.1rem; font-weight: 500;">Bölge seçimi yaparak aramayı başlatın.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer style="background: var(--afad-navy); padding: 60px 0;">
     <div class="container" style="width: 90%; max-width: 1200px; margin: 0 auto; text-align: center; color: white;">

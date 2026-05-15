@@ -6,3 +6,7 @@ dist/
 build/
 .vscode/
 package-lock.json
+brain/
+scratch/
+uploads/
+.gemini/

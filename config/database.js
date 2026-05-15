@@ -20,42 +20,66 @@ const mssqlConfig = {
   }
 };
 
-let mssqlPool;
+let mssqlPool = null;
+let connectingPromise = null;
 let dbType = 'mssql';
 
 async function initDb() {
-    if (mssqlPool) return;
+    // Eğer havuz varsa ve bağlantı açıksa dön
+    if (mssqlPool && mssqlPool.connected) return mssqlPool;
 
-    try {
-        mssqlPool = await sql.connect(mssqlConfig);
-        console.log('✅ MSSQL Veritabanına BAĞLANDI!');
-    } catch (err) {
-        console.error('❌ MSSQL BAĞLANTI HATASI! Lütfen veritabanı ayarlarını kontrol edin.');
-        console.error(err.message);
-        throw err;
-    }
+    // Eğer şu an bir bağlantı kurulmaya çalışılıyorsa o işlemi bekle (Race condition önlemi)
+    if (connectingPromise) return connectingPromise;
+
+    connectingPromise = (async () => {
+        try {
+            if (mssqlPool) {
+                try { await mssqlPool.close(); } catch(e) {}
+            }
+            mssqlPool = await sql.connect(mssqlConfig);
+            console.log('✅ MSSQL Veritabanına BAĞLANDI!');
+            connectingPromise = null;
+            return mssqlPool;
+        } catch (err) {
+            console.error('❌ MSSQL BAĞLANTI HATASI!', err.message);
+            connectingPromise = null;
+            throw err;
+        }
+    })();
+
+    return connectingPromise;
 }
 
 const queryExecuter = async (query, params = []) => {
-    await initDb();
+    try {
+        const pool = await initDb();
+        const request = pool.request();
+        let mssqlQuery = query;
 
-    const request = mssqlPool.request();
-    let mssqlQuery = query;
-    if (Array.isArray(params) && params.length > 0) {
-        params.forEach((param, i) => {
-            request.input(`p${i}`, param);
-            const index = mssqlQuery.indexOf('?');
-            if (index !== -1) {
-                mssqlQuery = mssqlQuery.substring(0, index) + `@p${i}` + mssqlQuery.substring(index + 1);
-            }
-        });
+        if (Array.isArray(params) && params.length > 0) {
+            params.forEach((param, i) => {
+                request.input(`p${i}`, param);
+                const index = mssqlQuery.indexOf('?');
+                if (index !== -1) {
+                    mssqlQuery = mssqlQuery.substring(0, index) + `@p${i}` + mssqlQuery.substring(index + 1);
+                }
+            });
+        }
+        const result = await request.query(mssqlQuery);
+        return [result.recordset || [], []];
+    } catch (err) {
+        console.error('❌ SQL Sorgu Hatası:', err.message);
+        // Eğer bağlantı hatasıysa havuzu temizle ki bir sonraki seferde yeniden bağlansın
+        if (err.code === 'ECONNCLOSED' || err.message.includes('connection')) {
+            mssqlPool = null;
+        }
+        throw err;
     }
-    const result = await request.query(mssqlQuery);
-    return [result.recordset || [], []];
 };
 
 module.exports = {
   execute: queryExecuter,
   query: queryExecuter,
-  getDbType: () => dbType
+  getDbType: () => dbType,
+  initDb // Export for manual triggers if needed
 };
