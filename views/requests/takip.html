@@ -131,14 +131,63 @@
 
   <style>
     @media print {
+      @page { margin: 0; size: A4 portrait; } 
       .navbar, #map, .btn-download, .btn-home { display: none !important; }
-      body { background: white; padding: 0; }
-      .tracking-grid { display: block; }
-      .status-panel { width: 100%; border: 2px solid #003366; border-radius: 0; padding: 40px; box-shadow: none; }
-      .timeline { margin-top: 40px; }
-      #victim-info-card { border: 1px solid #ddd; margin-top: 20px; }
-      .status-panel::before { content: 'AFAD AFET KOORDİNASYON - RESMİ TAKİP KARTI'; display: block; text-align: center; font-weight: 800; border-bottom: 2px solid #e30613; padding-bottom: 20px; margin-bottom: 30px; }
+      body { 
+        background: white; padding: 0; margin: 0;
+        font-size: 0.8rem; line-height: 1.2;
+        width: 210mm; height: 297mm; 
+      }
+      
+      .tracking-grid { display: block; height: 100%; margin: 0; padding: 0; }
+      
+      .status-panel { 
+        width: 100%; height: 290mm !important; /* A4 height eksi ufak bir pay */
+        border: 2px solid #003366; border-radius: 0; 
+        padding: 15px 20px; box-shadow: none; position: relative; 
+        display: block; overflow: hidden; margin: 0; box-sizing: border-box;
+      }
+      
+      h3#talep-baslik { font-size: 1.1rem; margin-bottom: 5px !important; }
+      .status-badge { padding: 3px 8px; font-size: 0.7rem; }
+      
+      #victim-info-card { border: 1px solid #ddd; margin-top: 10px; padding: 8px !important; border-radius: 5px; }
+      #victim-info-card label { margin-bottom: 0px; font-size: 0.6rem; }
+      #victim-info-card p { margin-bottom: 0px; font-size: 0.75rem; }
+      #victim-info-card > div { gap: 4px !important; }
+
+      .status-panel::before { 
+        content: 'AFAD AKILLI AFET KOORDİNASYON - RESMİ TAKİP KARTI'; 
+        display: block; text-align: center; font-weight: 800; 
+        border-bottom: 2px solid #e30613; padding-bottom: 5px; 
+        margin-bottom: 10px; font-size: 0.9rem; 
+      }
+      
+      .timeline { margin-top: 10px; }
+      .timeline-item { padding-bottom: 5px; }
+      .timeline-item h4 { font-size: 0.85rem; margin-bottom: 2px; }
+      .timeline-item p { font-size: 0.75rem; margin-bottom: 0; }
+      .timeline-item::before { width: 12px; height: 12px; left: -26px; }
+      .timeline::before { left: -20px; }
+      
+      #gonullu-card { margin-top: 10px !important; }
+      #gonullu-card p { margin-bottom: 5px !important; }
+      
+      /* Alt bilgi metnini gizle */
+      .status-panel > div[style*="margin-top: auto"] { display: none !important; }
+      
+      /* Mühür kısmını sayfanın EN ALTINA sabitle */
+      .print-stamp-container { 
+        display: flex !important; 
+        position: absolute; bottom: 15px; left: 20px; right: 20px;
+        justify-content: space-between; align-items: flex-end; 
+        border-top: 1px solid #003366; padding-top: 10px; 
+      }
+      .print-stamp-container div { margin-bottom: 0; }
+      #print-qr { width: 60px !important; height: 60px !important; margin-bottom: 5px !important; }
+      .print-stamp-container p { line-height: 1.1; }
     }
+    .print-stamp-container { display: none; }
   </style>
 
   <div class="tracking-grid">
@@ -220,6 +269,36 @@
       <div style="margin-top: auto; padding-top: 20px;">
           <p style="font-size: 0.75rem; color: #94a3b8; text-align: center;">Veriler anlık olarak güncellenmektedir. Lütfen sayfayı kapatmayınız.</p>
       </div>
+
+      <!-- Sadece Print'te Çıkacak Mühür ve İmza Alanı -->
+      <div class="print-stamp-container">
+        <div style="text-align: left; width: 30%;">
+          <div id="print-qr" style="width: 80px; height: 80px; padding: 2px; margin-bottom: 10px;">
+            <!-- QR -->
+          </div>
+          <p style="font-size: 0.6rem; color: #64748b; margin: 0; max-width: 90%;">Bu belge 5070 sayılı Kanun gereği güvenli elektronik imza ile imzalanmıştır.</p>
+          <p style="font-size: 0.65rem; color: var(--afad-navy); font-weight: 800; margin-top: 5px;" id="print-doc-id">DÖKÜMAN NO: ...</p>
+        </div>
+        
+        <div style="text-align: center; position: relative; width: 40%;">
+          <!-- Yuvarlak Mühür (CSS ile) -->
+          <div style="width: 90px; height: 90px; border: 2px double var(--afad-red); border-radius: 50%; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; opacity: 0.85; transform: rotate(-8deg);">
+            <div style="border: 1px solid var(--afad-red); border-radius: 50%; width: 78px; height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <i class="fas fa-star-and-crescent" style="color: var(--afad-red); font-size: 0.8rem; margin-bottom: 2px;"></i>
+              <span style="color: var(--afad-red); font-size: 0.55rem; font-weight: 900; text-align: center; line-height: 1.0;">AKILLI AFET<br>KOORDİNASYON</span>
+              <span style="color: var(--afad-red); font-size: 0.45rem; margin-top: 2px; letter-spacing: 0.5px;">RESMİ KAYIT</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: right; width: 30%;">
+          <p style="font-size: 0.75rem; font-weight: 800; color: var(--afad-navy); margin: 0;">SİSTEM ONAYI</p>
+          <p style="font-size: 0.65rem; color: #64748b; margin-top: 1px;">Merkezi Otomasyon Sistemi</p>
+          <!-- Fake İmza (El yazısı stili) -->
+          <div style="font-family: 'Brush Script MT', 'Bradley Hand', cursive; font-size: 1.8rem; color: #0f172a; margin-top: 2px; transform: rotate(-5deg); opacity: 0.9;">A.K.M.</div>
+          <p style="font-size: 0.55rem; color: #94a3b8; margin-top: 2px;" id="print-date">Tarih: ...</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -228,6 +307,18 @@
     const pathParts = window.location.pathname.split('/');
     const KOD = pathParts[pathParts.length - 1];
     document.getElementById('takip-kodu-display').textContent = 'Kod: ' + KOD;
+
+    // Print Mühür Bilgilerini Doldur
+    document.getElementById('print-doc-id').textContent = 'DÖKÜMAN NO: ' + KOD + '-' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('print-date').textContent = 'Oluşturulma: ' + new Date().toLocaleString('tr-TR');
+    
+    // Print QR Kod Oluşturma
+    const trackingUrl = window.location.href;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(trackingUrl)}&bgcolor=ffffff`;
+    const qrImg = new Image();
+    qrImg.style.width = '100%';
+    qrImg.src = qrUrl;
+    document.getElementById('print-qr').appendChild(qrImg);
 
     var map = L.map('map').setView([39.92, 32.85], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);

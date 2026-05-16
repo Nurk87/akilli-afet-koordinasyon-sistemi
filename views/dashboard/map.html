@@ -414,6 +414,16 @@
             className: 'v-icon', iconSize: [20, 20]
           });
           const m = L.marker(vPos, { icon: vIcon }).addTo(map);
+          
+          const popupContent = `
+            <div style="font-family:'Outfit'; min-width: 150px; text-align: center;">
+              <strong style="color:var(--afad-navy)">${v.ad.toUpperCase()} ${v.soyad.toUpperCase()}</strong><br>
+              <span style="font-size:0.75rem; color:#64748b"><i class="fas fa-id-badge"></i> Saha Gönüllüsü</span><br>
+              <span style="font-size:0.7rem; color:#10b981; font-weight: bold;">${(v.musaitlik_durumu || 'Müsait').toUpperCase()}</span>
+            </div>
+          `;
+          m.bindPopup(popupContent);
+          
           mapMarkers.gonullu.push(m);
         });
       }

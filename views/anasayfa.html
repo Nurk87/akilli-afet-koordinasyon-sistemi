@@ -246,9 +246,9 @@
       }).join(' ');
     }
 
-    function maskPhone(phone) {
-      if (!phone || phone.length < 4) return '***';
-      return '******* ' + phone.slice(-2);
+    function maskPhone(phoneSuffix) {
+      if (!phoneSuffix) return '***';
+      return '******* ' + phoneSuffix;
     }
 
     function getCategoryInfo(t) {
@@ -390,6 +390,28 @@
       renderResults(filtered);
     }
 
+    async function verifyAndRedirect(id) {
+      const phone = prompt("Güvenlik Doğrulaması: Lütfen bu talebi oluştururken kullandığınız 10 veya 11 haneli telefon numarasını giriniz:");
+      if (!phone) return;
+
+      try {
+        const response = await fetch('/requests/api/verify-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, phone })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          window.location.href = '/requests/takip/' + data.kod;
+        } else {
+          alert(data.error || "Doğrulama başarısız.");
+        }
+      } catch (e) {
+        alert("Bağlantı hatası.");
+      }
+    }
+
     function renderResults(data) {
       const container = document.getElementById('recovery-results');
       if (!data || data.length === 0) {
@@ -407,7 +429,7 @@
         const s = statusColors[t.durum] || statusColors['yeni'];
 
         return `
-          <div onclick="window.location.href='/requests/takip/${t.takip_kodu}'" class="recovery-card" style="margin-bottom: 12px; display: flex; align-items: center; gap: 15px; padding: 18px; background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; cursor: pointer;">
+          <div onclick="verifyAndRedirect(${t.id})" class="recovery-card" style="margin-bottom: 12px; display: flex; align-items: center; gap: 15px; padding: 18px; background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; cursor: pointer;">
             <div style="width: 48px; height: 48px; background: ${cat.color}15; color: ${cat.color}; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
               <i class="fas fa-${cat.icon}"></i>
             </div>
@@ -417,7 +439,7 @@
                 <span style="background:${s.bg}; color:${s.text}; padding:3px 10px; border-radius:8px; font-size:0.65rem; font-weight:800; white-space: nowrap;">${s.label}</span>
               </div>
               <div style="font-size:0.85rem; color:#64748b; display: flex; align-items: center; gap: 12px;">
-                <span style="display: flex; align-items: center; gap: 5px;"><i class="fas fa-phone" style="font-size: 0.75rem; color: #94a3b8;"></i> ${maskPhone(t.telefon)}</span>
+                <span style="display: flex; align-items: center; gap: 5px;"><i class="fas fa-phone" style="font-size: 0.75rem; color: #94a3b8;"></i> ${maskPhone(t.tel_suffix)}</span>
                 <span style="color: #cbd5e1;">|</span>
                 <span style="display: flex; align-items: center; gap: 5px;"><i class="fas fa-tag" style="font-size: 0.75rem; color: #94a3b8;"></i> ${t.yardim_tipi || 'Genel'}</span>
               </div>
@@ -465,9 +487,9 @@
             active.push({ ...original, durum: 'bilinmiyor' });
           } else {
             if (data.durum === 'tamamlandi') {
-              completed.push({ ...original, durum: 'tamamlandi' });
+              completed.push({ ...original, durum: 'tamamlandi', id: data.id });
             } else {
-              active.push({ ...original, durum: data.durum || 'yeni' });
+              active.push({ ...original, durum: data.durum || 'yeni', id: data.id });
             }
           }
         });
@@ -488,7 +510,7 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
                    <span style="font-size: 0.7rem; font-weight: 800; color: #d97706; background: #fef3c7; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${t.durum.replace('_', ' ')}</span>
-                   <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px;">TAKİP ET</a>
+                   <button onclick="${t.id ? `verifyAndRedirect(${t.id})` : `window.location.href='/requests/takip/${t.kod}'`}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px; border: none; cursor: pointer;">TAKİP ET</button>
                 </div>
               </div>
             `;
@@ -510,7 +532,7 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
                    <span style="font-size: 0.7rem; font-weight: 800; color: #10b981; background: #ecfdf5; padding: 3px 8px; border-radius: 5px;">TAMAMLANDI</span>
-                   <a href="/requests/takip/${t.kod}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px; background: #94a3b8 !important; border:none;">DETAY</a>
+                   <button onclick="${t.id ? `verifyAndRedirect(${t.id})` : `window.location.href='/requests/takip/${t.kod}'`}" class="btn btn-navy" style="padding: 6px 15px; font-size: 0.8rem; border-radius: 8px; background: #94a3b8 !important; border:none; cursor: pointer;">DETAY</button>
                 </div>
               </div>
             `;

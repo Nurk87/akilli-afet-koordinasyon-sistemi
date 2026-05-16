@@ -200,8 +200,9 @@ router.get('/api/recover-list', async (req, res) => {
     
     const query = `
       SELECT TOP 50
-        ad_soyad, baslik, takip_kodu, durum, olusturulma_tarihi, mahalle, telefon, 
-        COALESCE(yardim_tipi, N'Genel') as yardim_tipi
+        id, ad_soyad, baslik, durum, olusturulma_tarihi, mahalle, 
+        COALESCE(yardim_tipi, N'Genel') as yardim_tipi,
+        RIGHT(telefon, 2) as tel_suffix -- Sadece son 2 haneyi gönder (maskeleme desteği için)
       FROM yardim_talepleri WITH (NOLOCK)
       WHERE il_id = ? AND ilce_id = ? 
       AND ad_soyad IS NOT NULL
@@ -213,6 +214,31 @@ router.get('/api/recover-list', async (req, res) => {
   } catch (error) {
     console.error('❌ Kurtarma Listesi Hatası:', error);
     res.status(500).json({ error: 'Liste alınamadı', details: error.message });
+  }
+});
+
+// Yeni: Bilgi Eşleştirme (Doğrulama) API
+router.post('/api/verify-request', async (req, res) => {
+  try {
+    const { id, phone } = req.body;
+    if(!id || !phone) return res.status(400).json({ error: 'Eksik bilgi.' });
+
+    // Boşlukları ve karakterleri temizle
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+    const [rows] = await pool.query(
+      "SELECT takip_kodu FROM yardim_talepleri WHERE id = ? AND (telefon = ? OR telefon = ?)",
+      [id, phone, cleanPhone]
+    );
+
+    if (rows.length > 0) {
+      res.json({ success: true, kod: rows[0].takip_kodu });
+    } else {
+      res.status(403).json({ success: false, error: 'Telefon numarası eşleşmedi. Lütfen kayıt sırasında girdiğiniz numarayı yazın.' });
+    }
+  } catch (error) {
+    console.error('Doğrulama hatası:', error);
+    res.status(500).json({ error: 'Doğrulama yapılamadı.' });
   }
 });
 
