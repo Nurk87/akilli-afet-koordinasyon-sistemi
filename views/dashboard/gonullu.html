@@ -104,18 +104,35 @@
       </div>
     </div>
 
-    <div class="glass-card" style="margin-top: 40px; min-height: 300px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
-        <h3 style="margin: 0; color: var(--afad-navy); display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-tasks" style="color: var(--afad-red);"></i> Aktif Görevlerim
-        </h3>
-        <a href="/dashboard/gecmis" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 15px;">
-          <i class="fas fa-history"></i> GEÇMİŞ GÖREVLER
-        </a>
+    <div class="dashboard-grid-container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-top: 40px; align-items: start;">
+      
+      <!-- AKTİF GÖREVLERİM CARD -->
+      <div class="glass-card" style="min-height: 300px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+          <h3 style="margin: 0; color: var(--afad-navy); display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-tasks" style="color: var(--afad-red);"></i> Aktif Görevlerim
+          </h3>
+          <a href="/dashboard/gecmis" class="btn btn-navy" style="font-size: 0.8rem; padding: 8px 15px;">
+            <i class="fas fa-history"></i> GEÇMİŞ GÖREVLER
+          </a>
+        </div>
+        <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+          <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
+        </div>
       </div>
-      <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
-        <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
+
+      <!-- LİDERLİK TABLOSU (GAMIFICATION) CARD -->
+      <div class="glass-card" style="min-height: 300px; padding: 25px; border-left: 5px solid #f59e0b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px;">
+          <h3 style="margin: 0; color: var(--afad-navy); display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-trophy" style="color: #f59e0b;"></i> Lider Gönüllüler
+          </h3>
+        </div>
+        <div id="leaderboard-container" style="display: flex; flex-direction: column; gap: 12px;">
+          <p style="color: #94a3b8; text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Liderler aranıyor...</p>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -154,10 +171,113 @@
       return "Az önce";
     }
 
+    async function loadLeaderboard() {
+      const container = document.getElementById('leaderboard-container');
+      if (!container) return;
+
+      try {
+        const res = await fetch('/dashboard/api/leaderboard', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Veri çekilemedi');
+        const leaders = await res.json();
+
+        if (!leaders || leaders.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 25px; color: #94a3b8; font-size: 0.85rem;">
+              <i class="fas fa-trophy-slash" style="font-size: 2rem; margin-bottom: 10px; color: #cbd5e1;"></i><br>
+              Henüz puan kazanmış gönüllü bulunmuyor. Görevleri tamamlayarak ilk siz olun!
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = '';
+        leaders.forEach((v, index) => {
+          const rankNum = index + 1;
+          const maskedSoyad = v.soyad ? v.soyad.trim().charAt(0).toUpperCase() + '.' : '';
+          const fullName = `${v.ad} ${maskedSoyad}`;
+          const puan = v.puan || 0;
+          const rankTitle = v.rank || 'Yeni Gönüllü';
+
+          // Rank badge colors
+          let rankBadgeColor = '#64748b'; // Grey
+          let rankBadgeBg = '#f1f5f9';
+          if (rankTitle === 'AFAD Kahramanı') {
+            rankBadgeColor = '#8b5cf6'; // Purple
+            rankBadgeBg = '#f5f3ff';
+          } else if (rankTitle === 'Saha Lideri') {
+            rankBadgeColor = '#ef4444'; // Red
+            rankBadgeBg = '#fef2f2';
+          } else if (rankTitle === 'Tecrübeli Gönüllü') {
+            rankBadgeColor = '#d97706'; // Gold/Amber
+            rankBadgeBg = '#fffbeb';
+          }
+
+          // Row style based on placement
+          let rowBg = 'rgba(255,255,255,0.75)';
+          let borderStyle = '1px solid rgba(226, 232, 240, 0.8)';
+          let medalIcon = '';
+          let glowStyle = '';
+
+          if (rankNum === 1) {
+            rowBg = 'linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(253, 242, 203, 0.15) 100%)';
+            borderStyle = '1.5px solid rgba(245, 158, 11, 0.4)';
+            medalIcon = '<i class="fas fa-trophy fa-lg" style="color: #f59e0b; filter: drop-shadow(0 0 4px rgba(245,158,11,0.6));"></i>';
+            glowStyle = 'box-shadow: 0 4px 15px rgba(245, 158, 11, 0.12); transform: scale(1.02);';
+          } else if (rankNum === 2) {
+            rowBg = 'linear-gradient(135deg, rgba(241, 245, 249, 0.6) 0%, rgba(241, 245, 249, 0.25) 100%)';
+            borderStyle = '1.5px solid rgba(148, 163, 184, 0.3)';
+            medalIcon = '<i class="fas fa-medal fa-lg" style="color: #94a3b8; filter: drop-shadow(0 0 3px rgba(148,163,184,0.4));"></i>';
+          } else if (rankNum === 3) {
+            rowBg = 'linear-gradient(135deg, rgba(254, 215, 170, 0.35) 0%, rgba(254, 215, 170, 0.1) 100%)';
+            borderStyle = '1.5px solid rgba(217, 119, 6, 0.3)';
+            medalIcon = '<i class="fas fa-award fa-lg" style="color: #b45309; filter: drop-shadow(0 0 3px rgba(180,83,9,0.3));"></i>';
+          } else {
+            medalIcon = `<span style="font-weight: 800; color: #64748b; font-size: 0.9rem; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; border-radius: 50%;">${rankNum}</span>`;
+          }
+
+          const rowHtml = `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-radius: 14px; background: ${rowBg}; border: ${borderStyle}; ${glowStyle} transition: all 0.3s ease;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 28px; display: flex; justify-content: center; align-items: center;">
+                  ${medalIcon}
+                </div>
+                <div>
+                  <div style="font-weight: 700; color: var(--afad-navy); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                    ${fullName}
+                  </div>
+                  <span style="font-size: 0.65rem; font-weight: 800; color: ${rankBadgeColor}; background: ${rankBadgeBg}; padding: 2px 8px; border-radius: 6px; border: 1px solid ${rankBadgeColor}25; display: inline-block; margin-top: 3px; letter-spacing: 0.3px;">
+                    ${rankTitle.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid rgba(245,158,11,0.3); color: #92400e; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 4px rgba(245,158,11,0.08);">
+                  <i class="fas fa-star" style="color: #f59e0b; font-size: 0.75rem;"></i> ${puan} XP
+                </span>
+              </div>
+            </div>
+          `;
+          container.insertAdjacentHTML('beforeend', rowHtml);
+        });
+
+      } catch (err) {
+        console.error('Liderlik tablosu yüklenemedi:', err);
+        container.innerHTML = `
+          <p style="color: #ef4444; text-align: center; font-size: 0.8rem; padding: 15px;">
+            <i class="fas fa-exclamation-triangle"></i> Liderlik tablosu yüklenemedi.
+          </p>`;
+      }
+    }
+
     async function loadVolunteerTasks() {
       const activeContainer = document.getElementById('my-tasks-container');
       
       try {
+        // Liderlik Tablosunu Yükle
+        await loadLeaderboard();
+
         // Profil ve Puanları Yükle
         const profRes = await fetch('/dashboard/api/me', {
           headers: { 'Accept': 'application/json' },

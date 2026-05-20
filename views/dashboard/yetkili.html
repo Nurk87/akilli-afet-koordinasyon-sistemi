@@ -76,6 +76,9 @@
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <h2 style="font-weight: 800; margin: 0;">Sistem <span style="color: var(--afad-red);">Özeti</span></h2>
+        <button onclick="openReportModal()" class="btn btn-premium" style="display: flex; align-items: center; gap: 8px; font-weight: 700; background: linear-gradient(135deg, var(--afad-navy) 0%, #1e293b 100%); color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);">
+          <i class="fas fa-file-pdf" style="font-size: 1.1rem; color: #f43f5e;"></i> RESMİ DURUM RAPORU AL
+        </button>
       </div>
 
       <div class="cards" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px;">
@@ -154,6 +157,159 @@
           <button onclick="document.getElementById('assignmentResultsModal').style.display = 'none'" class="btn btn-navy" style="width: 100%; padding: 18px; border-radius: 15px; font-weight: 800; font-size: 1rem;">ANLADIM, DEVAM ET</button>
         </div>
       </div>
+
+      <!-- RESMİ DURUM RAPORU MODALI -->
+      <div id="reportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 34, 68, 0.65); z-index: 10000; justify-content: center; align-items: center; overflow-y: auto; padding: 20px; backdrop-filter: blur(5px);">
+        <div class="glass-card" style="background: white; width: 100%; max-width: 800px; padding: 0; border-radius: 16px; border: 1px solid rgba(0,51,102,0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.15); position: relative; display: flex; flex-direction: column;">
+          
+          <!-- Modal Üst Menü (Yalnızca Ekranda Görünür, Yazıcıda Gizlenir) -->
+          <div class="no-print" style="padding: 15px 25px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0; width: 100%; box-sizing: border-box;">
+            <h3 style="margin: 0; color: var(--afad-navy); font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-file-invoice" style="color: var(--afad-red);"></i> Resmi Afet Durum Raporu Önizleme
+            </h3>
+            <div style="display: flex; gap: 10px;">
+              <button onclick="printReport()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">
+                <i class="fas fa-print"></i> YAZDIR / PDF KAYDET
+              </button>
+              <button onclick="closeReportModal()" style="background: #94a3b8; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                KAPAT
+              </button>
+            </div>
+          </div>
+
+          <!-- RESMİ RAPOR BELGESİ (YAZDIRILACAK ALAN) -->
+          <div id="printable-report-area" style="padding: 40px 50px; background: white; font-family: 'Times New Roman', Times, serif; color: #000; line-height: 1.4; overflow-y: auto; max-height: 80vh; text-align: left;">
+            
+            <!-- T.C. Resmi Başlık -->
+            <div style="text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; width: 100%;">
+              <!-- Resmi T.C. Amblem Süslemesi -->
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+                <img src="/images/logo.png" alt="AFAD Logo" style="height: 60px; filter: grayscale(100%);">
+                <div style="text-align: center; flex: 1; padding: 0 20px;">
+                  <div style="font-weight: bold; font-size: 1.15rem; letter-spacing: 1px;">T.C.</div>
+                  <div style="font-weight: bold; font-size: 1.2rem; letter-spacing: 1px; margin-top: 2px;">İÇİŞLERİ BAKANLIĞI</div>
+                  <div style="font-weight: bold; font-size: 1.05rem; color: #111; margin-top: 4px;">AFET VE ACİL DURUM YÖNETİMİ BAŞKANLIĞI</div>
+                  <div style="font-size: 0.85rem; font-weight: 600; font-style: italic; color: #333; margin-top: 2px;">Akıllı Afet Koordinasyon Merkezi (AAKM)</div>
+                </div>
+                <div style="width: 55px; height: 55px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: bold; border: 2px solid #000; border-radius: 50%; font-family: sans-serif; line-height: 1.1;">
+                  <span>T.C.</span>
+                </div>
+              </div>
+              <hr style="width: 100%; border: none; border-top: 2px solid #000; margin: 10px 0 3px 0;">
+              <hr style="width: 100%; border: none; border-top: 1px dashed #000; margin: 0 0 15px 0;">
+            </div>
+
+            <!-- Evrak Kayıt Bilgileri -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; font-size: 0.95rem; font-weight: bold; margin-bottom: 25px; width: 100%;">
+              <div>
+                <div>SAYI : <span id="report-registry-no">AAKM-2026/00000</span></div>
+                <div>KONU : Genel Afet Durum Raporu</div>
+              </div>
+              <div style="text-align: right;">
+                <div>TARİH : <span id="report-date-field">20.05.2026</span></div>
+                <div>SAAT : <span id="report-time-field">14:45</span></div>
+                <div style="color: #dc2626; font-size: 0.8rem; margin-top: 5px; font-family: sans-serif; border: 1.5px solid #dc2626; padding: 2px 10px; display: inline-block; border-radius: 4px; font-weight: 900; letter-spacing: 0.5px;">HİZMETE ÖZEL</div>
+              </div>
+            </div>
+
+            <!-- Belge Başlığı -->
+            <div style="text-align: center; margin-bottom: 30px; width: 100%;">
+              <h2 style="font-family: sans-serif; font-weight: 800; font-size: 1.4rem; text-decoration: underline; margin: 0; letter-spacing: 0.5px;">AFET DURUM VE KOORDİNASYON GENEL RAPORU</h2>
+            </div>
+
+            <!-- Belge Giriş Metni -->
+            <p style="text-align: justify; font-size: 1rem; text-indent: 30px; margin-bottom: 25px; margin-top: 0;">
+              Başkanlığımız Akıllı Afet Koordinasyon Merkezi (AAKM) bünyesinde işletilen afet yönetim sistemi verilerine göre, coğrafi bilgi sistemleri ve gerçek zamanlı saha entegrasyonu ile derlenen güncel afet durum raporu aşağıda bilgilerinize sunulmuştur. İşbu rapor, sahadan gelen anlık bildirimler, atanan ve tamamlanan lojistik/arama-kurtarma görevleri temel alınarak oluşturulmuştur.
+            </p>
+
+            <!-- İstatistik Tablosu -->
+            <h3 style="font-family: sans-serif; font-size: 1.05rem; border-left: 4px solid #000; padding-left: 8px; margin-bottom: 12px; margin-top: 20px; text-transform: uppercase; font-weight: bold;">I. GENEL OPERASYONEL İSTATİSTİKLER</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 0.95rem;">
+              <thead>
+                <tr style="background: #f1f5f9; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                  <th style="padding: 10px; border: 1px solid #000; text-align: left; font-weight: bold; width: 65%;">PARAMETRE AÇIKLAMASI</th>
+                  <th style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; width: 35%;">MEVCUT DURUM / SAYI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #000; font-weight: 600;">Sistemde Kayıtlı Toplam İhbar Talebi</td>
+                  <td id="report-stat-total" style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 1.05rem;">0</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #000; font-weight: 600; color: #dc2626;">Bekleyen Acil / Kritik İhbar Sayısı</td>
+                  <td id="report-stat-emergency" style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 1.05rem; color: #dc2626;">0</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #000; font-weight: 600;">Başarıyla Çözülen ve Kapatılan İhbar Sayısı</td>
+                  <td id="report-stat-completed" style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 1.05rem; color: #15803d;">0</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #000; font-weight: 600;">Sahada Görevli Aktif Kayıtlı Gönüllü Sayısı</td>
+                  <td id="report-stat-volunteers" style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 1.05rem;">0</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #000; font-weight: 600;">Müdahale Başarı ve Kapatılma Oranı (%)</td>
+                  <td id="report-stat-success-rate" style="padding: 10px; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 1.05rem;">0%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Son İhbarlar Listesi -->
+            <h3 style="font-family: sans-serif; font-size: 1.05rem; border-left: 4px solid #000; padding-left: 8px; margin-bottom: 12px; margin-top: 25px; text-transform: uppercase; font-weight: bold;">II. SAHADAKİ SON AFET İHBARLARI VE GÜNCEL DURUMLAR</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 0.9rem;">
+              <thead>
+                <tr style="background: #f8fafc; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                  <th style="padding: 8px; border: 1px solid #000; text-align: left; font-weight: bold; width: 40%;">TALEP BAŞLIĞI</th>
+                  <th style="padding: 8px; border: 1px solid #000; text-align: left; font-weight: bold; width: 25%;">BÖLGE (İLÇE)</th>
+                  <th style="padding: 8px; border: 1px solid #000; text-align: center; font-weight: bold; width: 15%;">ÖNCELİK</th>
+                  <th style="padding: 8px; border: 1px solid #000; text-align: center; font-weight: bold; width: 20%;">DURUM</th>
+                </tr>
+              </thead>
+              <tbody id="report-requests-list">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 15px; border: 1px solid #000;">İhbarlar yükleniyor...</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- İmza ve Kaşe Mühür Bloğu -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 50px; padding: 0 10px; width: 100%; box-sizing: border-box;">
+              
+              <!-- Resmi Kaşe ve Mühür (Sol Taraf) -->
+              <div style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                <div style="font-size: 0.85rem; font-weight: bold; text-decoration: underline; margin-bottom: 15px;">RESMİ MÜHÜR & ONAY KAŞESİ</div>
+                
+                <!-- CSS ile Çizilmiş Harika Dairesel Mühür -->
+                <div style="width: 110px; height: 110px; border: 3px double #dc2626; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; color: #dc2626; opacity: 0.85; transform: rotate(-6deg); font-family: sans-serif; font-size: 0.55rem; font-weight: bold; text-align: center; padding: 5px; box-shadow: inset 0 0 4px rgba(220, 38, 38, 0.12);">
+                  <div style="border: 1px solid #dc2626; border-radius: 50%; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 3px; box-sizing: border-box;">
+                    <span style="font-size: 0.45rem; text-transform: uppercase;">T.C. İÇİŞLERİ BAK.</span>
+                    <span style="font-size: 0.65rem; font-weight: 800; margin: 1px 0;">* AAKM *</span>
+                    <span style="font-size: 0.45rem; text-transform: uppercase; margin-bottom: 1px;">AFET YÖNETİMİ</span>
+                    <span style="font-size: 0.52rem; font-weight: bold; letter-spacing: 0.5px; border-top: 1.5px solid #dc2626; padding-top: 2px; margin-top: 2px; text-transform: uppercase; width: 85%;">ONAYLANMIŞTIR</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Resmi İmza (Sağ Taraf) -->
+              <div style="text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; padding-right: 25px;">
+                <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 8px;">Koordinasyon Kurulu Adına</div>
+                <div style="font-size: 0.95rem; font-weight: bold;">Nisa Nur AKSOY</div>
+                <div style="font-size: 0.85rem; font-style: italic; color: #333; margin-bottom: 12px;">Kurul Başkanı / Vali Yardımcısı</div>
+                
+                <!-- CSS ile Çizilmiş El Yazısı İmza İllüstrasyonu -->
+                <div style="width: 120px; height: 45px; position: relative; margin-top: 5px;">
+                  <svg viewBox="0 0 100 40" style="width: 100%; height: 100%; fill: none; stroke: #00008b; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transform: rotate(-3deg);">
+                    <path d="M10,25 C25,23 35,15 45,18 C55,20 60,35 65,22 C70,10 75,5 80,18 C85,30 90,32 95,20 M35,28 C45,28 65,33 75,30" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
   <script>
@@ -172,6 +328,141 @@
       if (interval > 1) return Math.floor(interval) + " dk önce";
       return "Az önce";
     }
+
+    function generateRegistryNo() {
+      const year = new Date().getFullYear();
+      const rand = Math.floor(10000 + Math.random() * 90000);
+      return `AAKM-${year}/${rand}`;
+    }
+
+    async function openReportModal() {
+      // 1. Evrak Numarası ve Tarihi Doldur
+      const now = new Date();
+      const registryNo = generateRegistryNo();
+      document.getElementById('report-registry-no').innerText = registryNo;
+      
+      const dateStr = now.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('report-date-field').innerText = dateStr;
+      document.getElementById('report-time-field').innerText = timeStr;
+
+      // 2. İstatistikleri Mevcut Sayfa Değerlerinden Al
+      const totalReq = document.getElementById('stat-total').innerText;
+      const emergencyReq = document.getElementById('stat-emergency').innerText;
+      const completedReq = document.getElementById('stat-completed').innerText;
+      const activeVolunteers = document.getElementById('stat-volunteers').innerText;
+
+      document.getElementById('report-stat-total').innerText = totalReq;
+      document.getElementById('report-stat-emergency').innerText = emergencyReq;
+      document.getElementById('report-stat-completed').innerText = completedReq;
+      document.getElementById('report-stat-volunteers').innerText = activeVolunteers;
+
+      // Başarı Oranı Hesapla
+      const totalNum = parseInt(totalReq) || 0;
+      const completedNum = parseInt(completedReq) || 0;
+      const rate = totalNum > 0 ? Math.round((completedNum / totalNum) * 100) : 100;
+      document.getElementById('report-stat-success-rate').innerText = `%${rate}`;
+
+      // 3. Son İhbarları API'den Çekip Doldur
+      try {
+        const resReq = await fetch('/requests/api/list', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const requests = await resReq.json();
+        const listContainer = document.getElementById('report-requests-list');
+        listContainer.innerHTML = '';
+
+        if (requests && requests.length > 0) {
+          requests.slice(0, 8).forEach(req => {
+            const tr = document.createElement('tr');
+            
+            // Öncelik ve durumları resmi siyah-beyaz belgeye uyarlayalım
+            const pText = (req.oncelik || 'Orta').toUpperCase();
+            const dText = (req.durum || 'Yeni').toUpperCase();
+
+            tr.innerHTML = `
+              <td style="padding: 8px; border: 1px solid #000; font-weight: bold;">${req.baslik}</td>
+              <td style="padding: 8px; border: 1px solid #000;">${req.il_adi || ''} / ${req.ilce_adi || ''}</td>
+              <td style="padding: 8px; border: 1px solid #000; text-align: center; font-weight: bold;">${pText}</td>
+              <td style="padding: 8px; border: 1px solid #000; text-align: center; font-weight: bold;">${dText}</td>
+            `;
+            listContainer.appendChild(tr);
+          });
+        } else {
+          listContainer.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 15px; border: 1px solid #000;">Sistemde kayıtlı aktif ihbar bulunmamaktadır.</td>
+            </tr>`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      // 4. Modalı Göster
+      document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').style.display = 'none';
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    // Resmi PDF Raporu için Yazdırma Stil Şablonu Enjeksiyonu
+    const printStyle = document.createElement('style');
+    printStyle.textContent = `
+      @media print {
+        body {
+          background: white !important;
+          color: black !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+        .navbar, .sidebar, .content > *:not(#reportModal), #assignmentResultsModal, .no-print, header, footer {
+          display: none !important;
+        }
+        .content {
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+        }
+        #reportModal {
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 100% !important;
+          height: auto !important;
+          background: white !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          overflow: visible !important;
+          z-index: auto !important;
+          box-shadow: none !important;
+          backdrop-filter: none !important;
+          display: block !important;
+        }
+        #reportModal .glass-card {
+          border: none !important;
+          box-shadow: none !important;
+          max-width: 100% !important;
+          width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          background: white !important;
+          border-radius: 0 !important;
+        }
+        #printable-report-area {
+          padding: 0 !important;
+          margin: 0 !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+      }
+    `;
+    document.head.appendChild(printStyle);
 
     let lastTotalCount = 0;
 

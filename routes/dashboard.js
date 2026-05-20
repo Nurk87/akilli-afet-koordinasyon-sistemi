@@ -61,6 +61,22 @@ router.get('/api/me', async (req, res) => {
   }
 });
 
+// Gönüllü Liderlik Tablosu (Gamification) Veri Sağlayıcı API
+router.get('/api/leaderboard', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT TOP 5 ad, soyad, puan, rank 
+      FROM users 
+      WHERE rol = 'gonullu' AND durum = 'aktif' AND puan IS NOT NULL
+      ORDER BY puan DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('❌ Leaderboard Hatası:', error);
+    res.status(500).json({ error: 'Liderlik tablosu verileri yüklenemedi.' });
+  }
+});
+
 router.get('/gecmis', (req, res) => {
   if (req.user.rol !== 'gonullu') {
     return res.redirect('/dashboard');
