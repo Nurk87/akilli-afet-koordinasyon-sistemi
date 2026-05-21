@@ -166,7 +166,7 @@ router.get('/api/my-tasks', verifyToken, async (req, res) => {
       JOIN yardim_atamalari ya WITH (NOLOCK) ON y.id = ya.talep_id
       LEFT JOIN iller i WITH (NOLOCK) ON y.il_id = i.id
       LEFT JOIN ilceler ilc WITH (NOLOCK) ON y.ilce_id = ilc.id
-      WHERE ya.gonullu_id = ? AND ya.durum != 'iptal' AND y.baslik NOT LIKE '%Simülasyon%' AND y.aciklama NOT LIKE '%Simülasyon%'
+      WHERE ya.gonullu_id = ? AND ya.durum != 'iptal'
       ORDER BY y.hesaplanan_oncelik_skoru DESC, y.olusturulma_tarihi DESC
     `;
     const [rows] = await pool.query(query, [req.user.id]);

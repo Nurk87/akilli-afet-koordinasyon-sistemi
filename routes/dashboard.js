@@ -91,7 +91,7 @@ router.get('/api/users', async (req, res) => {
     }
     const [users] = await pool.query(`
       SELECT 
-        u.id, u.ad, u.soyad, u.email, u.telefon, u.rol, u.durum, u.olusturulma_tarihi,
+        u.id, u.ad, u.soyad, u.email, u.telefon, u.rol, u.durum, u.olusturulma_tarihi, u.puan, u.rank,
         (SELECT COUNT(*) FROM yardim_atamalari WHERE gonullu_id = u.id AND durum = 'tamamlandi') as completed_tasks
       FROM users u
       ORDER BY u.olusturulma_tarihi DESC

@@ -8,6 +8,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Modern Scrollbar styling for a premium glassmorphic list */
+    #my-tasks-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    #my-tasks-container::-webkit-scrollbar-track {
+      background: rgba(226, 232, 240, 0.5);
+      border-radius: 10px;
+    }
+    #my-tasks-container::-webkit-scrollbar-thumb {
+      background: rgba(0, 51, 102, 0.25);
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+    #my-tasks-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 51, 102, 0.45);
+    }
+  </style>
 </head>
 <body style="background: radial-gradient(circle at top right, #f8fafc, #e2e8f0);">
   <nav class="navbar">
@@ -116,7 +134,7 @@
             <i class="fas fa-history"></i> GEÇMİŞ GÖREVLER
           </a>
         </div>
-        <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+        <div id="my-tasks-container" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; max-height: 600px; overflow-y: auto; padding-right: 8px; padding-top: 12px; padding-bottom: 12px;">
           <p style="color: #94a3b8; text-align: center; padding: 40px;">Görevleriniz kontrol ediliyor...</p>
         </div>
       </div>
@@ -364,15 +382,14 @@
       const pColor = pColors[task.oncelik?.toLowerCase()] || '#64748b';
 
       card.innerHTML = `
-        ${isRecommended ? `
-          <div style="position: absolute; top: -12px; left: 20px; background: var(--afad-red); color: white; padding: 4px 15px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; box-shadow: 0 4px 10px rgba(227, 6, 19, 0.3);">
-            <i class="fas fa-star"></i> SİSTEMİN ÖNERDİĞİ İLK GÖREV
-          </div>
-        ` : ''}
-        
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top: ${isRecommended ? '10px' : '0'};">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
           <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+            ${isRecommended ? `
+              <div style="background: var(--afad-red); color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(227, 6, 19, 0.15); letter-spacing: 0.5px;">
+                <i class="fas fa-star" style="font-size: 0.75rem;"></i> SİSTEMİN ÖNERDİĞİ İLK GÖREV
+              </div>
+            ` : ''}
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                 <span style="background: ${pColor}15; color: ${pColor}; padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${pColor}30;">
                     ${task.oncelik || 'Bilinmiyor'}
                 </span>

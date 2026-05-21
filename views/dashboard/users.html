@@ -174,21 +174,43 @@
             roleText = 'GÖNÜLLÜ';
           }
 
-          let rankInfo = { text: '-', color: '#94a3b8' };
+          let rankHtml = '<span style="color: #94a3b8; font-size: 0.85rem;">-</span>';
           if (user.rol === 'gonullu') {
             const count = user.completed_tasks || 0;
-            if (count >= 10) rankInfo = { text: 'KAHRAMAN', color: '#8b5cf6' };
-            else if (count >= 4) rankInfo = { text: 'TECRÜBELİ', color: '#f59e0b' };
-            else rankInfo = { text: 'YENİ', color: '#64748b' };
-            
-            rankInfo.text = `${rankInfo.text} (${count})`;
+            const rankTitle = user.rank || 'Yeni Gönüllü';
+            const puan = user.puan || 0;
+
+            let rankColor = '#64748b'; // Grey
+            let rankBg = '#f1f5f9';
+            if (rankTitle === 'AFAD Kahramanı') {
+              rankColor = '#8b5cf6'; // Purple
+              rankBg = '#f5f3ff';
+            } else if (rankTitle === 'Saha Lideri') {
+              rankColor = '#ef4444'; // Red
+              rankBg = '#fef2f2';
+            } else if (rankTitle === 'Tecrübeli Gönüllü') {
+              rankColor = '#d97706'; // Gold/Amber
+              rankBg = '#fffbeb';
+            }
+
+            rankHtml = `
+              <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                <span class="role-badge" style="background: ${rankBg}; color: ${rankColor}; border: 1px solid ${rankColor}30; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;">
+                  ${rankTitle}
+                </span>
+                <div style="display: flex; gap: 8px; font-size: 0.7rem; font-weight: 600; color: #64748b;">
+                  <span><i class="fas fa-star" style="color: #f59e0b;"></i> ${puan} XP</span>
+                  <span><i class="fas fa-check-circle" style="color: #10b981;"></i> ${count} Görev</span>
+                </div>
+              </div>
+            `;
           }
 
           row.innerHTML = `
             <td style="font-weight: 600;">${user.ad} ${user.soyad}</td>
             <td style="color: #64748b;">${user.email}</td>
             <td><span class="role-badge ${roleClass}">${roleText}</span></td>
-            <td><span style="font-size: 0.75rem; font-weight: 800; color: ${rankInfo.color};">${rankInfo.text}</span></td>
+            <td>${rankHtml}</td>
             <td>
               <span class="role-badge" style="background: ${isPassive ? '#f1f5f9' : '#dcfce7'}; color: ${isPassive ? '#64748b' : '#15803d'};">
                 ${(user.durum || 'aktif').toUpperCase()}
