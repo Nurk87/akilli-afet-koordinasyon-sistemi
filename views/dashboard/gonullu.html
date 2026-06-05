@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="manifest" href="/manifest.json">
+  <script src="/js/pwa.js" defer></script>
   <style>
     /* Modern Scrollbar styling for a premium glassmorphic list */
     #my-tasks-container::-webkit-scrollbar {
@@ -531,6 +533,7 @@
     loadVolunteerTasks();
 
     // --- BİLDİRİM SİSTEMİ ---
+    let lastSeenNotificationIds = new Set();
     async function loadNotifications() {
       try {
         const res = await fetch('/api/notifications/list', {
@@ -541,6 +544,18 @@
         const unread = data.filter(n => !n.is_read).length;
         const b = document.getElementById('notif-badge');
         if(b) { b.innerText = unread; b.style.display = unread > 0 ? 'flex' : 'none'; }
+        
+        // Masaüstü Bildirimleri Tetikleme (Eğer yeni okunmamış bildirim varsa)
+        const unreadNotifications = data.filter(n => !n.is_read);
+        unreadNotifications.forEach(n => {
+          if (lastSeenNotificationIds.size > 0 && !lastSeenNotificationIds.has(n.id)) {
+            if (window.showDesktopNotification) {
+              window.showDesktopNotification(n.title, n.message, n.link || '/dashboard');
+            }
+          }
+        });
+        lastSeenNotificationIds = new Set(data.map(n => n.id));
+
         const l = document.getElementById('notif-list');
         if(l && data.length > 0) {
           l.innerHTML = data.map(n => `

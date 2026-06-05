@@ -17,6 +17,13 @@ router.post('/otomatik', verifyToken, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Bu işlem için yetkiniz yok.' });
     }
 
+    // Sistem ayarlarından otomatik atama motorunun açık olup olmadığını kontrol et
+    const { getSettings } = require('../utils/settings');
+    const settings = getSettings();
+    if (settings.ai_otomatik_atama === false) {
+      return res.status(400).json({ success: false, message: 'Otomatik atma motoru sistem ayarlarından kapatılmıştır. Lütfen ayarlardan aktifleştirin.' });
+    }
+
     console.log('🔍 Bekleyen talepler çekiliyor...');
     const [talepler] = await pool.query(
       "SELECT TOP 100 id, enlem, boylam, oncelik, olusturulma_tarihi FROM yardim_talepleri WHERE durum IN ('yeni', 'onaylandi') AND baslik NOT LIKE '%Simülasyon%' AND aciklama NOT LIKE '%Simülasyon%' ORDER BY olusturulma_tarihi ASC"

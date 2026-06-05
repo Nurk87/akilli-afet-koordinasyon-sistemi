@@ -1,0 +1,13 @@
+{
+  "ai_otomatik_atama": true,
+  "ai_max_mesafe": 25,
+  "ai_acil_agirlik": 8,
+  "ai_sirali_gorev": true,
+  "game_liderlik": true,
+  "game_temel_puan": 50,
+  "game_hizli_bonus": 2,
+  "game_rozet": true,
+  "sec_2fa": false,
+  "sec_supheli_giris": true,
+  "sec_ip_listesi": ""
+}

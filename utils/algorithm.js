@@ -46,10 +46,16 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
  * @param {Date|string} createdAt - Talebin oluşturulma tarihi
  */
 function calculatePriorityScore(oncelik_enum, distance_km, createdAt) {
+  const { getSettings } = require('./settings');
+  const settings = getSettings();
+
   // 1. Aciliyet Skoru (%50)
   let aciliyetSkoru = 0;
   switch(oncelik_enum) {
-    case 'acil': aciliyetSkoru = 100; break;
+    case 'acil': 
+      // Acil öncelik ağırlığını ayara göre ölçekle (varsayılan x8 iken 100 puan, x1-x10 arası değişir)
+      aciliyetSkoru = 100 * ((settings.ai_acil_agirlik || 8) / 8); 
+      break;
     case 'yuksek': aciliyetSkoru = 75; break;
     case 'orta': aciliyetSkoru = 50; break;
     case 'dusuk': aciliyetSkoru = 25; break;
@@ -62,14 +68,13 @@ function calculatePriorityScore(oncelik_enum, distance_km, createdAt) {
   
   // 3. Bekleme Süresi (Aging) Skoru (%20)
   let beklemeSkoru = 0;
-    const start = createdAt ? new Date(createdAt) : new Date();
-    const now = new Date();
-    // Tarih geçerli değilse bugünü kullan
-    const validStart = isNaN(start.getTime()) ? now : start;
-    const gecenDakika = Math.max(0, (now - validStart) / (1000 * 60));
-    
-    // Her saat için +10 puan, 10 saatte max 100 puana ulaşır.
-    beklemeSkoru = Math.min(100, (gecenDakika / 60) * 10);
+  const start = createdAt ? new Date(createdAt) : new Date();
+  const now = new Date();
+  const validStart = isNaN(start.getTime()) ? now : start;
+  const gecenDakika = Math.max(0, (now - validStart) / (1000 * 60));
+  
+  // Her saat için +10 puan, 10 saatte max 100 puana ulaşır.
+  beklemeSkoru = Math.min(100, (gecenDakika / 60) * 10);
   
   const toplamSkor = (aciliyetSkoru * 0.5) + (mesafeSkoru * 0.3) + (beklemeSkoru * 0.2);
   return parseFloat(toplamSkor.toFixed(2));
@@ -82,6 +87,9 @@ function calculatePriorityScore(oncelik_enum, distance_km, createdAt) {
  * @param {Array} gonulluler - [{id, enlem, boylam, kapasite}]
  */
 function assignRequestsGreedy(talepler, gonulluler) {
+  const { getSettings } = require('./settings');
+  const settings = getSettings();
+
   let assignments = [];
   let totalDistance = 0;
   let totalBaselineDistance = 0; // Rastgele atama yapılsaydı oluşacak tahmini mesafe
@@ -107,18 +115,29 @@ function assignRequestsGreedy(talepler, gonulluler) {
     
     // Verimlilik ölçümü için bu talep için ortalama mesafeyi hesapla (Baseline)
     let currentTalepTotalDist = 0;
+    let validVCount = 0;
     availableVolunteers.forEach(v => {
-      currentTalepTotalDist += calculateHaversineDistance(talep.enlem, talep.boylam, v.enlem, v.boylam);
+      const d = calculateHaversineDistance(talep.enlem, talep.boylam, v.enlem, v.boylam);
+      // Sadece maksimum mesafe limitine uyanları ortalamaya dahil et
+      if (d <= (settings.ai_max_mesafe || 25)) {
+        currentTalepTotalDist += d;
+        validVCount++;
+      }
     });
-    totalBaselineDistance += (currentTalepTotalDist / availableVolunteers.length);
+    totalBaselineDistance += validVCount > 0 ? (currentTalepTotalDist / validVCount) : 50; // varsayılan 50km
     
     for (let i = 0; i < availableVolunteers.length; i++) {
         const v = availableVolunteers[i];
         const distance = calculateHaversineDistance(talep.enlem, talep.boylam, v.enlem, v.boylam);
+        
+        // MAKSİMUM ATAMA MESAFESİ KONTROLÜ
+        if (distance > (settings.ai_max_mesafe || 25)) {
+            continue; // Bu gönüllüyü bu vaka için atla (Mesafe çok büyük)
+        }
+
         let score = calculatePriorityScore(talep.oncelik, distance, talep.olusturulma_tarihi);
         
         // YÜK DAĞITIM CEZASI (Load Balancing)
-        // Aynı gönüllüye üst üste görev yığılmasını engellemek için aldığı her görevde skorunu düşürürüz
         if (v.assignedCount > 0) {
             score -= (v.assignedCount * 50);
         }

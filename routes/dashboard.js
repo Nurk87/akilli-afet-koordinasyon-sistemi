@@ -396,4 +396,159 @@ router.get('/api/export-csv', async (req, res) => {
   }
 });
 
+// YENİ: Ayarları Getir
+router.get('/api/settings', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+    const { getSettings } = require('../utils/settings');
+    res.json(getSettings());
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Ayarlar yüklenemedi' });
+  }
+});
+
+// YENİ: Ayarları Kaydet
+router.post('/api/settings', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+    const { saveSettings } = require('../utils/settings');
+    const result = saveSettings(req.body);
+    if (result.success) {
+      res.json({ success: true, message: 'Ayarlar başarıyla kaydedildi.', settings: result.settings });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Ayarlar kaydedilemedi' });
+  }
+});
+
+// YENİ: Veritabanı Yedekle
+router.post('/api/db/backup', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const backupDir = path.join(__dirname, '..', 'backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const dbType = pool.getDbType();
+
+    // 1. Her durumda tüm tabloların verisini JSON olarak yedekle (Portable yedek)
+    const tablesToBackup = ['users', 'yardim_talepleri', 'yardim_atamalari', 'guvenli_alanlar', 'notifications'];
+    const backupData = {};
+
+    for (const table of tablesToBackup) {
+      const [rows] = await pool.query(`SELECT * FROM ${table}`);
+      backupData[table] = rows;
+    }
+
+    const jsonBackupPath = path.join(backupDir, `backup_${timestamp}.json`);
+    fs.writeFileSync(jsonBackupPath, JSON.stringify(backupData, null, 2), 'utf8');
+
+    // 2. Eğer SQLite ise, fiziksel veritabanı dosyasını da kopyala
+    let physicalBackupMessage = "";
+    if (dbType === 'sqlite' || fs.existsSync(path.join(__dirname, '..', 'database.db'))) {
+      try {
+        const sqliteFile = path.join(__dirname, '..', 'database.db');
+        if (fs.existsSync(sqliteFile)) {
+          const sqliteBackupPath = path.join(backupDir, `database_${timestamp}.db`);
+          fs.copyFileSync(sqliteFile, sqliteBackupPath);
+          physicalBackupMessage = ` ve fiziksel SQLite veritabanı yedeği (${path.basename(sqliteBackupPath)})`;
+        }
+      } catch (copyErr) {
+        console.warn('SQLite dosya kopyalama yedeği atlandı:', copyErr.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Veritabanı yedeği başarıyla alındı. JSON verileri (${path.basename(jsonBackupPath)})${physicalBackupMessage} backups klasörüne kaydedildi.`
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Yedekleme işlemi başarısız', details: error.message });
+  }
+});
+
+// YENİ: Veritabanı Optimizasyonu
+router.post('/api/db/optimize', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+
+    const dbType = pool.getDbType();
+    let log = [];
+
+    if (dbType === 'sqlite') {
+      log.push('SQLite için optimizasyon başlatıldı...');
+      await pool.query('VACUUM');
+      log.push('VACUUM komutu başarıyla çalıştırıldı (Veritabanı dosyası sıkıştırıldı).');
+      await pool.query('ANALYZE');
+      log.push('ANALYZE komutu çalıştırıldı (Sorgu planlayıcı istatistikleri güncellendi).');
+    } else {
+      log.push('MSSQL için indeks optimizasyonu başlatıldı...');
+      const tables = ['users', 'yardim_talepleri', 'yardim_atamalari', 'guvenli_alanlar', 'notifications', 'iller', 'ilceler'];
+      for (const table of tables) {
+        try {
+          await pool.query(`ALTER INDEX ALL ON ${table} REBUILD`);
+          log.push(`- ${table} tablosundaki tüm indeksler yeniden oluşturuldu (REBUILD).`);
+        } catch (tableErr) {
+          log.push(`- ${table} tablosunda hata: ${tableErr.message}`);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Veritabanı optimizasyonu başarıyla tamamlandı.',
+      log: log
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Optimizasyon işlemi başarısız', details: error.message });
+  }
+});
+
+// YENİ: Demo Verilerini Temizleme (Cleanup)
+router.post('/api/db/cleanup', async (req, res) => {
+  try {
+    if (req.user.rol !== 'yetkili' && req.user.rol !== 'admin') {
+      return res.status(403).json({ error: 'Yetkisiz erişim' });
+    }
+
+    console.log('🧹 Yetkili Paneli üzerinden veritabanı temizliği tetiklendi.');
+    
+    // Atamaları sil
+    await pool.query('DELETE FROM yardim_atamalari');
+    
+    // Talepleri sil
+    await pool.query('DELETE FROM yardim_talepleri');
+    
+    // Test kullanıcılarını sil
+    await pool.query("DELETE FROM users WHERE rol IN ('gonullu', 'kazazede')");
+
+    res.json({
+      success: true,
+      message: 'Sistem başarıyla temizlendi. Tüm talepler, atamalar ve test kullanıcıları silindi.'
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Veritabanı temizlenirken hata oluştu', details: error.message });
+  }
+});
+
 module.exports = router;

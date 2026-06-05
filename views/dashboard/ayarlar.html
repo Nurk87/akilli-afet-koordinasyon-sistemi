@@ -128,6 +128,7 @@
       </div>
 
       <div class="settings-section">
+        <!-- YAPAY ZEKA (AI) SEKMESİ -->
         <div id="ai-settings">
           <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
             <div style="background: rgba(227, 6, 19, 0.1); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: var(--afad-red); font-size: 1.5rem;">
@@ -143,7 +144,7 @@
                 <p>Yeni gelen talepleri yapay zeka ile anında en yakın gönüllüye ata.</p>
               </div>
               <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="ai_otomatik_atama">
                 <span class="slider"></span>
               </label>
             </div>
@@ -156,7 +157,7 @@
                 <p>Gönüllü ve talep arasındaki maksimum kabul edilebilir mesafe (KM).</p>
               </div>
               <div style="display: flex; align-items: center; gap: 15px;">
-                <input type="range" min="5" max="100" value="25" oninput="this.nextElementSibling.innerText = this.value + ' KM'">
+                <input type="range" id="ai_max_mesafe" min="5" max="100" value="25" oninput="this.nextElementSibling.innerText = this.value + ' KM'">
                 <span style="font-weight: 700; color: var(--afad-red); min-width: 50px;">25 KM</span>
               </div>
             </div>
@@ -169,7 +170,7 @@
                 <p>Algoritmanın acil taleplere verdiği ekstra önem katsayısı.</p>
               </div>
               <div style="display: flex; align-items: center; gap: 15px;">
-                <input type="range" min="1" max="10" value="8" oninput="this.nextElementSibling.innerText = 'x' + this.value">
+                <input type="range" id="ai_acil_agirlik" min="1" max="10" value="8" oninput="this.nextElementSibling.innerText = 'x' + this.value">
                 <span style="font-weight: 700; color: var(--afad-red); min-width: 50px;">x8</span>
               </div>
             </div>
@@ -182,19 +183,19 @@
                 <p>Gönüllülerin önceki yüksek öncelikli görevini bitirmeden yeniye geçmesini engelle.</p>
               </div>
               <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="ai_sirali_gorev">
                 <span class="slider"></span>
               </label>
             </div>
           </div>
 
           <div style="margin-top: 40px; display: flex; gap: 15px;">
-            <button class="btn-premium" style="padding: 12px 30px; border-radius: 12px;" onclick="saveSettings()">AYARLARI KAYDET</button>
-            <button class="btn btn-navy" style="padding: 12px 30px; border-radius: 12px;">VARSAYILANA DÖN</button>
+            <button class="btn-premium" style="padding: 12px 30px; border-radius: 12px;" onclick="saveCurrentSettings(this)">AYARLARI KAYDET</button>
+            <button class="btn btn-navy" style="padding: 12px 30px; border-radius: 12px;" onclick="resetToDefault()">VARSAYILANA DÖN</button>
           </div>
         </div>
 
-        <!-- Oyunlaştırma Ayarları (Yeni Eklendi) -->
+        <!-- OYUNLAŞTIRMA SEKMESİ -->
         <div id="gamification-settings" class="tab-content" style="display: none;">
           <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
             <div style="background: rgba(245, 158, 11, 0.1); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #f59e0b; font-size: 1.5rem;">
@@ -210,7 +211,7 @@
                 <p>Gönüllülerin performansını puanlayarak sıralamaya koyar ve rekabeti artırır.</p>
               </div>
               <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="game_liderlik">
                 <span class="slider"></span>
               </label>
             </div>
@@ -223,7 +224,7 @@
                 <p>Bir görev başarıyla bitirildiğinde kazanılacak standart puan miktarı.</p>
               </div>
               <div style="display: flex; align-items: center; gap: 15px;">
-                <input type="range" min="10" max="100" step="10" value="50" oninput="this.nextElementSibling.innerText = this.value + ' Puan'">
+                <input type="range" id="game_temel_puan" min="10" max="100" step="10" value="50" oninput="this.nextElementSibling.innerText = this.value + ' Puan'">
                 <span style="font-weight: 700; color: #f59e0b; min-width: 60px;">50 Puan</span>
               </div>
             </div>
@@ -236,7 +237,7 @@
                 <p>15 dakikanın altında tamamlanan görevlere verilecek ekstra puan katsayısı.</p>
               </div>
               <div style="display: flex; align-items: center; gap: 15px;">
-                <input type="range" min="1" max="5" value="2" oninput="this.nextElementSibling.innerText = 'x' + this.value">
+                <input type="range" id="game_hizli_bonus" min="1" max="5" value="2" oninput="this.nextElementSibling.innerText = 'x' + this.value">
                 <span style="font-weight: 700; color: #f59e0b; min-width: 60px;">x2</span>
               </div>
             </div>
@@ -249,29 +250,105 @@
                 <p>Belirli başarımlar ('Hızır', 'Gece Kartalı') elde edildiğinde profile rozet ekle.</p>
               </div>
               <label class="switch">
-                <input type="checkbox" checked>
+                <input type="checkbox" id="game_rozet">
                 <span class="slider"></span>
               </label>
             </div>
           </div>
 
           <div style="margin-top: 40px; display: flex; gap: 15px;">
-            <button class="btn-premium" style="padding: 12px 30px; border-radius: 12px; background: #f59e0b; border-color: #f59e0b;" onclick="saveSettings()">AYARLARI KAYDET</button>
-            <button class="btn btn-navy" style="padding: 12px 30px; border-radius: 12px;">VARSAYILANA DÖN</button>
+            <button class="btn-premium" style="padding: 12px 30px; border-radius: 12px; background: #f59e0b; border-color: #f59e0b;" onclick="saveCurrentSettings(this)">AYARLARI KAYDET</button>
+            <button class="btn btn-navy" style="padding: 12px 30px; border-radius: 12px;" onclick="resetToDefault()">VARSAYILANA DÖN</button>
           </div>
         </div>
 
-        <!-- Placeholder for other tabs -->
-        <div id="security-settings" class="tab-content" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
-          <i class="fas fa-lock" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
-          <h3>Güvenlik Ayarları</h3>
-          <p>İki aşamalı doğrulama ve IP kısıtlamaları yapılandırma ekranı yapım aşamasındadır.</p>
+        <!-- GÜVENLİK SEKMESİ -->
+        <div id="security-settings" class="tab-content" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <div style="background: rgba(14, 165, 233, 0.1); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #0ea5e9; font-size: 1.5rem;">
+              <i class="fas fa-shield-halved"></i>
+            </div>
+            <h3 style="margin: 0; color: var(--afad-navy); font-weight: 800;">Güvenlik ve Yetkilendirme Ayarları</h3>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h4>İki Aşamalı Doğrulama (2FA)</h4>
+                <p>Yetkili ve yöneticiler için SMS veya e-posta tabanlı 2FA girişini zorunlu kıl.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="sec_2fa">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h4>Şüpheli Giriş Bildirimi</h4>
+                <p>Yeni bir IP adresi veya cihazdan giriş yapıldığında yöneticiye anlık e-posta ve sistem uyarısı gönder.</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="sec_supheli_giris">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
+            <div class="setting-info">
+              <h4>Güvenli IP Listesi (Beyaz Liste)</h4>
+              <p>Yalnızca aşağıdaki IP adreslerinden yetkili paneline erişime izin ver (Boş ise tüm IP'ler serbesttir).</p>
+              <input type="text" id="sec_ip_listesi" placeholder="Örn: 192.168.1.1, 10.0.0.1, 127.0.0.1" style="width: 100%; padding: 12px 18px; border-radius: 12px; border: 1.5px solid #cbd5e1; outline: none; margin-top: 12px; font-family: monospace; font-size: 0.9rem; box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="margin-top: 40px; display: flex; gap: 15px;">
+            <button class="btn-premium" style="padding: 12px 30px; border-radius: 12px; background: #0ea5e9; border-color: #0ea5e9;" onclick="saveCurrentSettings(this)">AYARLARI KAYDET</button>
+            <button class="btn btn-navy" style="padding: 12px 30px; border-radius: 12px;" onclick="resetToDefault()">VARSAYILANA DÖN</button>
+          </div>
         </div>
 
-        <div id="db-settings" class="tab-content" style="display: none; text-align: center; padding: 40px; color: #94a3b8;">
-          <i class="fas fa-database" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
-          <h3>Veritabanı Bakımı</h3>
-          <p>Yedekleme planlaması ve MSSQL indeks optimizasyon araçları.</p>
+        <!-- VERİTABANI BAKIMI SEKMESİ -->
+        <div id="db-settings" class="tab-content" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <div style="background: rgba(16, 185, 129, 0.1); width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.5rem;">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3 style="margin: 0; color: var(--afad-navy); font-weight: 800;">Veritabanı Bakım ve Yönetim İstasyonu</h3>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="text-align: left;">
+                <h4 style="margin: 0; color: var(--afad-navy); font-size: 1rem;"><i class="fas fa-file-archive" style="color: #3b82f6; margin-right: 8px;"></i> Veritabanını Yedekle</h4>
+                <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Mevcut tüm verileri portable JSON formatında yedekler ve SQLite kullanılıyorsa fiziksel dosya kopyasını kaydeder.</p>
+              </div>
+              <button class="btn btn-premium" onclick="dbBackup(this)" style="padding: 12px 25px; border-radius: 10px; background: #3b82f6; border-color: #3b82f6; font-size: 0.85rem;"><i class="fas fa-download"></i> YEDEK AL</button>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="text-align: left;">
+                <h4 style="margin: 0; color: var(--afad-navy); font-size: 1rem;"><i class="fas fa-magic" style="color: #10b981; margin-right: 8px;"></i> İndeks ve Boyut Optimizasyonu</h4>
+                <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">MSSQL üzerinde tüm tabloların indekslerini REBUILD eder; SQLite üzerinde ise VACUUM ve ANALYZE çalıştırır.</p>
+              </div>
+              <button class="btn btn-premium" onclick="dbOptimize(this)" style="padding: 12px 25px; border-radius: 10px; background: #10b981; border-color: #10b981; font-size: 0.85rem;"><i class="fas fa-gears"></i> OPTİMİZE ET</button>
+            </div>
+
+            <div style="background: #fff5f5; border: 1px solid #fee2e2; padding: 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="text-align: left;">
+                <h4 style="margin: 0; color: #b91c1c; font-size: 1rem;"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> Demo/Simülasyon Verilerini Temizle</h4>
+                <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #b91c1c90;">Sistemdeki tüm yardım taleplerini, atamaları ve test gönüllülerini/kazazedelerini silerek sistemi sıfırlar.</p>
+              </div>
+              <button class="btn btn-danger" onclick="dbCleanup(this)" style="padding: 12px 25px; border-radius: 10px; font-size: 0.85rem;"><i class="fas fa-trash-alt"></i> VERİLERİ TEMİZLE</button>
+            </div>
+
+            <div id="db-status-log" style="display: none; padding: 15px 20px; border-radius: 12px; background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 0.8rem; text-align: left; max-height: 200px; overflow-y: auto; white-space: pre-line; border: 1.5px solid #1e293b; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+              [LOG]: İşlem bekleniyor...
+            </div>
+          </div>
         </div>
 
       </div>
@@ -279,18 +356,16 @@
   </div>
 
   <script>
+    // Sekme Değiştirme
     function switchTab(event, tabId) {
       event.preventDefault();
       
-      // Menü aktif durumunu güncelle
       const navItems = document.querySelectorAll('.settings-nav-item');
       navItems.forEach(item => item.classList.remove('active'));
       event.currentTarget.classList.add('active');
 
-      // Sekmeleri gizle/göster
       const tabContents = document.querySelectorAll('.tab-content, #ai-settings');
       tabContents.forEach(tab => {
-        // AI settings id'si var ama sınıfı yoktu, onu da ayarlayalım
         if(tab.id !== 'ai-settings' && !tab.classList.contains('tab-content')) {
            tab.classList.add('tab-content');
         }
@@ -299,30 +374,262 @@
       document.getElementById(tabId).style.display = 'block';
     }
 
-    function saveSettings() {
-      // Butona tıklandığında başarılı animasyonu
-      const btn = event.target;
-      const originalText = btn.innerText;
-      
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> KAYDEDİLİYOR...';
-      btn.style.opacity = '0.8';
-      
-      setTimeout(() => {
-        btn.innerHTML = '<i class="fas fa-check"></i> BAŞARIYLA KAYDEDİLDİ';
-        btn.style.background = '#10b981';
-        btn.style.borderColor = '#10b981';
-        btn.style.opacity = '1';
+    // Ayarları API'den Yükle
+    async function loadSettings() {
+      try {
+        const res = await fetch('/dashboard/api/settings', {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        if (res.status === 401) {
+          window.location.href = '/giris';
+          return;
+        }
+        const settings = await res.json();
         
-        // Seste veya arayüzde bir popup da gösterilebilir
-        alert('Sistem ayarları başarıyla güncellendi ve MSSQL veritabanına yazıldı.');
-        
-        setTimeout(() => {
-          btn.innerHTML = originalText;
-          btn.style.background = '';
-          btn.style.borderColor = '';
-        }, 3000);
-      }, 800);
+        // Elementleri doldur
+        for (const key in settings) {
+          const el = document.getElementById(key);
+          if (!el) continue;
+          
+          if (el.type === 'checkbox') {
+            el.checked = !!settings[key];
+          } else if (el.type === 'range') {
+            el.value = settings[key];
+            // Yandaki göstergeleri güncelle
+            if (key === 'ai_max_mesafe') el.nextElementSibling.innerText = settings[key] + ' KM';
+            if (key === 'ai_acil_agirlik') el.nextElementSibling.innerText = 'x' + settings[key];
+            if (key === 'game_temel_puan') el.nextElementSibling.innerText = settings[key] + ' Puan';
+            if (key === 'game_hizli_bonus') el.nextElementSibling.innerText = 'x' + settings[key];
+          } else {
+            el.value = settings[key] || '';
+          }
+        }
+      } catch (err) {
+        console.error('Ayarlar yüklenemedi:', err);
+      }
     }
+
+    // Ayarları API'ye Kaydet
+    async function saveCurrentSettings(btn) {
+      const originalText = btn.innerText;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> KAYDEDİLİYOR...';
+      btn.disabled = true;
+
+      // Tüm inputlardan veriyi topla
+      const keys = [
+        'ai_otomatik_atama', 'ai_max_mesafe', 'ai_acil_agirlik', 'ai_sirali_gorev',
+        'game_liderlik', 'game_temel_puan', 'game_hizli_bonus', 'game_rozet',
+        'sec_2fa', 'sec_supheli_giris', 'sec_ip_listesi'
+      ];
+      
+      const payload = {};
+      keys.forEach(key => {
+        const el = document.getElementById(key);
+        if (el) {
+          if (el.type === 'checkbox') {
+            payload[key] = el.checked;
+          } else if (el.type === 'range') {
+            payload[key] = parseInt(el.value);
+          } else {
+            payload[key] = el.value;
+          }
+        }
+      });
+
+      try {
+        const res = await fetch('/dashboard/api/settings', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          btn.innerHTML = '<i class="fas fa-check"></i> BAŞARIYLA KAYDEDİLDİ';
+          btn.style.background = '#10b981';
+          btn.style.borderColor = '#10b981';
+          
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.disabled = false;
+          }, 2000);
+        } else {
+          alert('Hata: ' + data.error);
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert('Bağlantı hatası oluştu.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Varsayılana Dön
+    function resetToDefault() {
+      if (!confirm('Tüm ayarlar fabrika varsayılanlarına sıfırlansın mı?')) return;
+      
+      const defaults = {
+        ai_otomatik_atama: true,
+        ai_max_mesafe: 25,
+        ai_acil_agirlik: 8,
+        ai_sirali_gorev: true,
+        game_liderlik: true,
+        game_temel_puan: 50,
+        game_hizli_bonus: 2,
+        game_rozet: true,
+        sec_2fa: false,
+        sec_supheli_giris: true,
+        sec_ip_listesi: ""
+      };
+
+      for (const key in defaults) {
+        const el = document.getElementById(key);
+        if (el) {
+          if (el.type === 'checkbox') {
+            el.checked = defaults[key];
+          } else if (el.type === 'range') {
+            el.value = defaults[key];
+            if (key === 'ai_max_mesafe') el.nextElementSibling.innerText = defaults[key] + ' KM';
+            if (key === 'ai_acil_agirlik') el.nextElementSibling.innerText = 'x' + defaults[key];
+            if (key === 'game_temel_puan') el.nextElementSibling.innerText = defaults[key] + ' Puan';
+            if (key === 'game_hizli_bonus') el.nextElementSibling.innerText = 'x' + defaults[key];
+          } else {
+            el.value = defaults[key];
+          }
+        }
+      }
+      alert('Ayarlar arayüzde sıfırlandı. Kaydetmek için lütfen "AYARLARI KAYDET" butonuna basınız.');
+    }
+
+    // DB: Yedekleme Tetikleyici
+    async function dbBackup(btn) {
+      if (!confirm('Sistem verilerinin yedeği alınsın mı?')) return;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> YEDEKLENİYOR...';
+      btn.disabled = true;
+
+      const logBox = document.getElementById('db-status-log');
+      logBox.style.display = 'block';
+      logBox.innerText = '[LOG] Veritabanı okuma ve portable JSON paketleme işlemi başlatıldı...\n';
+
+      try {
+        const res = await fetch('/dashboard/api/db/backup', { 
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          logBox.innerText += `[BAŞARILI] ${data.message}\n`;
+          btn.innerHTML = '<i class="fas fa-check"></i> YEDEK ALINDI';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }, 3000);
+        } else {
+          logBox.innerText += `[HATA] ${data.error || 'Yedekleme yapılamadı.'}\n`;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        logBox.innerText += `[HATA] Bağlantı kurulamadı.\n`;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // DB: Optimizasyon Tetikleyici
+    async function dbOptimize(btn) {
+      if (!confirm('Veritabanı indeksleri ve dosya boyutları optimize edilsin mi?')) return;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OPTİMİZE EDİLİYOR...';
+      btn.disabled = true;
+
+      const logBox = document.getElementById('db-status-log');
+      logBox.style.display = 'block';
+      logBox.innerText = '[LOG] Veritabanı optimizasyonu ve indeks REBUILD motoru başlatıldı...\n';
+
+      try {
+        const res = await fetch('/dashboard/api/db/optimize', { 
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          if (data.log && data.log.length > 0) {
+            data.log.forEach(l => logBox.innerText += `${l}\n`);
+          }
+          logBox.innerText += `[BAŞARILI] ${data.message}\n`;
+          btn.innerHTML = '<i class="fas fa-check"></i> OPTİMİZE EDİLDİ';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }, 3000);
+        } else {
+          logBox.innerText += `[HATA] ${data.error || 'Optimizasyon yapılamadı.'}\n`;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        logBox.innerText += `[HATA] Bağlantı kurulamadı.\n`;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // DB: Demo Temizleme Tetikleyici
+    async function dbCleanup(btn) {
+      if (!confirm('⚠️ DİKKAT: Bu işlem tüm talepleri, atamaları ve test kullanıcılarını SİLECEKTİR!\n\nEmin misiniz?')) return;
+      if (!confirm('⚠️ SON UYARI: Silinen veriler geri getirilemez. Devam edilsin mi?')) return;
+      
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> TEMİZLENİYOR...';
+      btn.disabled = true;
+
+      const logBox = document.getElementById('db-status-log');
+      logBox.style.display = 'block';
+      logBox.innerText = '[LOG] Veritabanı temizleme işlemi başlatıldı. Veriler sıfırlanıyor...\n';
+
+      try {
+        const res = await fetch('/dashboard/api/db/cleanup', { 
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          logBox.innerText += `[BAŞARILI] ${data.message}\n`;
+          btn.innerHTML = '<i class="fas fa-trash-check"></i> TEMİZLENDİ';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }, 3000);
+        } else {
+          logBox.innerText += `[HATA] ${data.error || 'Temizlik yapılamadı.'}\n`;
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        logBox.innerText += `[HATA] Bağlantı kurulamadı.\n`;
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // Sayfa yüklendiğinde ayarları getir
+    document.addEventListener('DOMContentLoaded', loadSettings);
   </script>
 
   <footer style="margin-top: 60px; padding: 40px 0;">

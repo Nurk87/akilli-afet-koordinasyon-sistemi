@@ -354,7 +354,10 @@ router.post('/api/update-status-gonullu', verifyToken, async (req, res) => {
       return res.status(403).json({ error: 'Bu görevi güncelleme yetkiniz yok.' });
     }
 
-    // --- SIRALI GÖREV DİSİPLİNİ (ESNEK - BLOKLAMA KALDIRILDI) ---
+    // --- SIRALI GÖREV DİSİPLİNİ ---
+    const { getSettings } = require('../utils/settings');
+    const settings = getSettings();
+
     // Simülasyon görevlerini öncelik kontrolünden tamamen çıkarıyoruz.
     const [higherPriority] = await pool.query(`
       SELECT TOP 1 y.baslik
@@ -369,7 +372,11 @@ router.post('/api/update-status-gonullu', verifyToken, async (req, res) => {
     `, [req.user.id, id, id]);
 
     if (higherPriority.length > 0) {
-       console.log(`⚠️ BİLGİ: Gönüllü (${req.user.id}), yüksek öncelikli (${higherPriority[0].baslik}) görevi varken başka bir göreve geçiş yaptı.`);
+      if (settings.ai_sirali_gorev) {
+        return res.status(400).json({ error: `Öncelikli görev kuralı aktif! Lütfen önce daha yüksek öncelikli olan görevinizi ("${higherPriority[0].baslik}") tamamlayın.` });
+      } else {
+        console.log(`⚠️ BİLGİ: Gönüllü (${req.user.id}), yüksek öncelikli (${higherPriority[0].baslik}) görevi varken başka bir göreve geçiş yaptı.`);
+      }
     }
     // ---------------------------------------------------------
     // --------------------------------------

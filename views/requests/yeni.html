@@ -9,7 +9,9 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="manifest" href="/manifest.json">
   <script src="/js/i18n.js" defer></script>
+  <script src="/js/pwa.js" defer></script>
   <style>
     #map { height: 350px; width: 100%; margin-bottom: 20px; }
   </style>
@@ -365,7 +367,7 @@
         kayitDurdurBtn.style.display = 'none';
       };
 
-      // --- FORM GÖNDERİMİ (AJAX/FETCH) ---
+      // --- FORM GÖNDERİMİ (AJAX/FETCH & OFFLINE) ---
       const form = document.querySelector('form');
       form.onsubmit = async (e) => {
         e.preventDefault();
@@ -375,6 +377,62 @@
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${sendingText}`;
 
+        const reqObj = {
+          ad_soyad: document.getElementById('ad_soyad').value || '',
+          telefon: document.getElementById('telefon').value || '',
+          il_id: document.getElementById('il').value || '',
+          ilce_id: document.getElementById('ilce').value || '',
+          baslik: form.querySelector('input[name="baslik"]').value || '',
+          yardim_tipi: form.querySelector('select[name="yardim_tipi"]').value || '',
+          aciklama: document.getElementById('aciklama').value || '',
+          acik_adres: document.getElementById('acik_adres').value || '',
+          enlem: document.getElementById('enlem').value || '0',
+          boylam: document.getElementById('boylam').value || '0',
+          oncelik: form.querySelector('select[name="oncelik"]').value || 'orta',
+          offline_tarih: new Date().toLocaleString('tr-TR')
+        };
+
+        // Eğer cihaz çevrimdışı (offline) ise yerel hafızaya kaydet
+        if (!navigator.onLine) {
+          console.warn('⚠️ Cihaz çevrimdışı! Çevrimdışı kayıt süreci başlatıldı.');
+          
+          const saveOfflineAndRedirect = () => {
+            if (recordedBlob) {
+              const reader = new FileReader();
+              reader.onload = function(event) {
+                reqObj.ses_base64 = event.target.result;
+                writeToLocalStorage();
+              };
+              reader.readAsDataURL(recordedBlob);
+            } else {
+              writeToLocalStorage();
+            }
+          };
+
+          const writeToLocalStorage = () => {
+            const pending = JSON.parse(localStorage.getItem('pending_requests') || '[]');
+            pending.push(reqObj);
+            localStorage.setItem('pending_requests', JSON.stringify(pending));
+            
+            alert('⚠️ BAĞLANTI KESİLDİ!\nTalebiniz çevrimdışı olarak cihaza kaydedildi.\n\nİnternet bağlantısı algılandığı an otomatik olarak AFAD Koordinasyon Merkezi\'ne iletilecektir.');
+            window.location.href = '/';
+          };
+
+          const photoFile = form.querySelector('input[name="fotograf"]').files[0];
+          if (photoFile) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              reqObj.fotograf_base64 = event.target.result;
+              saveOfflineAndRedirect();
+            };
+            reader.readAsDataURL(photoFile);
+          } else {
+            saveOfflineAndRedirect();
+          }
+          return;
+        }
+
+        // Çevrimiçi ise normal gönderim yap
         const formData = new FormData(form);
         if (recordedBlob) {
           formData.append('ses_kaydi', recordedBlob, 'kayit.webm');
